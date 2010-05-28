@@ -542,3 +542,178 @@ function d($s) {
 	echo "<pre>"; print_r($s); echo "</pre>";
 	#echo "<pre>"; var_dump($s); echo "</pre>";
 }
+
+
+
+/**
+ * get all values or just the from a field in a field group
+ * @param $post_id
+ * @param $field_name_or_id name as string or field group id and field id as array. 
+ * 		  for example array(3,2) to fetch field 2 from field group 3
+ * @param $single bool return a single (the first) value or all values (as array)
+ * @return string or array
+ */
+function simple_fields_get_post_value($post_id, $field_name_or_id, $single = true) {
+
+	$fetch_by_id = true;
+	if (is_array($field_name_or_id) && sizeof($field_name_or_id) == 2) {
+		$field_group_id = $field_name_or_id[0];
+		$field_id = $field_name_or_id[1];
+		$fetch_by_id = false;
+	}
+	$connector = simple_fields_get_all_fields_and_values_for_post($post_id);
+	$return_val = null;
+	foreach ($connector["field_groups"] as $one_field_group) {
+		$is_found = false;
+		foreach ($one_field_group["fields"] as $one_field) {
+			if ($fetch_by_id && $one_field["name"] == $field_name_or_id) {
+				// we got our field, get the value(s)
+				$is_found = true;
+			} else if (($one_field_group["id"] == $field_group_id) && ($one_field["id"] == $field_id)) {
+				$is_found = true;
+			}
+
+			$saved_values = $one_field["saved_values"];
+
+			if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
+				if ($one_field["type"] == "radiobuttons") {
+					$get_value_key = "type_radiobuttons_options";
+				} else if ($one_field["type"] == "dropdown") {
+					$get_value_key = "type_dropdown_options";
+				}
+				// if radiobutton or dropdown, get value from type_dropdown_options[<saved value>][value]
+				// for each saved value, get value from type_dropdown_options[<saved value>]
+				for ($saved_i = 0; $saved_i < sizeof($saved_values); $saved_i++) {
+					$saved_values[$saved_i] = $one_field[$get_value_key][$saved_values[$saved_i]]["value"];
+				}
+			}
+			
+			if ($is_found && $single) {
+				$return_val = $saved_values[0];
+			} else if ($is_found) {
+				$return_val = $saved_values;
+			}
+
+			if ($is_found) {
+				return $return_val;
+			}
+
+
+		}
+	}
+	return; // oh no! nothing found. bummer.
+}
+
+/**
+ * get all values from a field group
+ * @param int $post_id
+ * @param name or ir $field_group_name_or_id
+ * @param bool use_name return array with names or id as key
+ * @param int $return_format 1|2
+ * @return array
+ */
+function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, $use_name = true, $return_format = 1) {
+
+	$fetch_by_id = true;
+	if (is_int($field_group_name_or_id)) {
+		$fetch_by_id = true;
+	}
+	$connector = simple_fields_get_all_fields_and_values_for_post($post_id);
+
+	foreach ($connector["field_groups"] as $one_field_group) {
+
+		$is_found = false;
+		if ($fetch_by_id && $one_field_group["id"] == $field_group_name_or_id) {
+			$is_found = true;
+		} else if ($field_group_name_or_id == $one_field_group["name"]) {
+			$is_found = true;
+		}
+
+		if ($is_found) {
+			$arr_return = array();
+			foreach ($one_field_group["fields"] as $one_field) {
+			
+				$saved_values = $one_field["saved_values"];
+
+				if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
+					if ($one_field["type"] == "radiobuttons") {
+						$get_value_key = "type_radiobuttons_options";
+					} else if ($one_field["type"] == "dropdown") {
+						$get_value_key = "type_dropdown_options";
+					}
+					// if radiobutton or dropdown, get value from type_dropdown_options[<saved value>][value]
+					// for each saved value, get value from type_dropdown_options[<saved value>]
+					for ($saved_i = 0; $saved_i < sizeof($saved_values); $saved_i++) {
+						$saved_values[$saved_i] = $one_field[$get_value_key][$saved_values[$saved_i]]["value"];
+					}
+				}
+
+				if ($use_name) {
+					$arr_return[$one_field["name"]] = $saved_values;
+				} else {
+					$arr_return[$one_field["id"]] = $saved_values;
+				}
+			}
+			
+			#$set_count = sizeof($one_field);
+			$set_count = sizeof($one_field["saved_values"]);
+			
+			$arr_return2 = array();
+			for ($i=0; $i<$set_count; $i++) {
+				$arr_return2[$i] = array();
+				foreach ($arr_return as $key => $val) {
+					$arr_return2[$i][$key] = $val[$i];
+				}
+			}
+			if ($return_format == 1) {
+				return $arr_return;
+			} elseif ($return_format == 2) {
+				return $arr_return2;
+			}
+		}
+	}
+	
+
+}
+
+/**
+ * fetch all information about the field group that a post has
+ * returns connector structure, field groups, fields, and values
+ * well.. everything! it's really funky.
+ * return @array a really fat one!
+ */
+function simple_fields_get_all_fields_and_values_for_post($post_id) {
+	$post = get_post($post_id);
+	$connector_to_use = simple_fields_get_selected_connector_for_post($post);
+	$existing_post_connectors = simple_fields_get_post_connectors();
+	$field_groups = get_option("simple_fields_groups");
+	$selected_post_connector = $existing_post_connectors[$connector_to_use];
+	foreach ($selected_post_connector["field_groups"] as $one_field_group) { // one_field_group = name, deleted, context, priority, id
+	
+		// now get all fields for that fieldgroup and join them together
+		$selected_post_connector["field_groups"][$one_field_group["id"]] = array_merge($selected_post_connector["field_groups"][$one_field_group["id"]], $field_groups[$one_field_group["id"]]);
+	
+		// loop through all fields within this field group
+		// now find out how many times this field group has been added
+		// can be zero, 1 och several (if field group is repeatable)
+	
+		$num_added_field_groups = 0;
+		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$one_field_group["id"]}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
+			$num_added_field_groups++;
+		}
+		#echo "<br>" . $one_field_group["id"];
+		#echo ", num_added_field_groups: $num_added_field_groups";
+		
+		// now fetch the stored values, one field at a time
+		for ($num_in_set = 0; $num_in_set < $num_added_field_groups; $num_in_set++) {
+			// fetch value for each field
+			foreach ($selected_post_connector["field_groups"][$one_field_group["id"]]["fields"] as $one_field_id => $one_field_value) {
+				$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group["id"]}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";	
+				$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
+				$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["saved_values"][$num_in_set] = $saved_value;
+			}
+		}
+		
+	}
+	return $selected_post_connector;
+}

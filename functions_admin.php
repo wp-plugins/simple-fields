@@ -338,7 +338,7 @@ function simple_fields_options() {
 							<table>
 								<?php
 								global $wp_post_types;
-								$arr_post_types_to_ignore = array("attachment", "revision");
+								$arr_post_types_to_ignore = array("attachment", "revision", "nav_menu_item");
 								foreach ($wp_post_types as $one_post_type) {
 									if (!in_array($one_post_type->name, $arr_post_types_to_ignore)) {
 										?>

@@ -252,9 +252,9 @@
 				$ul.prepend($response);
 				$response.slideDown("slow", function() {
 					$response.effect("highlight", 1000);
-					simple_fields_metabox_tinymce_attach();
+					// tiny has problems with reattaching the editors sometimes. this is a try to fix that
+					setTimeout(function() { simple_fields_metabox_tinymce_attach(); }, 500);
 				});
-				
 
 			});
 			
@@ -273,6 +273,13 @@
 			},
 			stop: function(event, ui) {
 				simple_fields_metabox_tinymce_attach();
+			}
+		});
+		$("ul.simple-fields-metabox-field-group-fields-repeatable li").live("hover", function(e) {
+			if (e.type == "mouseover") {
+				$(this).addClass("hover");
+			} else if (e.type == "mouseout") {
+				$(this).removeClass("hover");
 			}
 		});
 		

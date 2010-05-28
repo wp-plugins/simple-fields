@@ -5,8 +5,8 @@ ul.simple-fields-edit-field-groups-added-fields {
 	position: relative;
 }
 ul.simple-fields-edit-field-groups-added-fields li {
-	margin-bottom: 2em;
-	padding-bottom: 2em;
+	margin-bottom: 1em;
+	padding-bottom: 1em;
 	border-bottom: 1px solid #DFDFDF;
 	background-color: #F9F9F9;
 	position: relative;
@@ -205,17 +205,18 @@ ul.simple-fields-metabox-field-group-fields-repeatable li {
 	margin-top: 1em;
 	padding-top: .5em;
 	padding-bottom: .5em;
-	/* margin-left: 22px; */
-	padding-left: 22px;
+	padding-left: 11px;
 	background-color: white;
+}
+ul.simple-fields-metabox-field-group-fields-repeatable li.hover {
+	background-color: #fff7db;
 }
 .simple-fields-metabox-field-group-handle {
 	display: none;
 }
 ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-field-group-handle {
 	display: block;
-	margin-left: -22px;
-	xmargin-top: 12px;
+	margin-left: -16px;
 }
 .simple-fields-metabox-field-group input.text {
 	border: 1px solid #dfdfdf;
@@ -228,9 +229,6 @@ ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-fi
 {
 	width: 95%;
 }
-.simple-fields-metabox-field-textarea-tinymce-wrapper .simple-fields-metabox-field-group textarea {
-
-}
 .simple-fields-metabox-field-textarea-tinymce-wrapper {
 	width: 95%;
 	border: 1px solid #DFDFDF;
@@ -238,9 +236,13 @@ ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-fi
 	-webkit-border-radius: 6px 6px 0 0;
 	border-radius: 6px 6px 0 0;
 }
+.simple-fields-metabox-field-textarea-tinymce-wrapper .simple-fields-metabox-field-group textarea {
+
+}
+
 .simple-fields-metabox-field-group-delete {
 	position: absolute;
-	left: 0;
+	left: -6px;
 	top: 38px;
 }
 .simple-fields-metabox-field-group-delete a {
