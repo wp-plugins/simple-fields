@@ -60,16 +60,14 @@ function simple_fields_options() {
 	}
 
 	// sort them by name
-	// disabled for now, it made a mess out of the ids...
-	uasort($field_groups, function($a, $b) {
+	function simple_fields_uasort($a, $b) {
 		if ($a["name"] == $b["name"]) { return 0; }
 		return strcasecmp($a["name"], $b["name"]);
-	});
-	uasort($post_connectors, function($a, $b) {
-		if ($a["name"] == $b["name"]) { return 0; }
-		return strcasecmp($a["name"], $b["name"]);
-	});
-
+	}
+	
+	uasort($field_groups, "simple_fields_uasort");
+	uasort($post_connectors, "simple_fields_uasort");
+	
 	// sometimes we get a empty field group on pos zero.. wierd.. can't find the reason for it right now.. :(
 	#if ($field_groups[0] && empty($field_groups[0]["name"])) {
 	#	unset($field_groups[0]);

@@ -2,8 +2,8 @@
 Contributors: eskapism
 Donate link: http://example.com/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
-Requires at least: 3.0-beta2
-Tested up to: 3.0-beta2
+Requires at least: 3.0-rc1
+Tested up to: 3.0-rc1
 Stable tag: trunk
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
@@ -45,6 +45,9 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.2.1 =
+- works on PHP < 5.3.0
 
 = 0.2 =
 - Still beta! But actually usable.
