@@ -8,7 +8,7 @@ function simple_fields_post_connector_attached_types() {
 	$post_connectors = (array) get_option("simple_fields_post_connectors");
 	$arr_post_types = array();
 	foreach ($post_connectors as $one_post_connector) {
-		$arr_post_types = array_merge($arr_post_types, $one_post_connector["post_types"]);
+		$arr_post_types = array_merge($arr_post_types, (array) $one_post_connector["post_types"]);
 	}
 	$arr_post_types = array_unique($arr_post_types);
 	return $arr_post_types;
