@@ -476,6 +476,12 @@ function simple_fields_get_selected_connector_for_post($post) {
 		#$connector_to_use = "__none__";
 	}
 	
+	// if selected connector is deleted, then return none
+	$post_connectors = simple_fields_get_post_connectors();
+	if ($post_connectors[$connector_to_use]["deleted"]) {
+		$connector_to_use = "__none__";
+	}
+	
 	return $connector_to_use;
 
 }
@@ -528,6 +534,7 @@ function simple_fields_edit_post_side_field_settings() {
 			<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__">None</option>
 			<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__">Inherit from parent</option>
 			<?php foreach ($arr_connectors as $one_connector) : ?>
+				<?php if ($one_connector["deleted"]) { continue; } ?>
 				<option <?php echo ($connector_selected == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
 			<?php endforeach; ?>
 		</select>
@@ -609,7 +616,7 @@ function simple_fields_get_post_value($post_id, $field_name_or_id, $single = tru
  * @param int $post_id
  * @param name or ir $field_group_name_or_id
  * @param bool use_name return array with names or id as key
- * @param int $return_format 1|2
+ * @param int $return_format 1|2
  * @return array
  */
 function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, $use_name = true, $return_format = 1) {

@@ -70,6 +70,15 @@
 			return false;
 		});
 		
+		$(".simple-fields-post-connector-delete a").live("click", function() {
+			if (confirm("Delete this post connector?")) {
+				return true;
+			} else {							
+			}
+			return false;
+		});
+
+		
 		function simple_fields_get_fieldID_from_this(t) {
 			var $t = $(t);
 			return $t.closest(".simple-fields-field-group-one-field").find(".simple-fields-field-group-one-field-id").val();

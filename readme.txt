@@ -25,6 +25,11 @@ Simple Fields turns WordPress into an even more powerful Content Management Syst
 * Different post types can use different field groups - actually you can even use different field groups even for same post type
 * Nice GUI that looks like the rest of WordPress
 
+For more information check out my introductory blog post:
+http://eskapism.se/blogg/2010/05/simple-fields-wp-custom-fields-on-steroids/
+
+Also check out this short tutorial:
+http://eskapism.se/code-playground/simple-fields/tutorial/
 
 == Installation ==
 
@@ -45,6 +50,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.2.2 =
+- can now delete a post connector
+- does no longer show deleted connectors in post edit
 
 = 0.2.1 =
 - works on PHP < 5.3.0

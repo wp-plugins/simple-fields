@@ -50,14 +50,20 @@ li.simple-fields-field-group-one-field div.delete {
 	right: 0;
 	bottom: 1em;
 }
-.simple-fields-field-group-delete {
+.simple-fields-field-group-delete,
+.simple-fields-post-connector-delete
+ {
 	text-align: right;
 	margin-top: -3.5em;
 }
-.simple-fields-field-group-delete a {
+.simple-fields-field-group-delete a,
+.simple-fields-post-connector-delete a
+ {
 	color: #BC0B0B;
 }
-.simple-fields-field-group-delete a:hover {
+.simple-fields-field-group-delete a:hover,
+simple-fields-post-connector-delete a:hover
+ {
 	color: #FF0000;
 }
 

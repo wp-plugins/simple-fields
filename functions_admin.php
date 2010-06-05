@@ -162,6 +162,17 @@ function simple_fields_options() {
 			$action = "";
 		}
 
+		/**
+		 * Delete a post connector
+		 */
+		if ("delete-post-connector" == $action) {
+			$post_connector_id = (int) $_GET["connector-id"];
+			$post_connectors[$post_connector_id]["deleted"] = 1;
+			update_option("simple_fields_post_connectors", $post_connectors);
+			$simple_fields_did_delete_post_connector = true;
+			$action = "";
+		}
+		
 
 		/**
 		 * save a post connector
@@ -367,7 +378,7 @@ function simple_fields_options() {
 					or 
 					<a href="<?php echo EASY_FIELDS_FILE ?>">cancel</a>
 				</p>
-				<p class="simple-fields-field-group-delete">
+				<p class="simple-fields-post-connector-delete">
 					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=delete-post-connector&amp;connector-id=<?php echo $post_connector_in_edit["id"] ?>">Delete</a>
 				</p>
 
@@ -490,7 +501,6 @@ function simple_fields_options() {
 			}
 
 
-
 			/**
 			 * view existing field groups
 			 */	
@@ -504,9 +514,13 @@ function simple_fields_options() {
 					?><div id="message" class="updated"><p>Field group saved</p></div><?
 				} elseif ($simple_fields_did_delete) {
 					?><div id="message" class="updated"><p>Field group deleted</p></div><?
+				} elseif ($simple_fields_did_delete_post_connector) {
+					?><div id="message" class="updated"><p>Post connector deleted</p></div><?
 				} elseif ($simple_fields_did_save_post_type_defaults) {
 					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?
 				}
+
+				
 				
 				$field_group_count = 0;
 				foreach ($field_groups as $oneFieldGroup) {
