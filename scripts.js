@@ -1,0 +1,372 @@
+
+(function($) {
+
+	// add new field to the field group
+	function simple_fields_field_group_add_field() {
+		simple_fields_highest_field_id++;
+		var data = {
+			action: 'simple_fields_field_group_add_field',
+			simple_fields_highest_field_id: simple_fields_highest_field_id
+		}
+		$.post(ajaxurl, data, function(response) {
+			var ul = $("#simple-fields-field-group-existing-fields ul:first");
+			$response = $(response);
+			ul.append($response);
+			ul.find(".simple-fields-field-group-one-field:last").effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
+			//$response.effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
+		});		
+	}
+	
+	$(function() {
+		
+		$("#simple-fields-field-group-existing-fields ul:first").sortable({
+			distance: 10,
+			axis: 'y',
+			handle: ".simple-fields-field-group-one-field-handle"
+		});
+
+		// radiobutton
+		$(".simple-fields-field-type-options-radiobutton-values-added").sortable({
+			axis: 'y',
+			containment: "parent",
+			handle: ".simple-fields-field-type-options-radiobutton-handle"
+		});
+
+		$("#simple-fields-field-group-add-field").click(function() {
+			simple_fields_field_group_add_field();
+			return false;
+		});
+		
+		$("select.simple-fields-field-type").live("change", function() {
+			// look for simple-fields-field-type-options-<type> and show if
+			var $t = $(this);
+			var selectedFieldType = $t.val();
+			var $li = $t.closest("li");
+			$li.find(".simple-fields-field-type-options").hide("slow");
+			$li.find(".simple-fields-field-type-options-" + selectedFieldType).show("slow");
+		});
+		
+		$("li.simple-fields-field-group-one-field").live("mouseenter", function() {
+			$(this).find("div.delete").show();
+		});
+		$("li.simple-fields-field-group-one-field").live("mouseleave", function() {
+			$(this).find("div.delete").hide();
+		});
+
+		$("li.simple-fields-field-group-one-field div.delete a").live("click", function(){
+			if (confirm("Delete this field?")) {
+				$(this).closest("li").find(".hidden_deleted").attr("value", 1);
+				$(this).closest("li").hide("slow");
+			} else {							
+			}
+			return false;
+		});
+
+		$(".simple-fields-field-group-delete a").live("click", function() {
+			if (confirm("Delete this group?")) {
+				return true;
+			} else {							
+			}
+			return false;
+		});
+		
+		$(".simple-fields-post-connector-delete a").live("click", function() {
+			if (confirm("Delete this post connector?")) {
+				return true;
+			} else {							
+			}
+			return false;
+		});
+
+		
+		function simple_fields_get_fieldID_from_this(t) {
+			var $t = $(t);
+			return $t.closest(".simple-fields-field-group-one-field").find(".simple-fields-field-group-one-field-id").val();
+		}
+		
+		/* radiobuttons */
+		function simple_fields_field_type_options_radiobutton_values_add(fieldID, fieldRadiobuttonID) {
+			var $html = $("<li>\n<div class='simple-fields-field-type-options-radiobutton-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-radiobutton-deleted' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][deleted]' type='hidden' value='0' />\n<input class='simple-fields-field-type-options-radiobutton-checked-by-default-values' type='radio' name='field["+fieldID+"][type_radiobuttons_options][checked_by_default_num]' value='radiobutton_num_"+fieldRadiobuttonID+"' />\n <a class='simple-fields-field-type-options-radiobutton-delete' href='#' style='display: none;'>Delete</a> </li>");
+			var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
+			$fieldLI.find(".simple-fields-field-type-options-radiobutton-values-added").append($html);
+			$html.effect("highlight");
+			$html.find("input:first").focus();
+			$fieldLI.find(".simple-fields-field-type-options-radiobutton-values-added").sortable({
+				axis: 'y',
+				containment: "parent",
+				handle: ".simple-fields-field-type-options-radiobutton-handle"
+			});
+		}
+		$("a.simple-fields-field-type-options-radiobutton-values-add").live("click", function() {
+			// finds the highest existing button id
+			var $fieldRadiobuttonHighestID = $(this).closest(".simple-fields-field-group-one-field").find(".simple-fields-field-group-one-field-radiobuttons-highest-id");
+			var fieldRadiobuttonHighestID = $fieldRadiobuttonHighestID.val();
+			fieldRadiobuttonHighestID++;
+			// add it
+			simple_fields_field_type_options_radiobutton_values_add(simple_fields_get_fieldID_from_this(this), fieldRadiobuttonHighestID);
+			$fieldRadiobuttonHighestID.val(fieldRadiobuttonHighestID);
+			return false;
+		});
+		$("ul.simple-fields-field-type-options-radiobutton-values-added li").live("mouseenter", function() {
+			$(this).find(".simple-fields-field-type-options-radiobutton-delete").show();
+		});
+		$("ul.simple-fields-field-type-options-radiobutton-values-added li").live("mouseleave", function() {
+			$(this).find(".simple-fields-field-type-options-radiobutton-delete").hide();
+		});
+		$(".simple-fields-field-type-options-radiobutton-delete").live("click", function() {
+			if (confirm("Delete radio button?")) {
+				$(this).closest("li").hide("slow").find(".simple-fields-field-type-options-radiobutton-deleted").val("1");
+			}
+			return false;
+		});
+		
+		/* dropdown */
+		$("ul.simple-fields-field-type-options-dropdown-values-added").sortable({
+			axis: 'y',
+			containment: "parent",
+			handle: ".simple-fields-field-type-options-dropdown-handle"
+		});
+		function simple_fields_field_type_options_dropdown_values_add(fieldID, fieldDropdownID) {
+			var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>Delete</a> </li>");
+			var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
+			$fieldLI.find(".simple-fields-field-type-options-dropdown-values-added").append($html);
+			$html.find("input:first").focus();
+			$html.effect("highlight");
+			$("ul.simple-fields-field-type-options-dropdown-values-added").sortable({
+				axis: 'y',
+				containment: "parent",
+				handle: ".simple-fields-field-type-options-dropdown-handle"
+			});
+		}
+		$("a.simple-fields-field-type-options-dropdown-values-add").live("click", function() {
+			// finds the highest existing button id
+			var $fieldDropdownHighestID = $(this).closest(".simple-fields-field-group-one-field").find(".simple-fields-field-group-one-field-dropdown-highest-id");
+			var fieldDropdownHighestID = $fieldDropdownHighestID.val();
+			fieldDropdownHighestID++;
+			// add it
+			simple_fields_field_type_options_dropdown_values_add(simple_fields_get_fieldID_from_this(this), fieldDropdownHighestID);
+			$fieldDropdownHighestID.val(fieldDropdownHighestID);
+			return false;
+		});
+		$("ul.simple-fields-field-type-options-dropdown-values-added li").live("mouseenter", function() {
+			$(this).find(".simple-fields-field-type-options-dropdown-delete").show();
+		});
+		$("ul.simple-fields-field-type-options-dropdown-values-added li").live("mouseleave", function() {
+			$(this).find(".simple-fields-field-type-options-dropdown-delete").hide();
+		});
+		$(".simple-fields-field-type-options-dropdown-delete").live("click", function() {
+			if (confirm("Delete dropdown value?")) {
+				$(this).closest("li").hide("slow").find(".simple-fields-field-type-options-dropdown-deleted").val("1");
+			}
+			return false;
+		});
+		
+
+		/**
+		 * post connector
+		 */
+		$("#simple-fields-post-connector-add-fields").change(function() {
+			var selectedVal = $(this).val();
+			var selectedValName = $(this).find(":selected").text();
+			$(this).val("");
+			
+			var str_html = "";
+			str_html += "<li>";
+			
+			str_html += "<div class='simple-fields-post-connector-addded-fields-handle'></div>";
+			str_html += "<div class='simple-fields-post-connector-addded-fields-field-name'>" + selectedValName + "</div>";
+			str_html += "<input type='hidden' name='added_fields["+selectedVal+"][id]' value='"+selectedVal+"' />";
+			str_html += "<input type='hidden' name='added_fields["+selectedVal+"][name]' value='"+selectedValName+"' />";
+			str_html += "<input type='hidden' name='added_fields["+selectedVal+"][deleted]' value='0' />";
+
+			str_html += "<div class='simple-fields-post-connector-addded-fields-options'>";
+			str_html += "Context";
+			str_html += "<select class='simple-fields-post-connector-addded-fields-option-context' name='added_fields["+selectedVal+"][context]'>";
+			str_html += "<option value='normal'>normal</option>";
+			str_html += "<option value='advanced'>advanced</option>";
+			str_html += "<option value='side'>side</option>";
+			str_html += "</select>";
+			
+			str_html += "Priority";
+			str_html += "<select class='simple-fields-post-connector-addded-fields-option-priority' name='added_fields["+selectedVal+"][priority]'>";
+			str_html += "<option value='low'>low</option>";
+			str_html += "<option value='high'>high</option>";
+			str_html += "</select>";
+			str_html += "</div>";
+
+			str_html += "<a href='#' class='simple-fields-post-connector-addded-fields-delete'>Delete</a>";
+
+			str_html += "</li>";
+			
+			var $html = $(str_html);
+			
+			$("#simple-fields-post-connector-added-fields").append($html);
+			
+			$html.effect("highlight");
+			
+			
+		});
+		$("#simple-fields-post-connector-added-fields").sortable({
+			axis: 'y',
+			xcontainment: "parent",
+			handle: ".simple-fields-post-connector-addded-fields-handle"
+		});
+		$("ul#simple-fields-post-connector-added-fields li").hover(function() {
+			$(this).find(".simple-fields-post-connector-addded-fields-delete").show();
+		}, function() {
+			$(this).find(".simple-fields-post-connector-addded-fields-delete").hide();
+		});
+		$(".simple-fields-post-connector-addded-fields-delete").live("click", function() {
+			if (confirm("Remove field group from post connector?")) {
+				$(this).closest("li").hide("slow").find(".simple-fields-post-connector-added-field-deleted").val("1");
+			}
+			return false;
+		});
+
+		/**
+		 * edit posts
+		 */
+		$("#simple-fields-post-edit-side-field-settings-select-connector").change(function() {
+			$("#simple-fields-post-edit-side-field-settings-select-connector-please-save").show("fast");
+		});
+		$("#simple-fields-post-edit-side-field-settings-show-keys").click(function() {
+			$(".simple-fields-metabox-field-custom-field-key").toggle();
+			return false;
+		});
+
+		// get a field group from the server and add it to the page
+		// what we need:
+		// - field group id
+		// - post id
+		// - num in (new) set
+		var simple_fields_new_fields_count = 0;
+		$(".simple-fields-metabox-field-add").live("click", function() {
+
+			var $t = $(this);
+			var $wrapper = $(this).parents(".simple-fields-meta-box-field-group-wrapper");
+			var field_group_id = $wrapper.find("input[name=simple-fields-meta-box-field-group-id]").val();
+			var post_id = $("#post_ID").val();
+	
+			var data = {
+				"action": 'simple_fields_metabox_fieldgroup_add',
+				"simple_fields_new_fields_count": simple_fields_new_fields_count,
+				"field_group_id": field_group_id,
+				"post_id": post_id
+			};
+		
+			$.post(ajaxurl, data, function(response) {
+				// alert('Got this from the server: ' + response);
+				$ul = $wrapper.find("ul.simple-fields-metabox-field-group-fields");
+				$response = $(response);
+				$response.hide();
+				$ul.prepend($response);
+				$response.slideDown("slow", function() {
+					$response.effect("highlight", 1000);
+					// tiny has problems with reattaching the editors sometimes. this is a try to fix that
+					setTimeout(function() { simple_fields_metabox_tinymce_attach(); }, 500);
+				});
+
+			});
+			
+			simple_fields_new_fields_count++;
+
+			return false;
+		});
+		
+		$("ul.simple-fields-metabox-field-group-fields-repeatable").sortable({
+			distance: 10,
+			axis: 'y',
+			handle: ".simple-fields-metabox-field-group-handle",
+			start: function(event, ui) {
+				// detach tinymce, or there will be errors
+				simple_fields_metabox_tinymce_detach();
+			},
+			stop: function(event, ui) {
+				simple_fields_metabox_tinymce_attach();
+			}
+		});
+		$("ul.simple-fields-metabox-field-group-fields-repeatable li").live("hover", function(e) {
+			if (e.type == "mouseover") {
+				$(this).addClass("hover");
+			} else if (e.type == "mouseout") {
+				$(this).removeClass("hover");
+			}
+		});
+		// on click on any input in a repeatable field group: highlight whole group
+		$("ul.simple-fields-metabox-field-group-fields-repeatable li input").live("focus", function() {
+			$(this).closest("li").addClass("active");
+		}).live("blur", function() {
+			$(this).closest("li").removeClass("active");
+		});
+		
+		$(".simple-fields-metabox-field-group").live("mouseenter", function() {
+			$(this).find(".simple-fields-metabox-field-group-delete").show();
+		});
+		$(".simple-fields-metabox-field-group").live("mouseleave", function() {
+			$(this).find(".simple-fields-metabox-field-group-delete").hide();
+		});
+		$(".simple-fields-metabox-field-group-delete").live("click", function() {
+			if (confirm("Remove this field group?")) {
+				var li = $(this).closest("li");
+				li.hide("slow", function() { li.remove(); });
+			}
+			return false;
+		});
+		
+		// attach TinyMCE to textareas
+		simple_fields_metabox_tinymce_attach();
+		
+	});
+
+
+	function simple_fields_metabox_tinymce_attach() {
+		if (typeof( tinyMCE ) == "object") {
+			tinyMCEPreInit.mceInit.editor_selector = "simple-fields-metabox-field-textarea-tinymce";
+			tinyMCEPreInit.mceInit.theme_advanced_resizing = false;
+			tinyMCE.init( tinyMCEPreInit.mceInit );
+		}
+	}
+	
+	function simple_fields_metabox_tinymce_detach() {
+		for( edId in tinyMCE.editors ) {
+			if ( /simple_fields/.test(edId) ) {
+				tinyMCE.execCommand('mceRemoveControl', false, edId);
+			}
+		}
+
+	}
+	
+	$(".simple-fields-metabox-field-file-select").live("click", function() {
+		var input = $(this).closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-fileID");
+		simple_fields_metabox_field_file_select_input_selectedID = input;
+	});
+	
+	$(".simple-fields-file-browser-file-select").live("click", function() {
+		var file_id = $(this).closest("li").find("input[name='simple-fields-file-browser-list-file-id']").val();
+		var file_thumb = $(this).closest("li").find(".thumbnail img").attr("src");
+		var file_name = $(this).closest("li").find("h3").text();
+		self.parent.simple_fields_metabox_file_select(file_id, file_thumb, file_name);
+		self.parent.tb_remove();
+	});
+
+	$(".simple-fields-metabox-field-file-clear").live("click", function() {
+		var $li = $(this).closest("li");
+		$li.find(".simple-fields-metabox-field-file-fileID").val("");
+		$li.find(".simple-fields-metabox-field-file-selected-image").text("");
+		$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
+		return false;
+	});
+
+}(jQuery));
+
+var simple_fields_metabox_field_file_select_input_selectedID = null;
+function simple_fields_metabox_file_select(file_id, file_thumb, file_name) {
+	simple_fields_metabox_field_file_select_input_selectedID.val(file_id);
+	$file_thumb_tag = jQuery("<img src='"+file_thumb+"' alt='' />");
+	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image").html($file_thumb_tag);
+	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image-name").text(file_name);
+	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").effect("highlight", 4000);
+	
+	
+}
+// simple-fields-metabox-field-file
