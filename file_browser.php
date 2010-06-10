@@ -7,13 +7,10 @@ require WP_CONTENT_DIR . "/../wp-admin/includes/post.php";
 wp_enqueue_script("jquery");
 wp_enqueue_style("colors-fresh");
 
-
 /**
  */
 function media_upload_library_form2($errors) {
 	global $wpdb, $wp_query, $wp_locale, $type, $tab, $post_mime_types;
-
-	#media_upload_header();
 
 	$post_id = intval($_REQUEST['post_id']);
 
@@ -26,17 +23,30 @@ function media_upload_library_form2($errors) {
 	$start = ( $_GET['paged'] - 1 ) * 10;
 	if ( $start < 1 )
 		$start = 0;
-	add_filter( 'post_limits', create_function( '$a', "return 'LIMIT $start, 10';" ) );
+	add_filter( 'post_limits', create_function( '$a', "return 'LIMIT $start, 5';" ) );
 
-	list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query();
+	list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query($q);
+
+	$args = array(
+	    "xpaged" => 1,
+	    "m" => 0,
+	    "cat" => 0,
+	    "post_type" => "attachment",
+	    "post_status" => "inherit",
+	    "is_paged" => 1,
+	   # "xposts_per_page" => 5,
+	   # "xshowposts" => 5
+	);
+	#$query_attachments = query_posts($args);
+	$query_attachments = new WP_Query($args);
+	#echo "<pre>";print_r($query_attachments);
 	?>
-	
+
 	<form id="filter" action="" method="get">
 	<input type="hidden" name="type" value="<?php echo esc_attr( $type ); ?>" />
 	<input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>" />
 	<input type="hidden" name="post_id" value="<?php echo (int) $post_id; ?>" />
 	<input type="hidden" name="post_mime_type" value="<?php echo isset( $_GET['post_mime_type'] ) ? esc_attr( $_GET['post_mime_type'] ) : ''; ?>" />
-	
 	<p id="media-search" class="search-box">
 		<label class="screen-reader-text" for="media-search-input"><?php _e('Search Media');?>:</label>
 		<input type="text" id="media-search-input" name="s" value="<?php the_search_query(); ?>" />
@@ -45,6 +55,7 @@ function media_upload_library_form2($errors) {
 	
 	<ul class="subsubsub">
 	<?php
+
 	$type_links = array();
 	$_num_posts = (array) wp_count_attachments();
 	$matches = wp_match_mime_types(array_keys($post_mime_types), array_keys($_num_posts));
@@ -88,19 +99,18 @@ function media_upload_library_form2($errors) {
 		'format' => '',
 		'prev_text' => __('&laquo;'),
 		'next_text' => __('&raquo;'),
-		'total' => ceil($wp_query->found_posts / 10),
+		'total' => ceil($query_attachments->found_posts / 10),
 		'current' => $_GET['paged']
 	));
-	
+
 	if ( $page_links )
 		echo "<div class='tablenav-pages'>$page_links</div>";
 	?>
 	
 	<div class="alignleft actions">
 	<?php
-	
+
 	$arc_query = "SELECT DISTINCT YEAR(post_date) AS yyear, MONTH(post_date) AS mmonth FROM $wpdb->posts WHERE post_type = 'attachment' ORDER BY post_date DESC";
-	
 	$arc_result = $wpdb->get_results( $arc_query );
 	
 	$month_count = count($arc_result);
@@ -138,11 +148,15 @@ function media_upload_library_form2($errors) {
 
 	<div id="media-items">
 		<?
-		$attachments = array();
-			if ( is_array($GLOBALS['wp_the_query']->posts) )
-				foreach ( $GLOBALS['wp_the_query']->posts as $attachment )
-					$attachments[$attachment->ID] = $attachment;
 
+		$attachments = array();
+		if ( $query_attachments->have_posts() ) {
+			while ($query_attachments->have_posts()) {
+				$query_attachments->the_post();
+				$attachments[get_the_id()] = get_the_id();
+			}
+		}
+	
 		$attachments = (array) $attachments;
 		if (sizeof($attachments)>0) {
 			echo "<ul class='simple-fields-file-browser-list'>";
@@ -152,7 +166,7 @@ function media_upload_library_form2($errors) {
 			}
 			echo "</ul>";
 		}
-		?>
+	?>
 	</div>
 	<?php
 } // end function

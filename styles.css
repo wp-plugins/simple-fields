@@ -215,8 +215,12 @@ ul.simple-fields-metabox-field-group-fields-repeatable li {
 	background-color: white;
 }
 ul.simple-fields-metabox-field-group-fields-repeatable li.hover {
+	background-color: #fffcf1;
+}
+ul.simple-fields-metabox-field-group-fields-repeatable li.active {
 	background-color: #fff7db;
 }
+
 .simple-fields-metabox-field-group-handle {
 	display: none;
 }

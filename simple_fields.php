@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://eskapism.se/code-playground/simple-fields/
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 0.2.2
+Version: 0.2.3
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -34,28 +34,15 @@ if (isset($_GET["wp_abspath"])) {
 
 define( "EASY_FIELDS_URL", WP_PLUGIN_URL . '/simple-fields/');
 define( "EASY_FIELDS_NAME", "Simple Fields"); 
-define( "EASY_FIELDS_VERSION", "0.2");
+define( "EASY_FIELDS_VERSION", "0.2.3");
 define( "EASY_FIELDS_FILE", "options-general.php?page=simple-fields-options"); // this still feels nasty...
 
 // on admin init: add styles and scripts
 add_action( 'admin_init', 'simple_fields_admin_init' );
 add_action( 'admin_menu', "simple_fields_admin_menu" );
 add_action( 'admin_head', 'simple_fields_admin_head' );
-#add_action( 'wp_dashboard_setup', "cms_tpv_wp_dashboard_setup" );
-#add_action( 'admin_head', "cms_tpv_admin_head" );
 
-
-add_action( 'dbx_post_advanced', 'xxx' ); // denna verkar finnas om man kör cmspress och även wp3?
-function xxx() {
-	#global $wp_actions; d($wp_actions);
-	#echo "xxxy";
-	#global $post; d($post);
-}
-
-// Ajax hooks
-#add_action('wp_ajax_cms_tpv_get_childs', 'cms_tpv_get_childs');
-#add_action('wp_ajax_cms_tpv_move_page', 'cms_tpv_move_page');
-#add_action('wp_ajax_cms_tpv_add_page', 'cms_tpv_add_page');
+// ajax. that's right baby.
 add_action('wp_ajax_simple_fields_field_group_add_field', 'simple_fields_field_group_add_field');
 
 require("functions_admin.php");

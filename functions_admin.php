@@ -658,7 +658,6 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 				<option value='checkbox'" . (($field_type=="checkbox") ? " selected='selected' " : "") . ">Checkbox</option>
 				<option value='radiobuttons'" . (($field_type=="radiobuttons") ? " selected='selected' " : "") . ">Radio buttons</option>
 				<option value='dropdown'" . (($field_type=="dropdown") ? " selected='selected' " : "") . ">Dropdown</option>
-				<option value='image'" . (($field_type=="image") ? " selected='selected' " : "") . ">Image</option>
 				<option value='file'" . (($field_type=="file") ? " selected='selected' " : "") . ">File</option>
 			</select>
 

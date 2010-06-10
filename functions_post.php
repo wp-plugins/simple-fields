@@ -1,6 +1,7 @@
 <?php
 
 if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file")) {
+	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
 	?>
 	<iframe
 		src="<?php echo EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file_inner" ?>"
@@ -10,6 +11,7 @@ if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "s
 }
 
 if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file_inner")) {
+	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
 	require("file_browser.php");
 	exit;
 }
@@ -21,9 +23,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return; }
 	
 	// @todo: check permissions, check wp_verify_nonce
-	#echo "post_id: $post_id";
-	#d($_POST);exit;
-	#d($_POST["simple_fields_fieldgroups"]);
 
 	$simple_fields_selected_connector = $_POST["simple_fields_selected_connector"];
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
@@ -37,7 +36,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 		global $wpdb;
 		$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
-		#d($wpdb);
 
 		update_post_meta($post_id, "_simple_fields_been_saved", "1");
 
@@ -50,11 +48,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 				
 					$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
 					$custom_field_value = $one_field_value;
-					#echo "<br><br>field group id: $one_field_group_id";
-					#echo "<br>one_field_id: $one_field_id";
-					#echo "<br>num_in_set: $num_in_set";
-					#echo "<br>custom_field_key: $custom_field_key";
-					#echo "<br>custom_field_value: $custom_field_value";
 					update_post_meta($post_id, $custom_field_key, $custom_field_value);
 
 					$num_in_set++;
@@ -67,24 +60,14 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	} // if array
 
-	#exit;
-
 }
 
-add_action('wp_ajax_simple_fields_metabox_fieldgroup_add', 'simple_fields_metabox_fieldgroup_add');
+
 /**
  * adds a fieldgroup through ajax = also fetch defaults
  */
 function simple_fields_metabox_fieldgroup_add() {
 
-	/*
-	Array
-	(
-	    [action] => simple_fields_metabox_fieldgroup_add
-	    [simple_fields_new_fields_count] => 2
-	    [post_id] => 171
-	)
-	*/
 	$simple_fields_new_fields_count = (int) $_POST["simple_fields_new_fields_count"];
 	$post_id = (int) $_POST["post_id"];
 	$field_group_id = (int) $_POST["field_group_id"];
@@ -94,6 +77,7 @@ function simple_fields_metabox_fieldgroup_add() {
 
 	exit;
 }
+add_action('wp_ajax_simple_fields_metabox_fieldgroup_add', 'simple_fields_metabox_fieldgroup_add');
 
 
 /**
@@ -101,7 +85,6 @@ function simple_fields_metabox_fieldgroup_add() {
  */
 function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 
-	// @todo: repeatable å stuff
 	// if not repeatable, just print it out
 	// if repeatable: only print out the ones that have a value
 	// and + add-button
@@ -128,8 +111,9 @@ function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
 			$num_added_field_groups++;
 		}
-		#echo "num_added_field_groups: $num_added_field_groups";
+
 		// now add them. ooooh my, this is fancy stuff.
+		$use_defaults = null;
 		for ($num_in_set=0; $num_in_set<$num_added_field_groups; $num_in_set++) {
 			simple_fields_meta_box_output_one_field_group($post_connector_field_id, $num_in_set, $post_id, $use_defaults);	
 		}
@@ -154,7 +138,6 @@ function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 
 /**
  * output the html for a field group in the meta box
- * @todo: rename this to one_field_group...
  */
 function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_set, $post_id, $use_defaults) {
 
@@ -167,6 +150,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	<li class="simple-fields-metabox-field-group">
 		<?php // must use this "added"-thingie do be able to track added field group that has no added values (like unchecked checkboxes, that we can't detect ?>
 		<input type="hidden" name="simple_fields_fieldgroups[<?php echo $field_group_id ?>][added][<?php echo $num_in_set ?>]" value="1" />
+		
 		<div class="simple-fields-metabox-field-group-handle"></div>
 		<?php
 		// if repeatable: add remove-link
@@ -175,9 +159,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 		}
 		?>
 		<?php
-		
-		#if ($use_defaults) { echo "use defaults"; } else { echo " DON'T use defaults "; }
-		
+				
 		foreach ($current_field_group["fields"] as $field) {
 			
 			if ($field["deleted"]) { continue; }
@@ -187,11 +169,8 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 			$field_name = "simple_fields_fieldgroups[$field_group_id][$field_id][$num_in_set]";
 
 			$custom_field_key = "_simple_fields_fieldGroupID_{$field_group_id}_fieldID_{$field_id}_numInSet_{$num_in_set}";
-			#echo $custom_field_key;
 			$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
-			// xxx
 
-			#var_dump($saved_value);
 			?>
 			<div class="simple-fields-metabox-field">
 				<?php
@@ -230,10 +209,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						} else {
 							if ($saved_value == $one_radio_option_key) { $selected = " checked='checked' "; }
 						}
-						
-						#echo "saved_value: $saved_value";
-						#echo "one_radio_option_key: $one_radio_option_key";
-						
+												
 						echo "<div class='simple-fields-metabox-field-radiobutton'>";
 						echo "<input $selected name='$field_name' id='$radio_field_unique_id' type='radio' value='$one_radio_option_key' />";
 						echo "<label for='$radio_field_unique_id' class='simple-fields-for-radiobutton'> ".$one_radio_option_val["value"]."</label>";
@@ -292,7 +268,6 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	
 					$textarea_value_esc = esc_html($saved_value);
 					$textarea_options = $field["type_textarea_options"];
-					#var_dump($textarea_options);
 					
 					$textarea_class = "";
 					$textarea_class_wrapper = "";
@@ -313,8 +288,8 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 	
 				}
-				#d($field);
 				?>
+				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong>Meta key:</strong> <?php echo $custom_field_key ?></div>
 			</div><!-- // end simple-fields-metabox-field -->
 			<?php
 		} // foreach
@@ -331,6 +306,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 function simple_fields_admin_head() {
 
 	// add css and scripts
+	// @todo: now why do I not use enqueue script for these...??
 	?>
 	<script type="text/javascript" src="<?php echo EASY_FIELDS_URL ?>scripts.js"></script>
 	<link rel="stylesheet" type="text/css" href="<?php echo EASY_FIELDS_URL ?>styles.css" />
@@ -349,7 +325,6 @@ function simple_fields_admin_head() {
 			add_meta_box('simple-fields-post-edit-side-field-settings', 'Simple Fields', 'simple_fields_edit_post_side_field_settings', $post_type, 'side', 'low');
 			
 			$connector_to_use = simple_fields_get_selected_connector_for_post($post);
-			#echo "connector_to_use: $connector_to_use";
 			
 			// get connector
 			$post_connectors = simple_fields_get_post_connectors();
@@ -359,21 +334,8 @@ function simple_fields_admin_head() {
 				$selected_post_connector_field_groups = $selected_post_connector["field_groups"];
 				foreach ($selected_post_connector_field_groups as $one_post_connector_field_group) {
 					// add
-					/*
-					d($one_post_connector_field_group);
-					Array
-					(
-					    [id] => 1
-					    [name] => Slideshow
-					    [deleted] => 0
-					    [context] => normal
-					    [priority] => normal
-					)
-					*/
-					#d($field_groups);
 					if (isset($field_groups[$one_post_connector_field_group["id"]])) {
 						$field_group_to_add = $field_groups[$one_post_connector_field_group["id"]];
-						#simple_fields_add_meta_box_for_field_group($one_post_connector_field_group["id"]);
 
 						$meta_box_id = "simple_fields_connector_" . $field_group_to_add["id"];
 						$meta_box_title = $field_group_to_add["name"];
@@ -381,38 +343,6 @@ function simple_fields_admin_head() {
 						$meta_box_priority = $one_post_connector_field_group["priority"];
 						$meta_box_callback = create_function ("", " simple_fields_meta_box_output({$one_post_connector_field_group["id"]}, $post->ID); ");
 						add_meta_box( $meta_box_id, $meta_box_title, $meta_box_callback, $post_type, $meta_box_context, $meta_box_priority );
-						
-						#d($one_post_connector_field_group); position på meta box
-						/*
-						Array
-						(
-						    [id] => 1
-						    [name] => Slideshow
-						    [deleted] => 0
-						    [context] => normal
-						    [priority] => normal
-						)
-						*/
-						
-						#d($field_group_to_add); = namnet på meta boxen + alla fält som ska visas
-						/*
-						Array
-						(
-						    [id] => 1
-						    [name] => Slideshow
-						    [repeatable] => 
-						    [fields] => Array
-						        (
-						            [1] => Array
-						                (
-						                    [name] => Image
-						                    [description] => 
-						                    [type] => image
-						                    [id] => 1
-						                    [deleted] => 0
-						                )
-						
-						*/
 						
 					}
 					
@@ -424,15 +354,6 @@ function simple_fields_admin_head() {
 	
 }
 
-/*
-function simple_fields_add_meta_box_for_field_group($connector, $fieldGroupID) {
-	$field_groups = get_option("simple_fields_groups");
-	if (isset($field_groups[$fieldGroupID])) {
-		$one_field = $field_groups[$fieldGroupID];
-		echo "<hr>";d($one_field);
-	}
-}
-*/
 
 /**
  * get selected post connector for a post
@@ -463,7 +384,6 @@ function simple_fields_get_selected_connector_for_post($post) {
 	}
 	
 	// $connector_to_use is now a id or __none__ or __inherit__
-	// post_parent = 0
 
 	// if __inherit__, get connector from post_parent
 	if ("__inherit__" == $connector_to_use && $post->post_parent > 0) {
@@ -488,8 +408,6 @@ function simple_fields_get_selected_connector_for_post($post) {
 
 function simple_fields_admin_init() {
 
-	#register_setting( 'simple_fields_options', 'field_group_name' );
-
 	wp_enqueue_script("jquery");
 	wp_enqueue_script("jquery-ui-core");
 	wp_enqueue_script("jquery-ui-sortable");
@@ -497,8 +415,6 @@ function simple_fields_admin_init() {
 	wp_enqueue_script("jquery-ui-effects-highlight", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.highlight.js");
 	wp_enqueue_script("thickbox");
 	wp_enqueue_style("thickbox");
-
-	#wp_enqueue_script("jquery-ui", "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js");
 
 }
 
@@ -529,25 +445,31 @@ function simple_fields_edit_post_side_field_settings() {
 	$connector_selected = simple_fields_get_selected_connector_for_post($post);
 	
 	?>
-	<div>
-		<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
-			<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__">None</option>
-			<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__">Inherit from parent</option>
-			<?php foreach ($arr_connectors as $one_connector) : ?>
-				<?php if ($one_connector["deleted"]) { continue; } ?>
-				<option <?php echo ($connector_selected == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
-			<?php endforeach; ?>
-		</select>
-	</div>
-	<div id="simple-fields-post-edit-side-field-settings-select-connector-please-save" class="hidden">
-		Save post to switch to selected fields.
+	<div class="inside">
+		<div>
+			<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
+				<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__">None</option>
+				<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__">Inherit from parent</option>
+				<?php foreach ($arr_connectors as $one_connector) : ?>
+					<?php if ($one_connector["deleted"]) { continue; } ?>
+					<option <?php echo ($connector_selected == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
+				<?php endforeach; ?>
+			</select>
+		</div>
+		<div id="simple-fields-post-edit-side-field-settings-select-connector-please-save" class="hidden">
+			<p>Save post to switch to selected fields.</p>
+		</div>
+		<div>
+			<p><a href="#" id="simple-fields-post-edit-side-field-settings-show-keys">Show custom field keys</a></p>
+		</div>
 	</div>
 	<?php
 }
 
-function d($s) {
-	echo "<pre>"; print_r($s); echo "</pre>";
-	#echo "<pre>"; var_dump($s); echo "</pre>";
+if (!function_exists("bonny_d")) {
+	function bonny_d($s) {
+		echo "<pre>"; print_r($s); echo "</pre>";
+	}
 }
 
 
@@ -662,7 +584,6 @@ function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, 
 				}
 			}
 			
-			#$set_count = sizeof($one_field);
 			$set_count = sizeof($one_field["saved_values"]);
 			
 			$arr_return2 = array();
@@ -708,19 +629,22 @@ function simple_fields_get_all_fields_and_values_for_post($post_id) {
 		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$one_field_group["id"]}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
 			$num_added_field_groups++;
 		}
-		#echo "<br>" . $one_field_group["id"];
-		#echo ", num_added_field_groups: $num_added_field_groups";
 		
 		// now fetch the stored values, one field at a time
 		for ($num_in_set = 0; $num_in_set < $num_added_field_groups; $num_in_set++) {
 			// fetch value for each field
 			foreach ($selected_post_connector["field_groups"][$one_field_group["id"]]["fields"] as $one_field_id => $one_field_value) {
+
 				$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group["id"]}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";	
 				$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
+
 				$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["saved_values"][$num_in_set] = $saved_value;
+				$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["meta_keys"][$num_in_set] = $custom_field_key;
+
 			}
 		}
 		
 	}
 	return $selected_post_connector;
 }
+# $custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";

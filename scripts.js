@@ -227,10 +227,11 @@
 		 * edit posts
 		 */
 		$("#simple-fields-post-edit-side-field-settings-select-connector").change(function() {
-			//$this = $(this);
-			//var selected_connector = $this.find(":selected").val();
-			//alert(selected_connector);
-			$("#simple-fields-post-edit-side-field-settings-select-connector-please-save").show("slow");
+			$("#simple-fields-post-edit-side-field-settings-select-connector-please-save").show("fast");
+		});
+		$("#simple-fields-post-edit-side-field-settings-show-keys").click(function() {
+			$(".simple-fields-metabox-field-custom-field-key").toggle();
+			return false;
 		});
 
 		// get a field group from the server and add it to the page
@@ -290,6 +291,12 @@
 			} else if (e.type == "mouseout") {
 				$(this).removeClass("hover");
 			}
+		});
+		// on click on any input in a repeatable field group: highlight whole group
+		$("ul.simple-fields-metabox-field-group-fields-repeatable li input").live("focus", function() {
+			$(this).closest("li").addClass("active");
+		}).live("blur", function() {
+			$(this).closest("li").removeClass("active");
 		});
 		
 		$(".simple-fields-metabox-field-group").live("mouseenter", function() {
