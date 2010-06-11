@@ -51,7 +51,7 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
-= 0.2.3
+= 0.2.3 =
 - some problems with file browser (some problems still exist)
 - added a "Show custom field keys"-link to post edit screen. Clicking this link will reveal the internal custom field keys that are being used to save each simple field value. This key can be used together with for example get_post_meta() or query_posts()
 - code cleanups. but still a bit messy.
