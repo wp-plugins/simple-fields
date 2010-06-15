@@ -10,7 +10,7 @@ Add different kind of input fields to your edit post page. Field can be of type 
 
 == Description ==
 
-Simple Fields for WordPress let you add groups of fields (aka "field groups") to you edit post page.
+Simple Fields for WordPress let you add groups of fields to you edit post page.
 It is meant as a replacement for WordPress own custom fields.
 
 Simple Fields turns WordPress into an even more powerful Content Management System (CMS).
@@ -31,7 +31,14 @@ http://eskapism.se/blogg/2010/05/simple-fields-wp-custom-fields-on-steroids/
 Also check out this short tutorial:
 http://eskapism.se/code-playground/simple-fields/tutorial/
 
+#### Beta? You bet!
+
+Please note that this plugin still is in a very early version. Please try it out but be aware of bugs. 
+Also, please remember to backup your database, just to be sure if anything goes wrong.
+
 == Installation ==
+
+As always, make a backup of your database first!
 
 1. Upload the folder "simple-fields" to "/wp-content/plugins/"
 1. Activate the plugin through the "Plugins" menu in WordPress
@@ -50,6 +57,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.2.4 =
+- file browser: search and filter dates should work now
+- file browser: pagination was a bit off and could miss files
 
 = 0.2.3 =
 - some problems with file browser (some problems still exist)

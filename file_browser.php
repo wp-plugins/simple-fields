@@ -23,7 +23,7 @@ function media_upload_library_form2($errors) {
 	$start = ( $_GET['paged'] - 1 ) * 10;
 	if ( $start < 1 )
 		$start = 0;
-	add_filter( 'post_limits', create_function( '$a', "return 'LIMIT $start, 5';" ) );
+	add_filter( 'post_limits', create_function( '$a', "return 'LIMIT $start, 10';" ) );
 
 	list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query($q);
 
@@ -34,15 +34,21 @@ function media_upload_library_form2($errors) {
 	    "post_type" => "attachment",
 	    "post_status" => "inherit",
 	    "is_paged" => 1,
+	    "orderby" => "modified",
+	    "order" => "DESC"
 	   # "xposts_per_page" => 5,
 	   # "xshowposts" => 5
 	);
-	#$query_attachments = query_posts($args);
+	$s = $_GET["s"];
+	if ($s) {
+		$args["s"] = $s;
+	}
 	$query_attachments = new WP_Query($args);
-	#echo "<pre>";print_r($query_attachments);
 	?>
 
 	<form id="filter" action="" method="get">
+	<input type="hidden" name="wp_abspath" value="<?php echo $_GET["wp_abspath"]; ?>" />
+	<input type="hidden" name="simple-fields-action" value="<?php echo $_GET["simple-fields-action"]; ?>" />
 	<input type="hidden" name="type" value="<?php echo esc_attr( $type ); ?>" />
 	<input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>" />
 	<input type="hidden" name="post_id" value="<?php echo (int) $post_id; ?>" />
