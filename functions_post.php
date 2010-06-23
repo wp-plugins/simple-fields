@@ -25,10 +25,14 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	// @todo: check permissions, check wp_verify_nonce
 
 	$simple_fields_selected_connector = $_POST["simple_fields_selected_connector"];
+
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
 
 	$post_id = (int) $post_id;
 	$fieldgroups = $_POST["simple_fields_fieldgroups"];
+
+	$field_groups_option = get_option("simple_fields_groups");
+	
 	if ($post_id && is_array($fieldgroups)) {
 
 		// remove existing simple fields custom fields for this post
@@ -40,14 +44,30 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 		update_post_meta($post_id, "_simple_fields_been_saved", "1");
 
 		foreach ($fieldgroups as $one_field_group_id => $one_field_group_fields) {
-	
+
 			foreach ($one_field_group_fields as $one_field_id => $one_field_values) {
+			
+				// determine type of field we are saving
+				#bonny_d($field_groups_option);
+				$field_info = $field_groups_option[$one_field_group_id]["fields"][$one_field_id];
+				$field_type = $field_info["type"]; // @todo: this should be a function
+				$do_wpautop = false;
+				if ($field_type == "textarea" && $field_info["type_textarea_options"]["use_html_editor"] == 1) {
+					// it's a tiny edit area, so use wpautop to fix p and br
+					$do_wpautop = true;
+				}
 			
 				$num_in_set = 0;
 				foreach ($one_field_values as $one_field_value) {
 				
 					$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
 					$custom_field_value = $one_field_value;
+
+					if ($do_wpautop) {
+						$custom_field_value = wpautop($custom_field_value);
+						#var_dump($custom_field_value);#exit;
+					}
+
 					update_post_meta($post_id, $custom_field_key, $custom_field_value);
 
 					$num_in_set++;
@@ -372,6 +392,7 @@ function simple_fields_get_selected_connector_for_post($post) {
 	$connector_to_use = null;
 	if (!$post->ID) {
 		// no id (new post), use default for post type
+		// @todo: can this happen in wp3 btw? all new posts are assigned id
 		$connector_to_use = simple_fields_get_default_connector_for_post_type($post_type);
 	} elseif ($post->ID) {
 		// get saved connector for post
@@ -389,7 +410,7 @@ function simple_fields_get_selected_connector_for_post($post) {
 	if ("__inherit__" == $connector_to_use && $post->post_parent > 0) {
 		$parent_post_id = $post->post_parent;
 		$parent_post = get_post($parent_post_id);
-		simple_fields_get_selected_connector_for_post($parent_post);
+		$connector_to_use = simple_fields_get_selected_connector_for_post($parent_post);
 	} elseif ("__inherit__" == $connector_to_use && 0 == $post->post_parent) {
 		// already at the top, so inherit should mean... __none__..? right?
 		// hm.. no.. then the wrong value is selected in the drop down.. hm...
@@ -403,18 +424,6 @@ function simple_fields_get_selected_connector_for_post($post) {
 	}
 	
 	return $connector_to_use;
-
-}
-
-function simple_fields_admin_init() {
-
-	wp_enqueue_script("jquery");
-	wp_enqueue_script("jquery-ui-core");
-	wp_enqueue_script("jquery-ui-sortable");
-	wp_enqueue_script("jquery-ui-effects-core", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.core.js");
-	wp_enqueue_script("jquery-ui-effects-highlight", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.highlight.js");
-	wp_enqueue_script("thickbox");
-	wp_enqueue_style("thickbox");
 
 }
 
