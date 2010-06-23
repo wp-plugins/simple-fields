@@ -58,6 +58,13 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.2.5 =
+- used <? instead of <?php in a couple of places
+- now uses menu_page_url() instead of hard-coding plugin url
+- inherited fields now work again. thanks for the report (and fix!)
+- p and br-tags now work in tiny editors, using wpautop()
+- moved some code from one file to another. really cool stuff.
+
 = 0.2.4 =
 - file browser: search and filter dates should work now
 - file browser: pagination was a bit off and could miss files
