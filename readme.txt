@@ -23,7 +23,8 @@ Simple Fields turns WordPress into an even more powerful Content Management Syst
 * Use "repeatable" field groups to add many any amount of field groups to a single post (great for images or attachments!)
 * Use drag and drop to change order of added repeatable groups
 * Different post types can use different field groups - actually you can even use different field groups even for same post type
-* Nice GUI that looks like the rest of WordPress
+* Can be used on any post type, including custom post types
+* Nice GUI that looks like it belongs to the regular WordPress GUI
 
 For more information check out my introductory blog post:
 http://eskapism.se/blogg/2010/05/simple-fields-wp-custom-fields-on-steroids/
@@ -35,6 +36,8 @@ http://eskapism.se/code-playground/simple-fields/tutorial/
 
 Please note that this plugin still is in a very early version. Please try it out but be aware of bugs. 
 Also, please remember to backup your database, just to be sure if anything goes wrong.
+For bugreports, feature request and so on, please contact me at par.thernstrom@gmail.com or through twitter 
+(username [eskapism](http://twitter.com/eskapism/))
 
 == Installation ==
 
