@@ -5,6 +5,9 @@ require WP_CONTENT_DIR . "/../wp-admin/includes/template.php";
 require WP_CONTENT_DIR . "/../wp-admin/includes/post.php";
 
 wp_enqueue_script("jquery");
+wp_enqueue_script("jquery-ui-core");
+wp_enqueue_script("jquery-ui-sortable");
+
 wp_enqueue_style("colors-fresh");
 
 /**
@@ -25,8 +28,8 @@ function media_upload_library_form2($errors) {
 		$start = 0;
 	add_filter( 'post_limits', create_function( '$a', "return 'LIMIT $start, 10';" ) );
 
-	list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query($q);
 
+	list($post_mime_types, $avail_post_mime_types) = wp_edit_attachments_query($q);
 	$args = array(
 	    "xpaged" => 1,
 	    "m" => 0,
@@ -42,6 +45,9 @@ function media_upload_library_form2($errors) {
 	$s = $_GET["s"];
 	if ($s) {
 		$args["s"] = $s;
+	}
+	if ($_GET["post_mime_type"]) {
+		$args["post_mime_type"] = $_GET["post_mime_type"];
 	}
 	$query_attachments = new WP_Query($args);
 	?>

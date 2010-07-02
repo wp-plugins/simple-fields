@@ -250,6 +250,13 @@ ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-fi
 
 }
 
+.simple-fields-metabox-field-textarea-tinymce-media {
+	padding: 5px;
+}
+.simple-fields-metabox-field-textarea-tinymce-media a {
+	padding: 0 0 5px 10px;
+}
+
 .simple-fields-metabox-field-group-delete {
 	position: absolute;
 	left: -6px;
