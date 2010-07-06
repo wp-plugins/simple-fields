@@ -71,6 +71,20 @@
 	}
 
 
+	function simple_fields_field_type_options_dropdown_values_add(fieldID, fieldDropdownID) {
+		var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>Delete</a> </li>");
+		var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
+		$fieldLI.find(".simple-fields-field-type-options-dropdown-values-added").append($html);
+		$html.find("input:first").focus();
+		$html.effect("highlight");
+		$("ul.simple-fields-field-type-options-dropdown-values-added").sortable({
+			axis: 'y',
+			containment: "parent",
+			handle: ".simple-fields-field-type-options-dropdown-handle"
+		});
+	}
+
+
 	$("select.simple-fields-field-type").live("change", function() {
 		// look for simple-fields-field-type-options-<type> and show if
 		var $t = $(this);
@@ -261,18 +275,6 @@
 			containment: "parent",
 			handle: ".simple-fields-field-type-options-dropdown-handle"
 		});
-		function simple_fields_field_type_options_dropdown_values_add(fieldID, fieldDropdownID) {
-			var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>Delete</a> </li>");
-			var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
-			$fieldLI.find(".simple-fields-field-type-options-dropdown-values-added").append($html);
-			$html.find("input:first").focus();
-			$html.effect("highlight");
-			$("ul.simple-fields-field-type-options-dropdown-values-added").sortable({
-				axis: 'y',
-				containment: "parent",
-				handle: ".simple-fields-field-type-options-dropdown-handle"
-			});
-		}
 
 		/**
 		 * post connector

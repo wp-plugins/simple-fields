@@ -61,6 +61,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.2.7 =
+- file browser had some <? tags instead of <?php
+- Could not add dropdown values in admin
+
 = 0.2.6 =
 - media buttons for tinymce fields
 - fixed some js errors

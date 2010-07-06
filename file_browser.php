@@ -159,7 +159,7 @@ function media_upload_library_form2($errors) {
 	
 
 	<div id="media-items">
-		<?
+		<?php
 
 		$attachments = array();
 		if ( $query_attachments->have_posts() ) {
