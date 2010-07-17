@@ -61,7 +61,7 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
-= 0.2.8 ==
+= 0.2.8 =
 - fixed errors when trying to fetch saved values for a post with no post_connector selected
 - tinymce-fields can now be resized (does not save them correctly afterwards though...)
 - uses require_once instead of require. should fix some problems with other plugins.
