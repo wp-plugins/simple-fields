@@ -21,6 +21,7 @@
 		if (typeof( tinyMCE ) == "object") {
 			var tiny_init = tinyMCEPreInit.mceInit;
 			tiny_init.mode = "exact";
+			tiny_init.theme_advanced_resizing = true;
 			var elms_to_convert = jQuery(".simple-fields-metabox-field-textarea-tinymce");
 			var str_elms_to_convert = "";
 			for (var i=0; i<elms_to_convert.length; i++) {
@@ -37,7 +38,6 @@
 			str_elms_to_convert = str_elms_to_convert.replace(/,$/, "");
 			if (str_elms_to_convert != "") {
 				tiny_init.elements = str_elms_to_convert;
-				tiny_init.theme_advanced_resizing = false;
 				tinyMCE.init( tiny_init );
 			}
 		}
@@ -50,6 +50,37 @@
 			}
 		}
 	}
+	
+	// switch-buttons
+	$(".simple_fields_editor_switch_visual").live("click", function() {
+		$this = $(this);
+		$parent = $this.closest(".simple-fields-metabox-field")
+		$parent.find(".simple_fields_editor_switch a").removeClass("selected");
+		$this.addClass("selected");
+		
+		$parent.find(".simple-fields-metabox-field-textarea-tinymce-media").show();
+		
+		var tiny_id = $parent.find(".simple-fields-metabox-field-textarea-tinymce").attr("id");
+		var tiny_init = tinyMCEPreInit.mceInit;
+		tiny_init.mode = "exact";
+		tiny_init.theme_advanced_resizing = true;
+		tiny_init.elements = tiny_id;
+		tinyMCE.init( tiny_init );
+		return false;
+	});
+	$(".simple_fields_editor_switch_html").live("click", function() {
+		$this = $(this);
+		$parent = $this.closest(".simple-fields-metabox-field")
+		$parent.find(".simple_fields_editor_switch a").removeClass("selected");
+		$this.addClass("selected");
+		
+		$parent.find(".simple-fields-metabox-field-textarea-tinymce-media").hide();
+
+		var tiny_id = $parent.find(".simple-fields-metabox-field-textarea-tinymce").attr("id");
+		tinyMCE.execCommand('mceRemoveControl', false, tiny_id);
+		return false;
+
+	});
 
 	function simple_fields_get_fieldID_from_this(t) {
 		var $t = $(t);
@@ -172,7 +203,7 @@
 		return false;
 	});
 	
-	// get a field group from the server and add it to the page
+	// get a field group from the server and add it to the page (aka "the add button")
 	// what we need:
 	// - field group id
 	// - post id
@@ -181,6 +212,8 @@
 	$(".simple-fields-metabox-field-add").live("click", function() {
 
 		var $t = $(this);
+		//var $a = $(this).find("a");
+		$t.text("Adding...");
 		var $wrapper = $(this).parents(".simple-fields-meta-box-field-group-wrapper");
 		var field_group_id = $wrapper.find("input[name=simple-fields-meta-box-field-group-id]").val();
 		var post_id = $("#post_ID").val();
@@ -202,6 +235,7 @@
 				simple_fields_metabox_tinymce_attach();
 				$response.effect("highlight", 1000);
 			});
+			$t.html("<a href='#'>+ Add</a>");
 
 		});
 		

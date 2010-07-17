@@ -61,6 +61,14 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.2.8 ==
+- fixed errors when trying to fetch saved values for a post with no post_connector selected
+- tinymce-fields can now be resized (does not save them correctly afterwards though...)
+- uses require_once instead of require. should fix some problems with other plugins.
+- clicking on "+ Add" when using repeatable fields the link changes text to "Adding.." so the user will know that something is happening.
+- removed media buttons from regular (non-tiny) textareas
+- tiny-editor: can now switch between visual/html
+
 = 0.2.7 =
 - file browser had some <? tags instead of <?php
 - Could not add dropdown values in admin

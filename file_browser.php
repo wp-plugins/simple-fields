@@ -1,8 +1,8 @@
 <?php
 
-require WP_CONTENT_DIR . "/../wp-admin/includes/media.php";
-require WP_CONTENT_DIR . "/../wp-admin/includes/template.php";
-require WP_CONTENT_DIR . "/../wp-admin/includes/post.php";
+require_once WP_CONTENT_DIR . "/../wp-admin/includes/media.php";
+require_once WP_CONTENT_DIR . "/../wp-admin/includes/template.php";
+require_once WP_CONTENT_DIR . "/../wp-admin/includes/post.php";
 
 wp_enqueue_script("jquery");
 wp_enqueue_script("jquery-ui-core");

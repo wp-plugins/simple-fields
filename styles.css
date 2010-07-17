@@ -257,6 +257,24 @@ ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-fi
 	padding: 0 0 5px 10px;
 }
 
+#post-body .simple-fields-metabox-field-textarea-tinymce-wrapper .wp_themeSkin .mceStatusbar a.mceResize {
+	margin: 0;
+	top: 0;
+}
+
+.simple_fields_editor_switch {
+	display: inline;
+	padding: 5px;
+}
+.simple_fields_editor_switch a {
+	padding: 0 0 0 2px;
+}
+.simple_fields_editor_switch a.selected {
+	color: black;
+	text-decoration: none;
+	font-weight: bold;
+}
+
 .simple-fields-metabox-field-group-delete {
 	position: absolute;
 	left: -6px;

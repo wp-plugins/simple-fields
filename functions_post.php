@@ -1,18 +1,5 @@
 <?php
 
-// @todo: remove this? don't think it's being used anymore
-/*
-if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file")) {
-	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
-	?>
-	<iframe
-		src="<?php echo EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file_inner" ?>"
-		style="width: 100%; height: 100%;" hspace="0" frameborder="0"></iframe>
-	<?php
-	exit;
-}
-*/
-
 if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file_inner")) {
 	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
 	require("file_browser.php");
@@ -33,7 +20,7 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	$post_id = (int) $post_id;
 	$fieldgroups = $_POST["simple_fields_fieldgroups"];
-#bonny_d($fieldgroups);exit;
+	#bonny_d($fieldgroups);exit;
 	$field_groups_option = get_option("simple_fields_groups");
 	
 	if ($post_id && is_array($fieldgroups)) {
@@ -304,28 +291,35 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 
 					// tiny-insert-media-buttons
 					
-					$media = "<div class='simple-fields-metabox-field-textarea-tinymce-media'>";
-					$media .= __("Upload/Insert");
+					if ($textarea_options["use_html_editor"]) {
+
+						// switch html/tinymce
+						echo "<div class='simple_fields_editor_switch'>View <a class='selected simple_fields_editor_switch_visual' href='#'>Visual</a> <a href='#' class='simple_fields_editor_switch_html'>HTML</a></div>";
+
+						$media = "<div class='simple-fields-metabox-field-textarea-tinymce-media'>";
+						$media .= __("Upload/Insert");
+						
+						$media_upload_iframe_src = "media-upload.php";
 					
-					$media_upload_iframe_src = "media-upload.php";
-				
-					$image_upload_iframe_src = apply_filters('image_upload_iframe_src', "$media_upload_iframe_src?type=image");
-					$image_title = __('Add an Image');
-					$media .= "<a title='$image_title' class='simple_fields_tiny_media_button' href=\"{$image_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\"><img src='images/media-button-image.gif' alt='' /></a> ";
-				
-					$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
-					$video_title = __('Add Video');	
-					$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
-				
-					$audio_upload_iframe_src = apply_filters('audio_upload_iframe_src', "$media_upload_iframe_src?type=audio");
-					$audio_title = __('Add Audio');
-					$media .= "<a class='simple_fields_tiny_media_button' href=\"{$audio_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" title='$audio_title'><img src='images/media-button-music.gif' alt='$audio_title' /></a> ";
-				
-					$media_title = __('Add Media');
-					$media .= "<a class='simple_fields_tiny_media_button' href=\"{$media_upload_iframe_src}?post_id={$post_id}&amp;TB_iframe=true\" title='$media_title'><img src='images/media-button-other.gif' alt='$media_title' /></a>";
+						$image_upload_iframe_src = apply_filters('image_upload_iframe_src', "$media_upload_iframe_src?type=image");
+						$image_title = __('Add an Image');
+						$media .= "<a title='$image_title' class='simple_fields_tiny_media_button' href=\"{$image_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\"><img src='images/media-button-image.gif' alt='' /></a> ";
 					
-					$media .= "</div>";
-					echo $media;
+						$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
+						$video_title = __('Add Video');	
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
+					
+						$audio_upload_iframe_src = apply_filters('audio_upload_iframe_src', "$media_upload_iframe_src?type=audio");
+						$audio_title = __('Add Audio');
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$audio_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" title='$audio_title'><img src='images/media-button-music.gif' alt='$audio_title' /></a> ";
+					
+						$media_title = __('Add Media');
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$media_upload_iframe_src}?post_id={$post_id}&amp;TB_iframe=true\" title='$media_title'><img src='images/media-button-other.gif' alt='$media_title' /></a>";
+						
+						$media .= "</div>";
+						echo $media;
+					
+					}
 
 					echo "<div class='$textarea_class_wrapper'>";
 					echo "<textarea class='$textarea_class' name='$field_name' id='$field_unique_id' cols='50' rows='5'>$textarea_value_esc</textarea>";
@@ -669,6 +663,9 @@ function simple_fields_get_all_fields_and_values_for_post($post_id) {
 	$existing_post_connectors = simple_fields_get_post_connectors();
 	$field_groups = get_option("simple_fields_groups");
 	$selected_post_connector = $existing_post_connectors[$connector_to_use];
+	if($selected_post_connector == null) {
+		return false;
+	}
 	foreach ($selected_post_connector["field_groups"] as $one_field_group) { // one_field_group = name, deleted, context, priority, id
 	
 		// now get all fields for that fieldgroup and join them together
