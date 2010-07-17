@@ -1,15 +1,5 @@
 <?php
 
-if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file")) {
-	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
-	?>
-	<iframe
-		src="<?php echo EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file_inner" ?>"
-		style="width: 100%; height: 100%;" hspace="0" frameborder="0"></iframe>
-	<?php
-	exit;
-}
-
 if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file_inner")) {
 	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
 	require("file_browser.php");
@@ -25,10 +15,14 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	// @todo: check permissions, check wp_verify_nonce
 
 	$simple_fields_selected_connector = $_POST["simple_fields_selected_connector"];
+
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
 
 	$post_id = (int) $post_id;
 	$fieldgroups = $_POST["simple_fields_fieldgroups"];
+	#bonny_d($fieldgroups);exit;
+	$field_groups_option = get_option("simple_fields_groups");
+	
 	if ($post_id && is_array($fieldgroups)) {
 
 		// remove existing simple fields custom fields for this post
@@ -40,14 +34,30 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 		update_post_meta($post_id, "_simple_fields_been_saved", "1");
 
 		foreach ($fieldgroups as $one_field_group_id => $one_field_group_fields) {
-	
+
 			foreach ($one_field_group_fields as $one_field_id => $one_field_values) {
+			
+				// determine type of field we are saving
+				#bonny_d($field_groups_option);
+				$field_info = $field_groups_option[$one_field_group_id]["fields"][$one_field_id];
+				$field_type = $field_info["type"]; // @todo: this should be a function
+				$do_wpautop = false;
+				if ($field_type == "textarea" && $field_info["type_textarea_options"]["use_html_editor"] == 1) {
+					// it's a tiny edit area, so use wpautop to fix p and br
+					$do_wpautop = true;
+				}
 			
 				$num_in_set = 0;
 				foreach ($one_field_values as $one_field_value) {
 				
 					$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
 					$custom_field_value = $one_field_value;
+
+					if ($do_wpautop) {
+						$custom_field_value = wpautop($custom_field_value);
+						#var_dump($custom_field_value);#exit;
+					}
+
 					update_post_meta($post_id, $custom_field_key, $custom_field_value);
 
 					$num_in_set++;
@@ -253,7 +263,8 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						echo "<div class='simple-fields-metabox-field-file-col2'>";
 							echo "<input type='hidden' class='text simple-fields-metabox-field-file-fileID' name='$field_name' id='$field_unique_id' value='$attachment_id' />";
 							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
-							echo "<a href='".EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file' class='thickbox simple-fields-metabox-field-file-select'>Select file</a>";
+							#echo "<a href='".EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file' class='thickbox simple-fields-metabox-field-file-select'>Select file</a>";
+							echo "<a href='".EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file_inner&TB_iframe=1' class='thickbox simple-fields-metabox-field-file-select'>Select file</a>";
 							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>Clear</a>";
 						echo "</div>";
 					echo "</div>";
@@ -277,6 +288,39 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					}
 
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+
+					// tiny-insert-media-buttons
+					
+					if ($textarea_options["use_html_editor"]) {
+
+						// switch html/tinymce
+						echo "<div class='simple_fields_editor_switch'>View <a class='selected simple_fields_editor_switch_visual' href='#'>Visual</a> <a href='#' class='simple_fields_editor_switch_html'>HTML</a></div>";
+
+						$media = "<div class='simple-fields-metabox-field-textarea-tinymce-media'>";
+						$media .= __("Upload/Insert");
+						
+						$media_upload_iframe_src = "media-upload.php";
+					
+						$image_upload_iframe_src = apply_filters('image_upload_iframe_src', "$media_upload_iframe_src?type=image");
+						$image_title = __('Add an Image');
+						$media .= "<a title='$image_title' class='simple_fields_tiny_media_button' href=\"{$image_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\"><img src='images/media-button-image.gif' alt='' /></a> ";
+					
+						$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
+						$video_title = __('Add Video');	
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
+					
+						$audio_upload_iframe_src = apply_filters('audio_upload_iframe_src', "$media_upload_iframe_src?type=audio");
+						$audio_title = __('Add Audio');
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$audio_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" title='$audio_title'><img src='images/media-button-music.gif' alt='$audio_title' /></a> ";
+					
+						$media_title = __('Add Media');
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$media_upload_iframe_src}?post_id={$post_id}&amp;TB_iframe=true\" title='$media_title'><img src='images/media-button-other.gif' alt='$media_title' /></a>";
+						
+						$media .= "</div>";
+						echo $media;
+					
+					}
+
 					echo "<div class='$textarea_class_wrapper'>";
 					echo "<textarea class='$textarea_class' name='$field_name' id='$field_unique_id' cols='50' rows='5'>$textarea_value_esc</textarea>";
 					echo "</div>";
@@ -299,6 +343,20 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	<?php
 }
 
+
+#add_filter( "media_send_to_editor", "simple_fields_media_send_to_editor", 15 );
+/*
+function simple_fields_media_send_to_editor($html) {
+	// runs for both simple fields and regular insert media
+	$html = addslashes($html);
+	?>
+	<script type="text/javascript">
+		var win = window.dialogArguments || opener || parent || top;
+		win.send_to_custom_field("<?php echo $html ?>");
+	</script>
+	<?
+}
+*/
 
 /**
  * head of admin area: add css and stuff
@@ -372,6 +430,7 @@ function simple_fields_get_selected_connector_for_post($post) {
 	$connector_to_use = null;
 	if (!$post->ID) {
 		// no id (new post), use default for post type
+		// @todo: can this happen in wp3 btw? all new posts are assigned id
 		$connector_to_use = simple_fields_get_default_connector_for_post_type($post_type);
 	} elseif ($post->ID) {
 		// get saved connector for post
@@ -389,7 +448,7 @@ function simple_fields_get_selected_connector_for_post($post) {
 	if ("__inherit__" == $connector_to_use && $post->post_parent > 0) {
 		$parent_post_id = $post->post_parent;
 		$parent_post = get_post($parent_post_id);
-		simple_fields_get_selected_connector_for_post($parent_post);
+		$connector_to_use = simple_fields_get_selected_connector_for_post($parent_post);
 	} elseif ("__inherit__" == $connector_to_use && 0 == $post->post_parent) {
 		// already at the top, so inherit should mean... __none__..? right?
 		// hm.. no.. then the wrong value is selected in the drop down.. hm...
@@ -403,18 +462,6 @@ function simple_fields_get_selected_connector_for_post($post) {
 	}
 	
 	return $connector_to_use;
-
-}
-
-function simple_fields_admin_init() {
-
-	wp_enqueue_script("jquery");
-	wp_enqueue_script("jquery-ui-core");
-	wp_enqueue_script("jquery-ui-sortable");
-	wp_enqueue_script("jquery-ui-effects-core", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.core.js");
-	wp_enqueue_script("jquery-ui-effects-highlight", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.highlight.js");
-	wp_enqueue_script("thickbox");
-	wp_enqueue_style("thickbox");
 
 }
 
@@ -616,6 +663,9 @@ function simple_fields_get_all_fields_and_values_for_post($post_id) {
 	$existing_post_connectors = simple_fields_get_post_connectors();
 	$field_groups = get_option("simple_fields_groups");
 	$selected_post_connector = $existing_post_connectors[$connector_to_use];
+	if($selected_post_connector == null) {
+		return false;
+	}
 	foreach ($selected_post_connector["field_groups"] as $one_field_group) { // one_field_group = name, deleted, context, priority, id
 	
 		// now get all fields for that fieldgroup and join them together
