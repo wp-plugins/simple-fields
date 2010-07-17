@@ -11,7 +11,6 @@ Add different kind of input fields to your edit post page. Field can be of type 
 == Description ==
 
 Simple Fields for WordPress let you add groups of fields to you edit post page.
-It is meant as a replacement for WordPress own custom fields.
 
 Simple Fields turns WordPress into an even more powerful Content Management System (CMS).
 
