@@ -38,6 +38,11 @@ Also, please remember to backup your database, just to be sure if anything goes 
 For bugreports, feature request and so on, please contact me at par.thernstrom@gmail.com or through twitter 
 (username [eskapism](http://twitter.com/eskapism/))
 
+#### Donation and more plugins
+* If you like this plugin don't forget to [donate to support further development](http://eskapism.se/sida/donate/).
+* Check out some [more plugins](http://wordpress.org/extend/plugins/profile/eskapism) by the same author.
+
+
 == Installation ==
 
 As always, make a backup of your database first!
@@ -59,6 +64,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.2.9 =
+- Fixed a JavaScript error when using the gallery function
+- Fixed a warning when using simple_fields_get_post_value() on a post with no post
 
 = 0.2.8 =
 - fixed errors when trying to fetch saved values for a post with no post_connector selected

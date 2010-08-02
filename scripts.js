@@ -18,7 +18,7 @@
 	}
 	
 	function simple_fields_metabox_tinymce_attach() {
-		if (typeof( tinyMCE ) == "object") {
+		if (typeof( tinyMCE ) == "object" && typeof( tinyMCEPreInit ) == "object" ) {
 			var tiny_init = tinyMCEPreInit.mceInit;
 			tiny_init.mode = "exact";
 			tiny_init.theme_advanced_resizing = true;

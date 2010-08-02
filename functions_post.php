@@ -539,42 +539,44 @@ function simple_fields_get_post_value($post_id, $field_name_or_id, $single = tru
 	}
 	$connector = simple_fields_get_all_fields_and_values_for_post($post_id);
 	$return_val = null;
-	foreach ($connector["field_groups"] as $one_field_group) {
-		$is_found = false;
-		foreach ($one_field_group["fields"] as $one_field) {
-			if ($fetch_by_id && $one_field["name"] == $field_name_or_id) {
-				// we got our field, get the value(s)
-				$is_found = true;
-			} else if (($one_field_group["id"] == $field_group_id) && ($one_field["id"] == $field_id)) {
-				$is_found = true;
-			}
-
-			$saved_values = $one_field["saved_values"];
-
-			if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
-				if ($one_field["type"] == "radiobuttons") {
-					$get_value_key = "type_radiobuttons_options";
-				} else if ($one_field["type"] == "dropdown") {
-					$get_value_key = "type_dropdown_options";
+	if ($connector) {
+		foreach ($connector["field_groups"] as $one_field_group) {
+			$is_found = false;
+			foreach ($one_field_group["fields"] as $one_field) {
+				if ($fetch_by_id && $one_field["name"] == $field_name_or_id) {
+					// we got our field, get the value(s)
+					$is_found = true;
+				} else if (($one_field_group["id"] == $field_group_id) && ($one_field["id"] == $field_id)) {
+					$is_found = true;
 				}
-				// if radiobutton or dropdown, get value from type_dropdown_options[<saved value>][value]
-				// for each saved value, get value from type_dropdown_options[<saved value>]
-				for ($saved_i = 0; $saved_i < sizeof($saved_values); $saved_i++) {
-					$saved_values[$saved_i] = $one_field[$get_value_key][$saved_values[$saved_i]]["value"];
+	
+				$saved_values = $one_field["saved_values"];
+	
+				if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
+					if ($one_field["type"] == "radiobuttons") {
+						$get_value_key = "type_radiobuttons_options";
+					} else if ($one_field["type"] == "dropdown") {
+						$get_value_key = "type_dropdown_options";
+					}
+					// if radiobutton or dropdown, get value from type_dropdown_options[<saved value>][value]
+					// for each saved value, get value from type_dropdown_options[<saved value>]
+					for ($saved_i = 0; $saved_i < sizeof($saved_values); $saved_i++) {
+						$saved_values[$saved_i] = $one_field[$get_value_key][$saved_values[$saved_i]]["value"];
+					}
 				}
+				
+				if ($is_found && $single) {
+					$return_val = $saved_values[0];
+				} else if ($is_found) {
+					$return_val = $saved_values;
+				}
+	
+				if ($is_found) {
+					return $return_val;
+				}
+	
+	
 			}
-			
-			if ($is_found && $single) {
-				$return_val = $saved_values[0];
-			} else if ($is_found) {
-				$return_val = $saved_values;
-			}
-
-			if ($is_found) {
-				return $return_val;
-			}
-
-
 		}
 	}
 	return; // oh no! nothing found. bummer.
