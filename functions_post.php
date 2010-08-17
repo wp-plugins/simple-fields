@@ -6,6 +6,129 @@ if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "s
 	exit;
 }
 
+// now lets get that file dialog working!
+add_filter( 'media_send_to_editor', 'simple_fields_media_send_to_editor', 15, 2 );
+add_filter( 'media_upload_tabs', 'simple_fields_media_upload_tabs', 15);
+add_filter( 'media_upload_form_url', 'simple_fields_media_upload_form_url');
+add_filter( 'attachment_fields_to_edit', 'simple_fields_attachment_fields_to_edit', 10, 2 );
+add_action( 'admin_head', 'simple_fields_admin_head_select_file' );
+
+/*
+	hide some stuff in the file browser
+*/
+function simple_fields_admin_head_select_file() {
+	if (isset($_GET["simple_fields_action"]) && $_GET["simple_fields_action"] == "select_file") {
+		?>
+		<style type="text/css">
+			.wp-post-thumbnail,
+			tr.image_alt,
+			tr.post_title,
+			tr.align,
+			tr.image-size
+			 {
+				display: none;
+			}
+	
+		</style>
+		<?php
+	}
+}
+
+// remove some fields in the file select dialogue, since simple fields don't use them anyway
+function simple_fields_attachment_fields_to_edit($form_fields, $post) {
+	if (isset($_GET["simple_fields_action"]) && $_GET["simple_fields_action"] == "select_file") {
+		unset(
+			$form_fields["post_excerpt"],
+			$form_fields["post_content"],
+			$form_fields["url"],
+			$form_fields["image_url"],
+			$form_fields["image_alt"],
+			$form_fields["menu_order"]
+		);
+		#bonny_d($form_fields);
+	}
+	return $form_fields;
+}
+
+// if we have simple fields args in GET, make sure our simple fields-stuff are added to the form
+function simple_fields_media_upload_form_url($url) {
+	// $url:
+	// http://localhost/wp-admin/media-upload.php?type=file&tab=library&post_id=0
+	/*
+	Array
+	(
+	    [simple_fields_dummy] => 1
+	    [simple_fields_action] => select_file
+	    [simple_fields_file_field_unique_id] => simple_fields_fieldgroups_8_4_0
+	    [tab] => library
+	)
+	*/
+	foreach ($_GET as $key => $val) {
+		if (strpos($key, "simple_fields_") === 0) {
+			$url = add_query_arg($key, $val, $url);
+		}
+	}
+	return $url;
+}
+
+// remove gallery and remote url tab in file select
+function simple_fields_media_upload_tabs($arr_tabs) {
+	if ($_GET["simple_fields_action"] == "select_file" || $_GET["simple_fields_action"] == "select_file_for_tiny") {
+		unset($arr_tabs["gallery"], $arr_tabs["type_url"]);
+	}
+	return $arr_tabs;
+}
+
+// send the selected file to simple fields
+function simple_fields_media_send_to_editor($html, $id) {
+	/*
+	post_id	1060
+	tab	library
+	type	file
+	
+	POST
+	_wp_http_referer=/wp-admin/media-upload.php?simple_fields_action=select_file&simple_fields_file_field_unique_id=simple_fields_fieldgroups_8_4_new0&tab=library
+	*/
+	parse_str($_POST["_wp_http_referer"], $arr_postinfo);
+	#bonny_d($arr_url);
+	/*
+	Array
+	(
+	    [/wp-admin/media-upload_php?simple_fields_dummy] => 1
+	    [simple_fields_action] => select_file
+	    [simple_fields_file_field_unique_id] => simple_fields_fieldgroups_8_4_new1
+	    [tab] => library
+	)
+	*/
+	
+	// only act if file browser is initiated by simple fields
+	if (isset($arr_postinfo["simple_fields_action"]) && $arr_postinfo["simple_fields_action"] == "select_file") {
+
+		// add the selected file to input field with id simple_fields_file_field_unique_id
+		$simple_fields_file_field_unique_id = $arr_postinfo["simple_fields_file_field_unique_id"];
+		$file_id = (int) $id;
+		
+		$image_thumbnail = wp_get_attachment_image_src( $file_id, 'thumbnail', true );
+		$image_thumbnail = $image_thumbnail[0];
+		$image_html = "<img src='$image_thumbnail' alt='' />";
+		$file_name = rawurlencode(get_the_title($file_id));
+
+		?>
+		<script type="text/javascript">
+			var win = window.dialogArguments || opener || parent || top;
+			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").val(<?php echo $file_id ?>);
+			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").closest(".simple-fields-metabox-field-file").find(".simple-fields-metabox-field-file-selected-image").html("<?php echo $image_html ?>");
+			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").closest(".simple-fields-metabox-field-file").closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image-name").text(unescape("<?php echo $file_name?>"));
+			win.tb_remove();
+		</script>
+		<?php
+		exit;
+	} else {
+		return $html;
+	}
+
+}
+
 add_action('save_post', 'simple_fields_save_postdata');
 function simple_fields_save_postdata($post_id = null, $post = null) {
 
@@ -38,7 +161,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 			foreach ($one_field_group_fields as $one_field_id => $one_field_values) {
 			
 				// determine type of field we are saving
-				#bonny_d($field_groups_option);
 				$field_info = $field_groups_option[$one_field_group_id]["fields"][$one_field_id];
 				$field_type = $field_info["type"]; // @todo: this should be a function
 				$do_wpautop = false;
@@ -263,8 +385,11 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						echo "<div class='simple-fields-metabox-field-file-col2'>";
 							echo "<input type='hidden' class='text simple-fields-metabox-field-file-fileID' name='$field_name' id='$field_unique_id' value='$attachment_id' />";
 							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
-							#echo "<a href='".EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file' class='thickbox simple-fields-metabox-field-file-select'>Select file</a>";
-							echo "<a href='".EASY_FIELDS_URL."simple_fields.php?wp_abspath=".rawurlencode(ABSPATH)."&simple-fields-action=select_file_inner&TB_iframe=1' class='thickbox simple-fields-metabox-field-file-select'>Select file</a>";
+
+							$field_unique_id_esc = rawurlencode($field_unique_id);
+							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
+							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>Select file</a>";
+							
 							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>Clear</a>";
 						echo "</div>";
 					echo "</div>";
@@ -296,27 +421,49 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						// switch html/tinymce
 						echo "<div class='simple_fields_editor_switch'>View <a class='selected simple_fields_editor_switch_visual' href='#'>Visual</a> <a href='#' class='simple_fields_editor_switch_html'>HTML</a></div>";
 
+						if ( current_user_can( 'upload_files' ) )
+
 						$media = "<div class='simple-fields-metabox-field-textarea-tinymce-media'>";
 						$media .= __("Upload/Insert");
 						
 						$media_upload_iframe_src = "media-upload.php";
+
+						// from media.php
+						$do_image = $do_audio = $do_video = true;
+						if ( is_multisite() ) {
+							$media_buttons = get_site_option( 'mu_media_buttons' );
+							if ( empty($media_buttons['image']) )
+								$do_image = false;
+							if ( empty($media_buttons['audio']) )
+								$do_audio = false;
+							if ( empty($media_buttons['video']) )
+								$do_video = false;
+						}
+						// end
+
+						if ($do_image) {
+							$image_upload_iframe_src = apply_filters('image_upload_iframe_src', "$media_upload_iframe_src?type=image");
+							$image_title = __('Add an Image');
+							$media .= "<a title='$image_title' class='simple_fields_tiny_media_button' href=\"{$image_upload_iframe_src}&amp;post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\"><img src='images/media-button-image.gif' alt='' /></a> ";
+						}
+						
+						if ($do_video) {
+							$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
+							$video_title = __('Add Video');	
+							$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
+						}
 					
-						$image_upload_iframe_src = apply_filters('image_upload_iframe_src', "$media_upload_iframe_src?type=image");
-						$image_title = __('Add an Image');
-						$media .= "<a title='$image_title' class='simple_fields_tiny_media_button' href=\"{$image_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\"><img src='images/media-button-image.gif' alt='' /></a> ";
-					
-						$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
-						$video_title = __('Add Video');	
-						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
-					
-						$audio_upload_iframe_src = apply_filters('audio_upload_iframe_src', "$media_upload_iframe_src?type=audio");
-						$audio_title = __('Add Audio');
-						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$audio_upload_iframe_src}&amp;post_id={$post_id}&amp;TB_iframe=true\" title='$audio_title'><img src='images/media-button-music.gif' alt='$audio_title' /></a> ";
+						if ($do_audio) {
+							$audio_upload_iframe_src = apply_filters('audio_upload_iframe_src', "$media_upload_iframe_src?type=audio");
+							$audio_title = __('Add Audio');
+							$media .= "<a class='simple_fields_tiny_media_button' href=\"{$audio_upload_iframe_src}&amp;post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\" title='$audio_title'><img src='images/media-button-music.gif' alt='$audio_title' /></a> ";
+						}
 					
 						$media_title = __('Add Media');
-						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$media_upload_iframe_src}?post_id={$post_id}&amp;TB_iframe=true\" title='$media_title'><img src='images/media-button-other.gif' alt='$media_title' /></a>";
+						$media .= "<a class='simple_fields_tiny_media_button' href=\"{$media_upload_iframe_src}?post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\" title='$media_title'><img src='images/media-button-other.gif' alt='$media_title' /></a>";
 						
 						$media .= "</div>";
+
 						echo $media;
 					
 					}

@@ -432,8 +432,10 @@
 
 // for media selectors
 // code from custom field template by Hiroaki Miyashita
-var simple_fields_tmpFocus = undefined;
+// 
+var simple_fields_tmpFocus = undefined; // will contain the id of the tinymce field we are adding a file to
 var simple_fields_isTinyMCE = false;
+// when click the thickbox-link, "unset" our vars
 jQuery(".thickbox").bind("click", function (e) {
 	simple_fields_tmpFocus = undefined;
 	simple_fields_isTinyMCE = false;
@@ -462,11 +464,18 @@ function simple_fields_thickbox(link) {
 	var t = link.title || link.name || null;
 	var a = link.href || link.alt;
 	var g = link.rel || false;
+	// alert(t); // title
+	// alert(a); // http://localhost/wp-admin/media-upload.php?type=image&post_id=1060&TB_iframe=true
+	// alert(g); // false
 	tb_show(t,a,g);
 	link.blur();
 	return false;
 }
+
+// @todo: is not used?!
+/*
 function send_to_custom_field(h) {
+
 	if ( simple_fields_tmpFocus ) {
 		ed = simple_fields_tmpFocus;
 	} else if ( typeof tinyMCE == "undefined" ) {
@@ -493,7 +502,7 @@ function send_to_custom_field(h) {
 	simple_fields_tmpFocus = undefined;
 	simple_fields_isTinyMCE = false;
 }
-
+*/
 
 // global js stuff
 var simple_fields_metabox_field_file_select_input_selectedID = null;

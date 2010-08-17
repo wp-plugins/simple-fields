@@ -38,6 +38,10 @@ Also, please remember to backup your database, just to be sure if anything goes 
 For bugreports, feature request and so on, please contact me at par.thernstrom@gmail.com or through twitter 
 (username [eskapism](http://twitter.com/eskapism/))
 
+#### Help and Support
+If you have questions/bug reports/feature requests for Simple Fields please use the WordPress [Support Forum](http://wordpress.org/tags/simple-fields?forum_id=10).
+There are also [tutorials available for Simple Fields](http://eskapism.se/code-playground/simple-fields/).
+
 #### Donation and more plugins
 * If you like this plugin don't forget to [donate to support further development](http://eskapism.se/sida/donate/).
 * Check out some [more plugins](http://wordpress.org/extend/plugins/profile/eskapism) by the same author.
@@ -64,6 +68,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.3 =
+- Field type file now uses wordpress own file browser, so upload and file browsing should work much better now. If you still encounter any problems let me know. Hey, even if it works, please let med know! :)
+- Media buttons for tiny now check if current user can use each button before adding it (just like the normal add-buttons work)
 
 = 0.2.9 =
 - Fixed a JavaScript error when using the gallery function
