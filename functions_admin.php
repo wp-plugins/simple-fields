@@ -449,7 +449,7 @@ function simple_fields_options() {
 	            		<td>
 	            			<div id="simple-fields-field-group-existing-fields">
 	            				<ul class='simple-fields-edit-field-groups-added-fields'>
-									<?
+									<?php
 									foreach ($field_group_in_edit["fields"] as $oneField) {
 										if (!$oneField["deleted"]) {
 											echo simple_fields_field_group_add_field_template($oneField["id"], $field_group_in_edit);
@@ -511,13 +511,13 @@ function simple_fields_options() {
 
 				<?php
 				if ($simple_fields_did_save) {
-					?><div id="message" class="updated"><p>Field group saved</p></div><?
+					?><div id="message" class="updated"><p>Field group saved</p></div><?php
 				} elseif ($simple_fields_did_delete) {
-					?><div id="message" class="updated"><p>Field group deleted</p></div><?
+					?><div id="message" class="updated"><p>Field group deleted</p></div><?php
 				} elseif ($simple_fields_did_delete_post_connector) {
-					?><div id="message" class="updated"><p>Post connector deleted</p></div><?
+					?><div id="message" class="updated"><p>Post connector deleted</p></div><?php
 				} elseif ($simple_fields_did_save_post_type_defaults) {
-					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?
+					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?php
 				}
 
 				
@@ -551,7 +551,7 @@ function simple_fields_options() {
 
 				<?php
 				if ($simple_fields_did_save_connector) {
-					?><div id="message" class="updated"><p>Post connector saved</p></div><?
+					?><div id="message" class="updated"><p>Post connector saved</p></div><?php
 				}
 
 				if ($post_connector_count) {
