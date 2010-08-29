@@ -137,12 +137,13 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	
 	// @todo: check permissions, check wp_verify_nonce
 
-	$simple_fields_selected_connector = $_POST["simple_fields_selected_connector"];
+	$simple_fields_selected_connector = (isset($_POST["simple_fields_selected_connector"])) ? $_POST["simple_fields_selected_connector"] : null;
 
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
 
 	$post_id = (int) $post_id;
-	$fieldgroups = $_POST["simple_fields_fieldgroups"];
+	$fieldgroups = (isset($_POST["simple_fields_fieldgroups"])) ? $_POST["simple_fields_fieldgroups"] : null;
+	// (array) 
 	#bonny_d($fieldgroups);exit;
 	$field_groups_option = get_option("simple_fields_groups");
 	
@@ -759,6 +760,11 @@ function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, 
 			foreach ($one_field_group["fields"] as $one_field) {
 			
 				$saved_values = $one_field["saved_values"];
+
+				if (is_null($saved_values)) {
+					// no saved values. just continue?
+					continue;
+				}
 
 				if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
 					if ($one_field["type"] == "radiobuttons") {

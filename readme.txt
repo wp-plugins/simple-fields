@@ -69,6 +69,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.3.1 =
+- simple_fields_get_post_group_values would return an array with one element with a value of null, if a repeatable field group did not have any added items. kinda confusing.
+- fixed a couple of undefined index-errors
+
 = 0.3 =
 - Field type file now uses wordpress own file browser, so upload and file browsing should work much better now. If you still encounter any problems let me know. Hey, even if it works, please let med know! :)
 - Media buttons for tiny now check if current user can use each button before adding it (just like the normal add-buttons work)
