@@ -133,7 +133,7 @@ add_action('save_post', 'simple_fields_save_postdata');
 function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	// verify if this is an auto save routine. If it is our form has not been submitted, so we dont want to do anything
-	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return; }
+	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return $post_id; }
 	
 	// @todo: check permissions, check wp_verify_nonce
 
@@ -145,6 +145,7 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	$fieldgroups = (isset($_POST["simple_fields_fieldgroups"])) ? $_POST["simple_fields_fieldgroups"] : null;
 	// (array) 
 	#bonny_d($fieldgroups);exit;
+	#echo "<hr>Saving post";
 	$field_groups_option = get_option("simple_fields_groups");
 	
 	if ($post_id && is_array($fieldgroups)) {
@@ -155,11 +156,42 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 		global $wpdb;
 		$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
 
-		update_post_meta($post_id, "_simple_fields_been_saved", "1");
+		// cleanup missing keys, due to checkboxes not being checked
+		$fieldgroups_fixed = $fieldgroups;
+		foreach ($fieldgroups as $one_field_group_id => $one_field_group_fields) {
+		
+			foreach ($one_field_group_fields as $posted_id => $posted_vals) {
+				if ($posted_id == "added") {
+					#echo "<br><br>posted_id: $posted_id";
+					#echo "<br>posted_vals: "; bonny_d($posted_vals);
+					#$fieldgroups_fixed[$one_field_group_id][$posted_id]["added"] = $posted_vals;
+					continue;
+				}
+				$fieldgroups_fixed[$one_field_group_id][$posted_id] = array();
+		#		echo "<br><br>posted_id: $posted_id";
+		#		echo "<br>posted_vals: "; bonny_d($posted_vals);
+			#	bonny_d($added_vals);
+				// loopa igenom "added"-värdena och fixa så att allt finns
+				foreach ($one_field_group_fields["added"] as $added_id => $added_val) {
+					#$fieldgroups_fixed
+					#echo "<br>added_id: $added_id";
+					#echo "<br>added_val: $added_val";
+					$fieldgroups_fixed[$one_field_group_id][$posted_id][$added_id] = $fieldgroups[$one_field_group_id][$posted_id][$added_id];
+				}
+			}
+		
+		}
+		$fieldgroups = $fieldgroups_fixed;
 
+		update_post_meta($post_id, "_simple_fields_been_saved", "1");
 		foreach ($fieldgroups as $one_field_group_id => $one_field_group_fields) {
 
 			foreach ($one_field_group_fields as $one_field_id => $one_field_values) {
+				// xxx
+				// one_field_id = id på fältet vi sparar. t.ex. id:et på "måndag" eller "tisdag"
+				// one_field_values = sparade värden för detta fält, sorterat i den ordning som syns i admin
+				//					  dvs. nyaste överst (med key "new0"), och sedan key 0, key 1, osv.
+				
 			
 				// determine type of field we are saving
 				$field_info = $field_groups_option[$one_field_group_id]["fields"][$one_field_id];
@@ -169,8 +201,12 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 					// it's a tiny edit area, so use wpautop to fix p and br
 					$do_wpautop = true;
 				}
-			
+				
+				// @todo: empty checkboxes = values saved for the wrong fieldgroup
+				// it "jumps" past one of the groups when saving, so the wrong group gets the value
+				// ide: korrigera arrayen? istället för sparandet
 				$num_in_set = 0;
+				// save entered value for each added group
 				foreach ($one_field_values as $one_field_value) {
 				
 					$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
@@ -745,6 +781,10 @@ function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, 
 		$fetch_by_id = true;
 	}
 	$connector = simple_fields_get_all_fields_and_values_for_post($post_id);
+
+	if (!$connector) {
+		return array();
+	}
 
 	foreach ($connector["field_groups"] as $one_field_group) {
 
