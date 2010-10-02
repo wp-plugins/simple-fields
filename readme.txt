@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -35,8 +35,8 @@ http://eskapism.se/code-playground/simple-fields/tutorial/
 
 Please note that this plugin still is in a very early version. Please try it out but be aware of bugs. 
 Also, please remember to backup your database, just to be sure if anything goes wrong.
-For bugreports, feature request and so on, please contact me at par.thernstrom@gmail.com or through twitter 
-(username [eskapism](http://twitter.com/eskapism/))
+For bugreports, feature request and so on, please contact me at par.thernstrom@gmail.com or through twitter
+http://twitter.com/eskapism/.
 
 #### Help and Support
 If you have questions/bug reports/feature requests for Simple Fields please use the WordPress [Support Forum](http://wordpress.org/tags/simple-fields?forum_id=10).
@@ -68,6 +68,9 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.3.2 =
+- Fixed a problem with checkboxes and multiple fields (as reported here: http://eskapism.se/code-playground/simple-fields/comment-page-1/#comment-73892). I hope. Please make sure you make a backup of your database before upgrading. Things may go boom!
 
 = 0.3.1 =
 - simple_fields_get_post_group_values would return an array with one element with a value of null, if a repeatable field group did not have any added items. kinda confusing.
