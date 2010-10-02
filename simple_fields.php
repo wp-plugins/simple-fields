@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://eskapism.se/code-playground/simple-fields/
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 0.2.4
+Version: 0.3.2
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -34,8 +34,8 @@ if (isset($_GET["wp_abspath"])) {
 
 define( "EASY_FIELDS_URL", WP_PLUGIN_URL . '/simple-fields/');
 define( "EASY_FIELDS_NAME", "Simple Fields"); 
-define( "EASY_FIELDS_VERSION", "0.2.4");
-define( "EASY_FIELDS_FILE", "options-general.php?page=simple-fields-options"); // this still feels nasty...
+define( "EASY_FIELDS_VERSION", "0.3.2");
+#define( "EASY_FIELDS_FILE", "options-general.php?page=simple-fields-options"); // this still feels nasty...
 
 // on admin init: add styles and scripts
 add_action( 'admin_init', 'simple_fields_admin_init' );
@@ -45,6 +45,19 @@ add_action( 'admin_head', 'simple_fields_admin_head' );
 // ajax. that's right baby.
 add_action('wp_ajax_simple_fields_field_group_add_field', 'simple_fields_field_group_add_field');
 
+function simple_fields_admin_init() {
+
+	wp_enqueue_script("jquery");
+	wp_enqueue_script("jquery-ui-core");
+	wp_enqueue_script("jquery-ui-sortable");
+	wp_enqueue_script("jquery-ui-effects-core", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.core.js");
+	wp_enqueue_script("jquery-ui-effects-highlight", "http://jquery-ui.googlecode.com/svn/tags/1.8.1/ui/jquery.effects.highlight.js");
+	wp_enqueue_script("thickbox");
+	wp_enqueue_style("thickbox");
+
+	define( "EASY_FIELDS_FILE", menu_page_url("simple-fields-options", false) );
+
+}
+
 require("functions_admin.php");
 require("functions_post.php");
-
