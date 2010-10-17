@@ -86,7 +86,7 @@ function simple_fields_options() {
 		<div class="clear"></div>
 		
 		<?php
-		$action = $_GET["action"];
+		$action = (isset($_GET["action"])) ? $_GET["action"] : null;
 		
 		/**
 		 * save post type defaults
@@ -232,8 +232,8 @@ function simple_fields_options() {
 				$field_groups[$field_group_id]["repeatable"] = (bool) $_POST["field_group_repeatable"];
 				$field_groups[$field_group_id]["fields"] = (array) $_POST["field"];
 		
-				$field_groups[$field_group_id]["type_textarea_options"] = (array) $_POST["type_textarea_options"];
-				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) $_POST["type_radiobuttons_options"];
+				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
+				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 		
 				update_option("simple_fields_groups", $field_groups);
 	
@@ -449,7 +449,7 @@ function simple_fields_options() {
 	            		<td>
 	            			<div id="simple-fields-field-group-existing-fields">
 	            				<ul class='simple-fields-edit-field-groups-added-fields'>
-									<?
+									<?php
 									foreach ($field_group_in_edit["fields"] as $oneField) {
 										if (!$oneField["deleted"]) {
 											echo simple_fields_field_group_add_field_template($oneField["id"], $field_group_in_edit);
@@ -510,14 +510,14 @@ function simple_fields_options() {
 				<h3>Field groups</h3>
 
 				<?php
-				if ($simple_fields_did_save) {
-					?><div id="message" class="updated"><p>Field group saved</p></div><?
-				} elseif ($simple_fields_did_delete) {
-					?><div id="message" class="updated"><p>Field group deleted</p></div><?
-				} elseif ($simple_fields_did_delete_post_connector) {
-					?><div id="message" class="updated"><p>Post connector deleted</p></div><?
-				} elseif ($simple_fields_did_save_post_type_defaults) {
-					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?
+				if (isset($simple_fields_did_save) && $simple_fields_did_save) {
+					?><div id="message" class="updated"><p>Field group saved</p></div><?php
+				} elseif (isset($simple_fields_did_delete) && $simple_fields_did_delete) {
+					?><div id="message" class="updated"><p>Field group deleted</p></div><?php
+				} elseif (isset($simple_fields_did_delete_post_connector) && $simple_fields_did_delete_post_connector) {
+					?><div id="message" class="updated"><p>Post connector deleted</p></div><?php
+				} elseif (isset($simple_fields_did_save_post_type_defaults) && $simple_fields_did_save_post_type_defaults) {
+					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?php
 				}
 
 				
@@ -550,8 +550,8 @@ function simple_fields_options() {
 				<h3>Post Connectors</h3>
 
 				<?php
-				if ($simple_fields_did_save_connector) {
-					?><div id="message" class="updated"><p>Post connector saved</p></div><?
+				if (isset($simple_fields_did_save_connector) && $simple_fields_did_save_connector) {
+					?><div id="message" class="updated"><p>Post connector saved</p></div><?php
 				}
 
 				if ($post_connector_count) {
@@ -627,10 +627,10 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$field_type = $fields[$fieldID]["type"];
 	$field_deleted = (int) $fields[$fieldID]["deleted"];
 	
-	$field_type_textarea_option_use_html_editor = (int) $fields[$fieldID]["type_textarea_options"]["use_html_editor"];
-	$field_type_checkbox_option_checked_by_default = (int) $fields[$fieldID]["type_checkbox_options"]["checked_by_default"];
-	$field_type_radiobuttons_options = (array) $fields[$fieldID]["type_radiobuttons_options"];
-	$field_type_dropdown_options = (array) $fields[$fieldID]["type_dropdown_options"];
+	$field_type_textarea_option_use_html_editor = (int) @$fields[$fieldID]["type_textarea_options"]["use_html_editor"];
+	$field_type_checkbox_option_checked_by_default = (int) @$fields[$fieldID]["type_checkbox_options"]["checked_by_default"];
+	$field_type_radiobuttons_options = (array) @$fields[$fieldID]["type_radiobuttons_options"];
+	$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
 	
 	#d($field_type_radiobuttons_options);
 	
