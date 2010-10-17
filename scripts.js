@@ -1,6 +1,21 @@
 
 (function($) {
 
+	// get query params
+	// from http://stackoverflow.com/questions/439463/how-to-get-get-and-post-variables-with-jquery
+	function getQueryParams(qs) {
+	    qs = qs.split("+").join(" ");
+	    var params = {};
+	    var tokens;
+	
+	    while (tokens = /[?&]?([^=]+)=([^&]*)/g.exec(qs)) {
+	        params[decodeURIComponent(tokens[1])]
+	            = decodeURIComponent(tokens[2]);
+	    }
+	
+	    return params;
+	}
+
 	// add new field to the field group
 	function simple_fields_field_group_add_field() {
 		simple_fields_highest_field_id++;
@@ -279,6 +294,35 @@
 		return false;
 	});
 
+	$(".simple-fields-metabox-field-file-select").live("click", function() {
+		var input = $(this).closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-fileID");
+		simple_fields_metabox_field_file_select_input_selectedID = input;
+	});
+	
+	$(".simple-fields-file-browser-file-select").live("click", function() {
+		var file_id = $(this).closest("li").find("input[name='simple-fields-file-browser-list-file-id']").val();
+		var file_thumb = $(this).closest("li").find(".thumbnail img").attr("src");
+		var file_name = $(this).closest("li").find("h3").text();
+		self.parent.simple_fields_metabox_file_select(file_id, file_thumb, file_name);
+		self.parent.tb_remove();
+	});
+
+	$(".simple-fields-metabox-field-file-clear").live("click", function() {
+		var $li = $(this).closest(".simple-fields-metabox-field-file");
+		$li.find(".simple-fields-metabox-field-file-fileID").val("");
+		$li.find(".simple-fields-metabox-field-file-selected-image").text("");
+		$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
+		return false;
+	});
+
+	// media buttons
+	$(".simple_fields_tiny_media_button").live("click", function(){
+		var id = $(this).closest(".simple-fields-metabox-field").find("textarea").attr("id");
+		simple_fields_focusTextArea(id);
+		simple_fields_thickbox($(this).get(0));
+		return false;
+	});
+	
 	
 	/**
 	 * ondomready stuff
@@ -377,7 +421,6 @@
 			return false;
 		});
 
-		
 		$("ul.simple-fields-metabox-field-group-fields-repeatable").sortable({
 			distance: 10,
 			axis: 'y',
@@ -395,37 +438,24 @@
 		// attach TinyMCE to textareas
 		simple_fields_metabox_tinymce_attach();
 		
+		// Media browser: make sure search and filter works by adding hidden inputs
+		// would have been best to do this in PHP, but I can't find any filter for it
+		if (pagenow == "media-upload-popup") {
+			var html = "";
+			/*html += "<input type='text' name='simple_fields_dummy' value='1' />";
+			html += "<input type='text' name='simple_fields_action' value='select_file' />";
+			html += "<input type='text' name='simple_fields_file_field_unique_id' value='select_file' />";
+			*/
+			var frm_filter = $("form#filter");
+			var params = getQueryParams(window.location.search);
+			// all params that start with "simple_fields_"
+			$.each(params, function(key, val) {
+				frm_filter.append("<input type='hidden' name='"+key+"' value='"+val+"' />");
+			});	
+		}
+		
 	});
 
-	
-	$(".simple-fields-metabox-field-file-select").live("click", function() {
-		var input = $(this).closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-fileID");
-		simple_fields_metabox_field_file_select_input_selectedID = input;
-	});
-	
-	$(".simple-fields-file-browser-file-select").live("click", function() {
-		var file_id = $(this).closest("li").find("input[name='simple-fields-file-browser-list-file-id']").val();
-		var file_thumb = $(this).closest("li").find(".thumbnail img").attr("src");
-		var file_name = $(this).closest("li").find("h3").text();
-		self.parent.simple_fields_metabox_file_select(file_id, file_thumb, file_name);
-		self.parent.tb_remove();
-	});
-
-	$(".simple-fields-metabox-field-file-clear").live("click", function() {
-		var $li = $(this).closest("li");
-		$li.find(".simple-fields-metabox-field-file-fileID").val("");
-		$li.find(".simple-fields-metabox-field-file-selected-image").text("");
-		$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
-		return false;
-	});
-
-	// media buttons
-	$(".simple_fields_tiny_media_button").live("click", function(){
-		var id = $(this).closest(".simple-fields-metabox-field").find("textarea").attr("id");
-		simple_fields_focusTextArea(id);
-		simple_fields_thickbox($(this).get(0));
-		return false;
-	});
 
 }(jQuery));
 
@@ -472,42 +502,12 @@ function simple_fields_thickbox(link) {
 	return false;
 }
 
-// @todo: is not used?!
-/*
-function send_to_custom_field(h) {
-
-	if ( simple_fields_tmpFocus ) {
-		ed = simple_fields_tmpFocus;
-	} else if ( typeof tinyMCE == "undefined" ) {
-		ed = document.getElementById("content");
-	} else {
-		ed = tinyMCE.get("content");
-		if (ed) {
-			if(!ed.isHidden()) {
-				simple_fields_isTinyMCE = true;
-			}
-		}
-	}
-	if (typeof tinyMCE != "undefined" && simple_fields_isTinyMCE && !ed.isHidden()) {
-		ed.focus();
-		ed.execCommand("mceInsertContent", false, h);
-	} else {
-		if (simple_fields_tmpFocus) {
-			edInsertContent(simple_fields_tmpFocus, h);
-		} else {
-			edInsertContent(edCanvas, h);
-		}
-	}
-	tb_remove();
-	simple_fields_tmpFocus = undefined;
-	simple_fields_isTinyMCE = false;
-}
-*/
-
-// global js stuff
+// global js stuff; sorry about that...
 var simple_fields_metabox_field_file_select_input_selectedID = null;
-function simple_fields_metabox_file_select(file_id, file_thumb, file_name) {
+var simple_fields_is_simple_fields_popup = false;
 
+// called when selecting file from tiny-area, if I remember correct
+function simple_fields_metabox_file_select(file_id, file_thumb, file_name) {
 	simple_fields_metabox_field_file_select_input_selectedID.val(file_id);
 	$file_thumb_tag = jQuery("<img src='"+file_thumb+"' alt='' />");
 	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image").html($file_thumb_tag);

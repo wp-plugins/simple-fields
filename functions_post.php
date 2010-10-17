@@ -1,17 +1,42 @@
 <?php
 
-if (isset($_GET["simple-fields-action"]) && ($_GET["simple-fields-action"] == "select_file_inner")) {
-	header('HTTP/1.1 200 OK'); // wp seems to returns 404 otherwise
-	require("file_browser.php");
-	exit;
-}
-
 // now lets get that file dialog working!
 add_filter( 'media_send_to_editor', 'simple_fields_media_send_to_editor', 15, 2 );
 add_filter( 'media_upload_tabs', 'simple_fields_media_upload_tabs', 15);
 add_filter( 'media_upload_form_url', 'simple_fields_media_upload_form_url');
 add_filter( 'attachment_fields_to_edit', 'simple_fields_attachment_fields_to_edit', 10, 2 );
 add_action( 'admin_head', 'simple_fields_admin_head_select_file' );
+add_action( 'admin_init', 'simple_fields_post_admin_init' );
+add_action( 'dbx_post_sidebar', 'simple_fields_post_dbx_post_sidebar' );
+
+/**
+ * output nonce
+ */
+function simple_fields_post_dbx_post_sidebar() {
+	?>
+	<input type="hidden" name="simple_fields_nonce" id="simple_fields_nonce" value="<?php echo wp_create_nonce( plugin_basename(__FILE__) ); ?>" />
+	<?php
+}
+
+/**
+ * Change "insert into post" to something better
+ * Code inspired by/gracefully stolen from
+ * http://mondaybynoon.com/2010/10/12/attachments-1-5/#comment-27524
+ */
+function simple_fields_post_admin_init() {
+	if ($_GET["simple_fields_action"] == "select_file") {
+		add_filter('gettext', 'simple_fields_hijack_thickbox_text', 1, 3);
+	}
+}
+function simple_fields_hijack_thickbox_text($translated_text, $source_text, $domain) {
+	if ($_GET["simple_fields_action"] == "select_file") {
+		if ('Insert into Post' == $source_text) {
+			return __('Select', 'simple_fields' );
+		}
+	}
+	return $translated_text;
+}
+
 
 /*
 	hide some stuff in the file browser
@@ -82,7 +107,7 @@ function simple_fields_media_upload_tabs($arr_tabs) {
 // send the selected file to simple fields
 function simple_fields_media_send_to_editor($html, $id) {
 	/*
-	post_id	1060
+	post_id	1060, -1 since dda17 October, 2
 	tab	library
 	type	file
 	
@@ -100,7 +125,6 @@ function simple_fields_media_send_to_editor($html, $id) {
 	    [tab] => library
 	)
 	*/
-	
 	// only act if file browser is initiated by simple fields
 	if (isset($arr_postinfo["simple_fields_action"]) && $arr_postinfo["simple_fields_action"] == "select_file") {
 
@@ -132,13 +156,20 @@ function simple_fields_media_send_to_editor($html, $id) {
 add_action('save_post', 'simple_fields_save_postdata');
 function simple_fields_save_postdata($post_id = null, $post = null) {
 
+	// verify this came from the our screen and with proper authorization,
+	// because save_post can be triggered at other times
+	if ( !wp_verify_nonce( $_POST['simple_fields_nonce'], plugin_basename(__FILE__) )) {
+		return $post_id;
+	}
+
 	// verify if this is an auto save routine. If it is our form has not been submitted, so we dont want to do anything
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return $post_id; }
 	
 	// @todo: check permissions, check wp_verify_nonce
+	// not checking nonce can lead to errors, for example losing post connector
 
+	// attach post connector
 	$simple_fields_selected_connector = (isset($_POST["simple_fields_selected_connector"])) ? $_POST["simple_fields_selected_connector"] : null;
-
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
 
 	$post_id = (int) $post_id;
@@ -187,7 +218,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 		foreach ($fieldgroups as $one_field_group_id => $one_field_group_fields) {
 
 			foreach ($one_field_group_fields as $one_field_id => $one_field_values) {
-				// xxx
 				// one_field_id = id på fältet vi sparar. t.ex. id:et på "måndag" eller "tisdag"
 				// one_field_values = sparade värden för detta fält, sorterat i den ordning som syns i admin
 				//					  dvs. nyaste överst (med key "new0"), och sedan key 0, key 1, osv.
@@ -424,7 +454,9 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
 
 							$field_unique_id_esc = rawurlencode($field_unique_id);
-							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
+							#$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
+							// xxx
+							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=-1&TB_iframe=true";
 							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>Select file</a>";
 							
 							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>Clear</a>";
@@ -554,7 +586,7 @@ function simple_fields_admin_head() {
 	<link rel="stylesheet" type="text/css" href="<?php echo EASY_FIELDS_URL ?>styles.css" />
 	<?php
 	
-	// Add meta box to post 
+	// Add meta box to post
 	global $post;
 
 	if ($post) {

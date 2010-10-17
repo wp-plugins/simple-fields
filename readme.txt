@@ -4,13 +4,13 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
 == Description ==
 
-Simple Fields for WordPress let you add groups of fields to you edit post page.
+Simple Fields for WordPress let you add groups of fields to your edit post page.
 
 Simple Fields turns WordPress into an even more powerful Content Management System (CMS).
 
@@ -18,7 +18,7 @@ Simple Fields turns WordPress into an even more powerful Content Management Syst
 
 * Add textboxes, text areas, checkboxes, radio buttons, dropdowns, and file browser to the post admin area
 * Much easier for the user than regular custom fields
-* Group fields together into logical groups. For example combine File + Name + Description into a an Attachments-group.
+* Group fields together into logical groups. For example combine File + Name + Description into a an Attachments-group, that let's you add multiple files to your posts
 * Use "repeatable" field groups to add many any amount of field groups to a single post (great for images or attachments!)
 * Use drag and drop to change order of added repeatable groups
 * Different post types can use different field groups - actually you can even use different field groups even for same post type
@@ -68,6 +68,16 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.3.3 =
+- Use jquery-ui version 1.7.3 instead of 1.8.1, since that's the version otherwise used by WordPress.
+- If FORCE_SSL_ADMIN is set to true, jquery-ui-stuff is loaded from Google through HTTPS instead of plain HTTP. Please let me know if this solves the problems some of you had.
+- removed post_id from media select querystring. should make it not add the selected image to the gallery/attach it to the post
+- media browser: filter and search now works
+- media browser: finally managed to change the name of the "insert into post"-button. Code gracefully stolen/inspired by the Attachments-plugin (http://wordpress.org/extend/plugins/attachments/)
+- uses nonce when saving. should fix a couple of bugs, for example post connector being reseted
+- if multiple file fields where in a single group, clearing one file would clear them all
+- Hopefully fixed some more stuff that I can't remember. ..and probably broke some stuff too. Make a backup before installing, people! And let me know of any bugs you find!
 
 = 0.3.2 =
 - Fixed a problem with checkboxes and multiple fields (as reported here: http://eskapism.se/code-playground/simple-fields/comment-page-1/#comment-73892). I hope. Please make sure you make a backup of your database before upgrading. Things may go boom!
