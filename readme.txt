@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.3
+Stable tag: 0.3.4
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -68,6 +68,11 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.3.4 =
+- effects.core.js and effects.highlight.js actually points to existing files now
+- adding repeatable field groups would "hang" due to the fact that effects.highlight was missing. so should be fixed now too.
+- media browser would hang on chrome (and safari too i guess). should be fixed now.
 
 = 0.3.3 =
 - Use jquery-ui version 1.7.3 instead of 1.8.1, since that's the version otherwise used by WordPress.

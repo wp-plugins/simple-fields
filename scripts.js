@@ -9,8 +9,7 @@
 	    var tokens;
 	
 	    while (tokens = /[?&]?([^=]+)=([^&]*)/g.exec(qs)) {
-	        params[decodeURIComponent(tokens[1])]
-	            = decodeURIComponent(tokens[2]);
+	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
 	    }
 	
 	    return params;
@@ -447,7 +446,20 @@
 			html += "<input type='text' name='simple_fields_file_field_unique_id' value='select_file' />";
 			*/
 			var frm_filter = $("form#filter");
-			var params = getQueryParams(window.location.search);
+			//var params = getQueryParams(window.location.search);
+			// http://localhost/wp-admin/media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=simple_fields_fieldgroups_12_1_0&post_id=-1&
+			// get these
+			// simple_fields_dummy=1
+			// simple_fields_action=select_file
+			// simple_fields_file_field_unique_id=simple_fields_fieldgroups_12_1_0
+			var params = {
+				"simple_fields_dummy": 1,
+				"simple_fields_action": "select_file"
+			}
+			
+			var match = window.location.search.match(/simple_fields_file_field_unique_id=([\w]+)/);
+			params.simple_fields_file_field_unique_id = match[1];
+			
 			// all params that start with "simple_fields_"
 			$.each(params, function(key, val) {
 				frm_filter.append("<input type='hidden' name='"+key+"' value='"+val+"' />");
