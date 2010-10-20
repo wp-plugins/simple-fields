@@ -1,20 +1,6 @@
 
 (function($) {
 
-	// get query params
-	// from http://stackoverflow.com/questions/439463/how-to-get-get-and-post-variables-with-jquery
-	function getQueryParams(qs) {
-	    qs = qs.split("+").join(" ");
-	    var params = {};
-	    var tokens;
-	
-	    while (tokens = /[?&]?([^=]+)=([^&]*)/g.exec(qs)) {
-	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-	    }
-	
-	    return params;
-	}
-
 	// add new field to the field group
 	function simple_fields_field_group_add_field() {
 		simple_fields_highest_field_id++;
@@ -439,14 +425,10 @@
 		
 		// Media browser: make sure search and filter works by adding hidden inputs
 		// would have been best to do this in PHP, but I can't find any filter for it
-		if (pagenow == "media-upload-popup") {
-			var html = "";
-			/*html += "<input type='text' name='simple_fields_dummy' value='1' />";
-			html += "<input type='text' name='simple_fields_action' value='select_file' />";
-			html += "<input type='text' name='simple_fields_file_field_unique_id' value='select_file' />";
-			*/
+		if ( pagenow == "media-upload-popup" && window.location.search.match(/simple_fields_dummy=/) ) {
+
 			var frm_filter = $("form#filter");
-			//var params = getQueryParams(window.location.search);
+			
 			// http://localhost/wp-admin/media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=simple_fields_fieldgroups_12_1_0&post_id=-1&
 			// get these
 			// simple_fields_dummy=1
@@ -464,6 +446,7 @@
 			$.each(params, function(key, val) {
 				frm_filter.append("<input type='hidden' name='"+key+"' value='"+val+"' />");
 			});	
+
 		}
 		
 	});
