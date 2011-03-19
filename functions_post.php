@@ -298,7 +298,7 @@ function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 
 		echo "
 			<div class='simple-fields-metabox-field-add'>
-				<a href='#'>+ Add</a>
+				<a href='#'>+ ".__('Add', 'simple-fields')."</a>
 			</div>
 		";
 		echo "<ul class='simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable'>";
@@ -354,7 +354,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 		<?php
 		// if repeatable: add remove-link
 		if ($repeatable) {
-			?><div class="hidden simple-fields-metabox-field-group-delete"><a href="#" title="Remove field group"></a></div><?php
+			?><div class="hidden simple-fields-metabox-field-group-delete"><a href="#" title="<?php _e('Remove field group', 'simple-fields') ?>"></a></div><?php
 		}
 		?>
 		<?php
@@ -457,16 +457,16 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 							#$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
 							// xxx
 							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=-1&TB_iframe=true";
-							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>Select file</a>";
+							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>".__('Select file', 'simple-fields')."</a>";
 							
-							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>Clear</a>";
+							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>".__('Clear', 'simple-fields')."</a>";
 						echo "</div>";
 					echo "</div>";
 
 				} elseif ("image" == $field["type"]) {
 
 					$text_value_esc = esc_html($saved_value);
-					echo "<label>image</label>";
+					echo "<label>".__('image', 'simple-fields')."</label>";
 					echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 					
 				} elseif ("textarea" == $field["type"]) {
@@ -488,7 +488,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					if ($textarea_options["use_html_editor"]) {
 
 						// switch html/tinymce
-						echo "<div class='simple_fields_editor_switch'>View <a class='selected simple_fields_editor_switch_visual' href='#'>Visual</a> <a href='#' class='simple_fields_editor_switch_html'>HTML</a></div>";
+						echo "<div class='simple_fields_editor_switch'>".__('View', 'simple-fields')."View <a class='selected simple_fields_editor_switch_visual' href='#'>".__('Visual', 'simple-fields')."</a> <a href='#' class='simple_fields_editor_switch_html'>".__('HTML', 'simple-fields')."</a></div>";
 
 						if ( current_user_can( 'upload_files' ) )
 
@@ -549,7 +549,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	
 				}
 				?>
-				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong>Meta key:</strong> <?php echo $custom_field_key ?></div>
+				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong><?php _e('Meta key:', 'simple-fields') ?></strong> <?php echo $custom_field_key ?></div>
 			</div><!-- // end simple-fields-metabox-field -->
 			<?php
 		} // foreach
@@ -575,17 +575,11 @@ function simple_fields_media_send_to_editor($html) {
 */
 
 /**
- * head of admin area: add css and stuff
+ * head of admin area
+ * ! css/scripts moved to admin_init
  */
 function simple_fields_admin_head() {
 
-	// add css and scripts
-	// @todo: now why do I not use enqueue script for these...??
-	?>
-	<script type="text/javascript" src="<?php echo EASY_FIELDS_URL ?>scripts.js"></script>
-	<link rel="stylesheet" type="text/css" href="<?php echo EASY_FIELDS_URL ?>styles.css" />
-	<?php
-	
 	// Add meta box to post
 	global $post;
 
@@ -711,8 +705,8 @@ function simple_fields_edit_post_side_field_settings() {
 	<div class="inside">
 		<div>
 			<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
-				<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__">None</option>
-				<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__">Inherit from parent</option>
+				<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
+				<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?></option>
 				<?php foreach ($arr_connectors as $one_connector) : ?>
 					<?php if ($one_connector["deleted"]) { continue; } ?>
 					<option <?php echo ($connector_selected == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
@@ -720,10 +714,10 @@ function simple_fields_edit_post_side_field_settings() {
 			</select>
 		</div>
 		<div id="simple-fields-post-edit-side-field-settings-select-connector-please-save" class="hidden">
-			<p>Save post to switch to selected fields.</p>
+			<p><?php _e('Save post to switch to selected fields.', 'simple-fields') ?></p>
 		</div>
 		<div>
-			<p><a href="#" id="simple-fields-post-edit-side-field-settings-show-keys">Show custom field keys</a></p>
+			<p><a href="#" id="simple-fields-post-edit-side-field-settings-show-keys"><?php _e('Show custom field keys', 'simple-fields') ?></a></p>
 		</div>
 	</div>
 	<?php

@@ -69,6 +69,11 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.3.x =
+- Now more localized than ever before. Lots of thanks to Ricardo Tomasi who made the required changes.
+- Added Brazilian translation, also by Ricardo Tomasi
+- 
+
 = 0.3.6 =
 - Removed some old code that had security issues. You should update to this version as soon as possible.
 

@@ -110,12 +110,12 @@ function simple_fields_options() {
 			if (isset($wp_post_types[$post_type])) {
 				$selected_post_type = $wp_post_types[$post_type];
 				?>
-				<h3>Post type <?php echo $post_type ?></h3>
+				<h3><?php echo __('Post type', 'simple-fields').' '.$post_type ?></h3>
 				
 				<form action="<?php echo EASY_FIELDS_FILE ?>&amp;action=edit-post-type-defaults-save" method="post">
 					<table class="form-table">
 						<tr>
-							<th>Default post connector</th>
+							<th><?php _e('Default post connector', 'simple-fields') ?></th>
 							<td>
 								<?php
 								$arr_post_connectors = simple_fields_get_post_connectors_for_post_type($post_type);
@@ -123,8 +123,8 @@ function simple_fields_options() {
 									$selected_post_type_default = simple_fields_get_default_connector_for_post_type($post_type);
 									?>
 									<select name="post_type_connector">
-										<option <?php echo ($selected_post_type_default=="__none__") ? " selected='selected' " : "" ?> value="__none__">No post connector</option>
-										<option <?php echo ($selected_post_type_default=="__inherit__") ? " selected='selected' " : "" ?> value="__inherit__">Inherit from parent post</option>
+										<option <?php echo ($selected_post_type_default=="__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('No post connector', 'simple-fields') ?></option>
+										<option <?php echo ($selected_post_type_default=="__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent post', 'simple-fields') ?></option>
 										<?php
 										foreach ($arr_post_connectors as $one_post_connector) {
 											echo "<option " . (($selected_post_type_default==$one_post_connector["id"]) ? " selected='selected' " : "") . "value='{$one_post_connector["id"]}'>" . $one_post_connector["name"] . "</option>";
@@ -133,7 +133,7 @@ function simple_fields_options() {
 									</select>
 									<?php
 								} else {
-									?><p>There are no post connectors for this post type.</p><?php
+									?><p><?php _e('There are no post connectors for this post type.', 'simple-fields') ?></p><?php
 								}
 								?>
 							</td>
@@ -143,7 +143,7 @@ function simple_fields_options() {
 						<input class="button-primary" type="submit" value="Save Changes" />
 						<input type="hidden" name="post_type" value="<?php echo $post_type ?>" />
 						or 
-						<a href="<?php echo EASY_FIELDS_FILE ?>">cancel</a>
+						<a href="<?php echo EASY_FIELDS_FILE ?>"><?php _e('cancel', 'simple-fields') ?></a>
 					</p>
 				</form>
 				<?php
@@ -280,22 +280,22 @@ function simple_fields_options() {
 			$post_connector_in_edit = $post_connectors[$connector_id];
 
 			?>
-			<h3>Post Connector details</h3>
+			<h3><?php _e('Post Connector details', 'simple-fields') ?></h3>
 
 			<form method="post" action="<?php echo EASY_FIELDS_FILE ?>&amp;action=edit-post-connector-save">
 
 				<table class="form-table">
 					<tr>
-						<th><label>Name</label></th>
+						<th><label><?php _e('Name', 'simple-fields') ?></label></th>
 						<td><input type="text" id="post_connector_name" name="post_connector_name" class="regular-text" value="<?php echo esc_html($post_connector_in_edit["name"]) ?>" /></td>
 					</tr>
 					<tr>
-						<th>Field Groups</th>
+						<th><?php _e('Field Groups', 'simple-fields') ?></th>
 	
 						<td>
 							<p>
 								<select id="simple-fields-post-connector-add-fields">
-									<option value="">Add field group...</option>
+									<option value=""><?php _e('Add field group...', 'simple-fields') ?></option>
 									<?php
 									foreach ($field_groups as $one_field_group) {
 										if ($one_field_group["deleted"]) { continue; }
@@ -317,20 +317,20 @@ function simple_fields_options() {
 										<input type='hidden' name='added_fields[<?php echo $one_post_connector_added_field["id"] ?>][name]' value='<?php echo $one_post_connector_added_field["name"] ?>' />
 										<input type='hidden' name='added_fields[<?php echo $one_post_connector_added_field["id"] ?>][deleted]' value='0' class="simple-fields-post-connector-added-field-deleted" />
 										<div class="simple-fields-post-connector-addded-fields-options">
-											Context
+											<?php _e('Context', 'simple-fields') ?>
 											<select name='added_fields[<?php echo $one_post_connector_added_field["id"] ?>][context]' class="simple-fields-post-connector-addded-fields-option-context">
-												<option <?php echo ("normal" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="normal">normal</option>
-												<option <?php echo ("advanced" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="advanced">advanced</option>
-												<option <?php echo ("side" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="side">side</option>
+												<option <?php echo ("normal" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="normal"><?php _e('normal') ?></option>
+												<option <?php echo ("advanced" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="advanced"><?php _e('advanced') ?></option>
+												<option <?php echo ("side" == $one_post_connector_added_field["context"]) ? " selected='selected' " : "" ?> value="side"><?php _e('side') ?></option>
 											</select>
 											
-											Priority
+											<?php _e('Priority', 'simple-fields') ?>
 											<select name='added_fields[<?php echo $one_post_connector_added_field["id"] ?>][priority]' class="simple-fields-post-connector-addded-fields-option-priority">
-												<option <?php echo ("low" == $one_post_connector_added_field["priority"]) ? " selected='selected' " : "" ?> value="low">low</option>
-												<option <?php echo ("high" == $one_post_connector_added_field["priority"]) ? " selected='selected' " : "" ?> value="high">high</option>
+												<option <?php echo ("low" == $one_post_connector_added_field["priority"]) ? " selected='selected' " : "" ?> value="low"><?php _e('low') ?></option>
+												<option <?php echo ("high" == $one_post_connector_added_field["priority"]) ? " selected='selected' " : "" ?> value="high"><?php _e('high') ?></option>
 											</select>
 										</div>
-										<a href='#' class='simple-fields-post-connector-addded-fields-delete'>Delete</a>
+										<a href='#' class='simple-fields-post-connector-addded-fields-delete'><?php _e('Delete', 'simple-fields') ?></a>
 									</li>
 									<?php
 								}
@@ -341,7 +341,7 @@ function simple_fields_options() {
 					
 					<tr>
 						<th>
-							Available for post types
+							<?php _e('Available for post types', 'simple-fields') ?>
 						</th>
 						<td>
 							<table>
@@ -371,15 +371,15 @@ function simple_fields_options() {
 
 				</table>
 				<p class="submit">
-					<input class="button-primary" type="submit" value="Save Changes" />
+					<input class="button-primary" type="submit" value="<?php _e('Save Changes', 'simple-fields') ?>" />
 					<input type="hidden" name="action" value="update" />
 					<!-- <input type="hidden" name="page_options" value="field_group_name" /> -->
 					<input type="hidden" name="post_connector_id" value="<?php echo $post_connector_in_edit["id"] ?>" />
 					or 
-					<a href="<?php echo EASY_FIELDS_FILE ?>">cancel</a>
+					<a href="<?php echo EASY_FIELDS_FILE ?>"><?php _e('cancel', 'simple-fields') ?></a>
 				</p>
 				<p class="simple-fields-post-connector-delete">
-					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=delete-post-connector&amp;connector-id=<?php echo $post_connector_in_edit["id"] ?>">Delete</a>
+					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=delete-post-connector&amp;connector-id=<?php echo $post_connector_in_edit["id"] ?>"><?php _e('Delete') ?></a>
 				</p>
 
 			</form>
@@ -430,22 +430,22 @@ function simple_fields_options() {
 			?>
 			<form method="post" action="<?php echo EASY_FIELDS_FILE ?>&amp;action=edit-field-group-save">
 				<?php #settings_fields('simple_fields_options'); ?>
-	            <h3>Field group details</h3>
+	            <h3><?php _e('Field group details', 'simple-fields') ?></h3>
 	            <table class="form-table">
 	            	<tr>
-	            		<th><label for="field_group_name">Name</label></th>
+	            		<th><label for="field_group_name"><?php _e('Name', 'simple-fields') ?></label></th>
 	            		<td>
 	            			<input type="text" name="field_group_name" id="field_group_name" class="regular-text" value="<?php echo esc_html($field_group_in_edit["name"]) ?>" />
 	            			<br />	
 	            			<label for="field_group_repeatable">
 								<input type="checkbox" <?php echo ($field_group_in_edit["repeatable"] == true) ? "checked='checked'" : ""; ?> value="1" id="field_group_repeatable" name="field_group_repeatable" />
-								Repeatable
+								<?php _e('Repeatable', 'simple-fields') ?>
 							</label>
 	
 	            		</td>
 	            	</tr>
 	            	<tr>
-	            		<th>Fields</th>
+	            		<th><?php _e('Fields', 'simple-fields') ?></th>
 	            		<td>
 	            			<div id="simple-fields-field-group-existing-fields">
 	            				<ul class='simple-fields-edit-field-groups-added-fields'>
@@ -458,21 +458,21 @@ function simple_fields_options() {
 									?>
 	            				</ul>
 	            			</div>
-	            			<p><a href="#" id="simple-fields-field-group-add-field">+ Add field</a></p>
+	            			<p><a href="#" id="simple-fields-field-group-add-field">+ <?php _e('Add field', 'simple-fields') ?></a></p>
 	            		</td>
 	            	</tr>			
 				</table>
 
 				<p class="submit">
-					<input class="button-primary" type="submit" value="Save Changes" />
+					<input class="button-primary" type="submit" value="<?php _e('Save Changes', 'simple-fields') ?>" />
 					<input type="hidden" name="action" value="update" />
 					<input type="hidden" name="page_options" value="field_group_name" />
 					<input type="hidden" name="field_group_id" value="<?php echo $field_group_in_edit["id"] ?>" />
-					or 
-					<a href="<?php echo EASY_FIELDS_FILE ?>">cancel</a>
+					<?php _e('or', 'simple-fields') ?> 
+					<a href="<?php echo EASY_FIELDS_FILE ?>"><?php _e('cancel', 'simple-fields') ?></a>
 				</p>
 				<p class="simple-fields-field-group-delete">
-					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=delete-field-group&amp;group-id=<?php echo $field_group_in_edit["id"] ?>">Delete</a>
+					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=delete-field-group&amp;group-id=<?php echo $field_group_in_edit["id"] ?>"><?php _e('Delete', 'simple-fields') ?></a>
 				</p>
 				
 			</form>
@@ -507,17 +507,17 @@ function simple_fields_options() {
 			?>
 			<div class="simple-fields-edit-field-groups">
 
-				<h3>Field groups</h3>
+				<h3><?php _e('Field groups', 'simple-fields') ?></h3>
 
 				<?php
 				if (isset($simple_fields_did_save) && $simple_fields_did_save) {
-					?><div id="message" class="updated"><p>Field group saved</p></div><?php
+					?><div id="message" class="updated"><p><?php _e('Field group saved', 'simple-fields') ?></p></div><?php
 				} elseif (isset($simple_fields_did_delete) && $simple_fields_did_delete) {
-					?><div id="message" class="updated"><p>Field group deleted</p></div><?php
+					?><div id="message" class="updated"><p><?php _e('Field group deleted', 'simple-fields') ?></p></div><?php
 				} elseif (isset($simple_fields_did_delete_post_connector) && $simple_fields_did_delete_post_connector) {
-					?><div id="message" class="updated"><p>Post connector deleted</p></div><?php
+					?><div id="message" class="updated"><p><?php _e('Post connector deleted', 'simple-fields') ?></p></div><?php
 				} elseif (isset($simple_fields_did_save_post_type_defaults) && $simple_fields_did_save_post_type_defaults) {
-					?><div id="message" class="updated"><p>Post type defaults saved</p></div><?php
+					?><div id="message" class="updated"><p><?php _e('Post type defaults saved', 'simple-fields') ?></p></div><?php
 				}
 
 				
@@ -530,7 +530,7 @@ function simple_fields_options() {
 				}
 
 				if ($field_groups == $field_group_count) {
-					echo "<p>No field groups yet.</p>";
+					echo "<p>".__('No field groups yet.', 'simple-fields')."</p>";
 				} else {
 					echo "<ul class=''>";
 					foreach ($field_groups as $oneFieldGroup) {
@@ -540,18 +540,18 @@ function simple_fields_options() {
 					}
 					echo "</ul>";
 				}
-				echo "<p><a class='button' href='" . EASY_FIELDS_FILE . "&amp;action=edit-field-group&amp;group-id=0'>+ New field group</a></p>";
+				echo "<p><a class='button' href='" . EASY_FIELDS_FILE . "&amp;action=edit-field-group&amp;group-id=0'>+ ".__('New field group', 'simple-fields')."</a></p>";
 				?>
 			</div>
 		
 		
 			<div class="simple-fields-edit-post-connectors">
 
-				<h3>Post Connectors</h3>
+				<h3><?php _e('Post Connectors', 'simple-fields') ?></h3>
 
 				<?php
 				if (isset($simple_fields_did_save_connector) && $simple_fields_did_save_connector) {
-					?><div id="message" class="updated"><p>Post connector saved</p></div><?php
+					?><div id="message" class="updated"><p><?php _e('Post connector saved', 'simple-fields') ?></p></div><?php
 				}
 
 				if ($post_connector_count) {
@@ -575,13 +575,13 @@ function simple_fields_options() {
 				}
 				?>
 				<p>
-					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=edit-post-connector&amp;connector-id=0" class="button">+ New post connector</a>
+					<a href="<?php echo EASY_FIELDS_FILE ?>&amp;action=edit-post-connector&amp;connector-id=0" class="button">+ <?php _e('New post connector', 'simple-fields') ?></a>
 				</p>
 				
 			</div>
 
 			<div class="easy-fields-post-type-defaults">
-				<h3>Post type defaults</h3>
+				<h3><?php _e('Post type defaults', 'simple-fields') ?></h3>
 				<?php
 				#$post_types = get_post_types();
 				#d($post_types);
@@ -639,26 +639,26 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	<li class='simple-fields-field-group-one-field simple-fields-field-group-one-field-id-{$fieldID}'>
 		<div class='simple-fields-field-group-one-field-handle'></div>
 		<div class='simple-fields-field-group-one-field-row'>
-			<label class='simple-fields-field-group-one-field-name-label'>Name</label>
+			<label class='simple-fields-field-group-one-field-name-label'>".__('Name', 'simple-fields')."</label>
 			<!-- <br /> -->
 			<input type='text' class='regular-text simple-fields-field-group-one-field-name' name='field[{$fieldID}][name]' value='{$field_name}' />
 		</div>
 		<div class='simple-fields-field-group-one-field-row simple-fields-field-group-one-field-row-description'>
-			<label>Description</label>
+			<label>".__('Description', 'simple-fields')."</label>
 			<!-- <br /> -->
 			<input type='text' class='regular-text' name='field[{$fieldID}][description]' value='{$field_description}' />
 		</div>
 		<div class='simple-fields-field-group-one-field-row'>
-			<label>Type</label>
+			<label>".__('Type', 'simple-fields')."</label>
 			<!-- <br /> -->
 			<select name='field[{$fieldID}][type]' class='simple-fields-field-type'>
-				<option value=''>Select...</option>
-				<option value='text'" . (($field_type=="text") ? " selected='selected' " : "") . ">Text</option>
-				<option value='textarea'" . (($field_type=="textarea") ? " selected='selected' " : "") . ">Textarea</option>
-				<option value='checkbox'" . (($field_type=="checkbox") ? " selected='selected' " : "") . ">Checkbox</option>
-				<option value='radiobuttons'" . (($field_type=="radiobuttons") ? " selected='selected' " : "") . ">Radio buttons</option>
-				<option value='dropdown'" . (($field_type=="dropdown") ? " selected='selected' " : "") . ">Dropdown</option>
-				<option value='file'" . (($field_type=="file") ? " selected='selected' " : "") . ">File</option>
+				<option value=''>".__('Select', 'simple-fields')."...</option>
+				<option value='text'" . (($field_type=="text") ? " selected='selected' " : "") . ">".__('Text', 'simple-fields')."</option>
+				<option value='textarea'" . (($field_type=="textarea") ? " selected='selected' " : "") . ">".__('Textarea', 'simple-fields')."</option>
+				<option value='checkbox'" . (($field_type=="checkbox") ? " selected='selected' " : "") . ">".__('Checkbox', 'simple-fields')."</option>
+				<option value='radiobuttons'" . (($field_type=="radiobuttons") ? " selected='selected' " : "") . ">".__('Radio buttons', 'simple-fields')."</option>
+				<option value='dropdown'" . (($field_type=="dropdown") ? " selected='selected' " : "") . ">".__('Dropdown', 'simple-fields')."</option>
+				<option value='file'" . (($field_type=="file") ? " selected='selected' " : "") . ">".__('File', 'simple-fields')."</option>
 			</select>
 
 			<div class='simple-fields-field-group-one-field-row " . (($field_type=="text") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-text'>
@@ -666,7 +666,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		</div>
 
 		<div class='simple-fields-field-group-one-field-row " . (($field_type=="textarea") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-textarea'>
-			<input type='checkbox' name='field[{$fieldID}][type_textarea_options][use_html_editor]' " . (($field_type_textarea_option_use_html_editor) ? " checked='checked'" : "") . " value='1' /> Use HTML-editor
+			<input type='checkbox' name='field[{$fieldID}][type_textarea_options][use_html_editor]' " . (($field_type_textarea_option_use_html_editor) ? " checked='checked'" : "") . " value='1' /> ".__('Use HTML-editor', 'simple-fields')."
 		</div>
 		";
 		
@@ -698,11 +698,11 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		$out .= "
 			<div class='" . (($field_type=="radiobuttons") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-radiobuttons'>
 				<div>Added radio buttons</div>
-				<div class='simple-fields-field-type-options-radiobutton-checked-by-default'>Default</div>
+				<div class='simple-fields-field-type-options-radiobutton-checked-by-default'>".__('Default', 'simple-fields')."</div>
 				<ul class='simple-fields-field-type-options-radiobutton-values-added'>
 					$radio_buttons_added
 				</ul>
-				<div><a class='simple-fields-field-type-options-radiobutton-values-add' href='#'>+ Add radio button</a></div>
+				<div><a class='simple-fields-field-type-options-radiobutton-values-add' href='#'>+ ".__('Add radio button', 'simple-fields')."</a></div>
 				<input type='hidden' name='' class='simple-fields-field-group-one-field-radiobuttons-highest-id' value='{$radio_buttons_highest_id}' />
 			</div>
 		";
@@ -711,7 +711,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		// checkbox
 		$out .= "
 		<div class='simple-fields-field-group-one-field-row " . (($field_type=="checkbox") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-checkbox'>
-			<input type='checkbox' name='field[{$fieldID}][type_checkbox_options][checked_by_default]' " . (($field_type_checkbox_option_checked_by_default) ? " checked='checked'" : "") . " value='1' /> Checked by default
+			<input type='checkbox' name='field[{$fieldID}][type_checkbox_options][checked_by_default]' " . (($field_type_checkbox_option_checked_by_default) ? " checked='checked'" : "") . " value='1' /> ".__('Checked by default', 'simple-fields')."
 		</div>
 		";
 		// end checkbox
@@ -733,7 +733,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 							<div class='simple-fields-field-type-options-dropdown-handle'></div>
 							<input class='regular-text' value='$dropdown_val' name='field[$fieldID][type_dropdown_options][dropdown_num_{$dropdown_num}][value]' type='text' />
 							<input class='simple-fields-field-type-options-dropdown-deleted' name='field[$fieldID][type_dropdown_options][dropdown_num_{$dropdown_num}][deleted]' type='hidden' value='0' />
-							<a href='#' class='simple-fields-field-type-options-dropdown-delete'>Delete</a>
+							<a href='#' class='simple-fields-field-type-options-dropdown-delete'>".__('Delete', 'simple-fields')."</a>
 						</li>";
 				}
 			}
@@ -741,11 +741,11 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		$dropdown_values_highest_id++;
 		$out .= "
 			<div class='" . (($field_type=="dropdown") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-dropdown'>
-				<div>Added dropdown values</div>
+				<div>".__('Added dropdown values', 'simple-fields')."</div>
 				<ul class='simple-fields-field-type-options-dropdown-values-added'>
 					$dropdown_values_added
 				</ul>
-				<div><a class='simple-fields-field-type-options-dropdown-values-add' href='#'>+ Add dropdown value</a></div>
+				<div><a class='simple-fields-field-type-options-dropdown-values-add' href='#'>+ ".__('Add dropdown value', 'simple-fields')."</a></div>
 				<input type='hidden' name='' class='simple-fields-field-group-one-field-dropdown-highest-id' value='{$dropdown_values_highest_id}' />
 			</div>
 		";
@@ -754,7 +754,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 
 		$out .= "
 		<div class='delete'>
-			<a href='#'>Delete field</a>
+			<a href='#'>".__('Delete field', 'simple-fields')."</a>
 		</div>
 		<input type='hidden' name='field[{$fieldID}][id]' class='simple-fields-field-group-one-field-id' value='{$fieldID}' />
 		<input type='hidden' name='field[{$fieldID}][deleted]' value='{$field_deleted}' class='hidden_deleted' />
