@@ -338,3 +338,15 @@ ul.simple-fields-file-browser-list h3 {
 	margin-left: 56px;
 	margin-top: -46px;
 }
+
+.simple-fields-bonny-plugins-inner-sidebar {
+	float: right;
+	width: 210px;
+	padding-right: 10px;
+	padding-left: 10px;
+	border-left: 1px solid #E3E3E3;
+}
+.simple-fields-settings-wrap {
+	margin-right: -250px;
+	float: left;
+}
