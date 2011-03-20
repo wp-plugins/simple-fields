@@ -89,7 +89,7 @@
 
 	/* radiobuttons */
 	function simple_fields_field_type_options_radiobutton_values_add(fieldID, fieldRadiobuttonID) {
-		var $html = $("<li>\n<div class='simple-fields-field-type-options-radiobutton-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-radiobutton-deleted' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][deleted]' type='hidden' value='0' />\n<input class='simple-fields-field-type-options-radiobutton-checked-by-default-values' type='radio' name='field["+fieldID+"][type_radiobuttons_options][checked_by_default_num]' value='radiobutton_num_"+fieldRadiobuttonID+"' />\n <a class='simple-fields-field-type-options-radiobutton-delete' href='#' style='display: none;'>Delete</a> </li>");
+		var $html = $("<li>\n<div class='simple-fields-field-type-options-radiobutton-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-radiobutton-deleted' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][deleted]' type='hidden' value='0' />\n<input class='simple-fields-field-type-options-radiobutton-checked-by-default-values' type='radio' name='field["+fieldID+"][type_radiobuttons_options][checked_by_default_num]' value='radiobutton_num_"+fieldRadiobuttonID+"' />\n <a class='simple-fields-field-type-options-radiobutton-delete' href='#' style='display: none;'>"+sfstrings.delete+"</a> </li>");
 		var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
 		$fieldLI.find(".simple-fields-field-type-options-radiobutton-values-added").append($html);
 		$html.effect("highlight");
@@ -103,7 +103,7 @@
 
 
 	function simple_fields_field_type_options_dropdown_values_add(fieldID, fieldDropdownID) {
-		var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>Delete</a> </li>");
+		var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>"+sfstrings.delete+"</a> </li>");
 		var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
 		$fieldLI.find(".simple-fields-field-type-options-dropdown-values-added").append($html);
 		$html.find("input:first").focus();
@@ -133,7 +133,7 @@
 	});
 
 	$("li.simple-fields-field-group-one-field div.delete a").live("click", function(){
-		if (confirm("Delete this field?")) {
+		if (confirm(sfstrings.confirmDeleteField)) {
 			$(this).closest("li").find(".hidden_deleted").attr("value", 1);
 			$(this).closest("li").hide("slow");
 		} else {							
@@ -142,7 +142,7 @@
 	});
 
 	$(".simple-fields-field-group-delete a").live("click", function() {
-		if (confirm("Delete this group?")) {
+		if (confirm(sfstrings.confirmDeleteGroup)) {
 			return true;
 		} else {							
 		}
@@ -150,7 +150,7 @@
 	});
 	
 	$(".simple-fields-post-connector-delete a").live("click", function() {
-		if (confirm("Delete this post connector?")) {
+		if (confirm(sfstrings.confirmDeleteConnector)) {
 			return true;
 		} else {							
 		}
@@ -174,7 +174,7 @@
 		$(this).find(".simple-fields-field-type-options-radiobutton-delete").hide();
 	});
 	$(".simple-fields-field-type-options-radiobutton-delete").live("click", function() {
-		if (confirm("Delete radio button?")) {
+		if (confirm(sfstrings.confirmDeleteRadio)) {
 			$(this).closest("li").hide("slow").find(".simple-fields-field-type-options-radiobutton-deleted").val("1");
 		}
 		return false;
@@ -197,7 +197,7 @@
 		$(this).find(".simple-fields-field-type-options-dropdown-delete").hide();
 	});
 	$(".simple-fields-field-type-options-dropdown-delete").live("click", function() {
-		if (confirm("Delete dropdown value?")) {
+		if (confirm(sfstrings.confirmDeleteDropdown)) {
 			$(this).closest("li").hide("slow").find(".simple-fields-field-type-options-dropdown-deleted").val("1");
 		}
 		return false;
@@ -213,7 +213,7 @@
 
 		var $t = $(this);
 		//var $a = $(this).find("a");
-		$t.text("Adding...");
+		$t.text(sfstrings.adding);
 		var $wrapper = $(this).parents(".simple-fields-meta-box-field-group-wrapper");
 		var field_group_id = $wrapper.find("input[name=simple-fields-meta-box-field-group-id]").val();
 		var post_id = $("#post_ID").val();
@@ -235,7 +235,7 @@
 				simple_fields_metabox_tinymce_attach();
 				$response.effect("highlight", 1000);
 			});
-			$t.html("<a href='#'>+ Add</a>");
+			$t.html("<a href='#'>+ "+sfstrings.add+"</a>");
 
 		});
 		
@@ -245,7 +245,7 @@
 	});
 
 	$(".simple-fields-post-connector-addded-fields-delete").live("click", function() {
-		if (confirm("Remove field group from post connector?")) {
+		if (confirm(sfstrings.confirmRemoveGroupConnector)) {
 			$(this).closest("li").hide("slow").find(".simple-fields-post-connector-added-field-deleted").val("1");
 		}
 		return false;
@@ -272,7 +272,7 @@
 		$(this).find(".simple-fields-metabox-field-group-delete").hide();
 	});
 	$(".simple-fields-metabox-field-group-delete").live("click", function() {
-		if (confirm("Remove this field group?")) {
+		if (confirm(sfstrings.confirmRemoveGroup)) {
 			var li = $(this).closest("li");
 			li.hide("slow", function() { li.remove(); });
 		}
@@ -357,21 +357,21 @@
 			str_html += "<input type='hidden' name='added_fields["+selectedVal+"][deleted]' value='0' />";
 
 			str_html += "<div class='simple-fields-post-connector-addded-fields-options'>";
-			str_html += "Context";
+			str_html += sfstrings.context;
 			str_html += "<select class='simple-fields-post-connector-addded-fields-option-context' name='added_fields["+selectedVal+"][context]'>";
-			str_html += "<option value='normal'>normal</option>";
-			str_html += "<option value='advanced'>advanced</option>";
-			str_html += "<option value='side'>side</option>";
+			str_html += "<option value='normal'>"+sfstrings.normal+"</option>";
+			str_html += "<option value='advanced'>"+sfstrings.advanced+"</option>";
+			str_html += "<option value='side'>"+sfstrings.side+"</option>";
 			str_html += "</select>";
 			
 			str_html += "Priority";
 			str_html += "<select class='simple-fields-post-connector-addded-fields-option-priority' name='added_fields["+selectedVal+"][priority]'>";
-			str_html += "<option value='low'>low</option>";
-			str_html += "<option value='high'>high</option>";
+			str_html += "<option value='low'>"+sfstrings.low+"</option>";
+			str_html += "<option value='high'>"+sfstrings.high+"</option>";
 			str_html += "</select>";
 			str_html += "</div>";
 
-			str_html += "<a href='#' class='simple-fields-post-connector-addded-fields-delete'>Delete</a>";
+			str_html += "<a href='#' class='simple-fields-post-connector-addded-fields-delete'>"+sfstrings.delete+"</a>";
 
 			str_html += "</li>";
 			
