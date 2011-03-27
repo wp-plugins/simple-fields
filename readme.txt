@@ -69,6 +69,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+= 0.3.x =
+- Better handling of international chars when selecting file
+- html_esc on file names
+
 = 0.3.7 =
 - Now more localized than ever before. Lots of thanks to Ricardo Tomasi who made the required changes.
 - Added Brazilian translation, also by Ricardo Tomasi.

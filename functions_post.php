@@ -135,7 +135,12 @@ function simple_fields_media_send_to_editor($html, $id) {
 		$image_thumbnail = wp_get_attachment_image_src( $file_id, 'thumbnail', true );
 		$image_thumbnail = $image_thumbnail[0];
 		$image_html = "<img src='$image_thumbnail' alt='' />";
-		$file_name = rawurlencode(get_the_title($file_id));
+		$file_name = get_the_title($file_id);
+		$post_file = get_post($file_id);
+		$post_title = $post_file->post_title;
+		$post_title = esc_html($post_title);
+		$post_title = utf8_decode($post_title);
+		$file_name = rawurlencode($post_title);
 
 		?>
 		<script type="text/javascript">
