@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.7
+Stable tag: 0.3.8
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -69,9 +69,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
-= 0.3.x =
+= 0.3.8 =
 - Better handling of international chars when selecting file
 - html_esc on file names
+- Repeatable fields did not work in Safari
 
 = 0.3.7 =
 - Now more localized than ever before. Lots of thanks to Ricardo Tomasi who made the required changes.

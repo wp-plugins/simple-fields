@@ -89,7 +89,7 @@
 
 	/* radiobuttons */
 	function simple_fields_field_type_options_radiobutton_values_add(fieldID, fieldRadiobuttonID) {
-		var $html = $("<li>\n<div class='simple-fields-field-type-options-radiobutton-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-radiobutton-deleted' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][deleted]' type='hidden' value='0' />\n<input class='simple-fields-field-type-options-radiobutton-checked-by-default-values' type='radio' name='field["+fieldID+"][type_radiobuttons_options][checked_by_default_num]' value='radiobutton_num_"+fieldRadiobuttonID+"' />\n <a class='simple-fields-field-type-options-radiobutton-delete' href='#' style='display: none;'>"+sfstrings.delete+"</a> </li>");
+		var $html = $("<li>\n<div class='simple-fields-field-type-options-radiobutton-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-radiobutton-deleted' name='field["+fieldID+"][type_radiobuttons_options][radiobutton_num_"+fieldRadiobuttonID+"][deleted]' type='hidden' value='0' />\n<input class='simple-fields-field-type-options-radiobutton-checked-by-default-values' type='radio' name='field["+fieldID+"][type_radiobuttons_options][checked_by_default_num]' value='radiobutton_num_"+fieldRadiobuttonID+"' />\n <a class='simple-fields-field-type-options-radiobutton-delete' href='#' style='display: none;'>"+sfstrings.txtDelete+"</a> </li>");
 		var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
 		$fieldLI.find(".simple-fields-field-type-options-radiobutton-values-added").append($html);
 		$html.effect("highlight");
@@ -103,7 +103,7 @@
 
 
 	function simple_fields_field_type_options_dropdown_values_add(fieldID, fieldDropdownID) {
-		var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>"+sfstrings.delete+"</a> </li>");
+		var $html = $("<li>\n<div class='simple-fields-field-type-options-dropdown-handle'></div>\n<input class='regular-text' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][value]' type='text' />\n<input class='simple-fields-field-type-options-dropdown-deleted' name='field["+fieldID+"][type_dropdown_options][dropdown_num_"+fieldDropdownID+"][deleted]' type='hidden' value='0' />\n <a class='simple-fields-field-type-options-dropdown-delete' href='#' style='display: none;'>"+sfstrings.txtDelete+"</a> </li>");
 		var $fieldLI = $(".simple-fields-field-group-one-field-id-"+fieldID);
 		$fieldLI.find(".simple-fields-field-type-options-dropdown-values-added").append($html);
 		$html.find("input:first").focus();
@@ -371,7 +371,7 @@
 			str_html += "</select>";
 			str_html += "</div>";
 
-			str_html += "<a href='#' class='simple-fields-post-connector-addded-fields-delete'>"+sfstrings.delete+"</a>";
+			str_html += "<a href='#' class='simple-fields-post-connector-addded-fields-delete'>"+sfstrings.txtDelete+"</a>";
 
 			str_html += "</li>";
 			
