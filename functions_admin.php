@@ -31,6 +31,10 @@ function simple_fields_get_post_connectors() {
 	return (array) get_option("simple_fields_post_connectors");
 }
 
+function simple_fields_get_field_groups() {
+	return (array) get_option("simple_fields_groups");
+}
+
 function simple_fields_admin_menu() {
 	add_submenu_page( 'options-general.php' , EASY_FIELDS_NAME, EASY_FIELDS_NAME, "administrator", "simple-fields-options", "simple_fields_options");
 }
@@ -531,6 +535,25 @@ function simple_fields_options() {
 		
 		}
 
+		// view debug information
+		if ("simple-fields-view-debug-info" == $action) {
+
+			echo "<h3>Post Connectors</h3>\n";
+			echo "<p>Called with function <code>simple_fields_get_post_connectors()</code>";
+			echo "<pre>";
+			print_r( simple_fields_get_post_connectors() );
+			echo "</pre>";
+
+			echo "<hr />";
+			
+			echo "<h3>Field Groups</h3>\n";
+			echo "<p>Called with function <code>simple_fields_get_field_groups()</code>";
+			echo "<pre>";
+			print_r( simple_fields_get_field_groups() );
+			echo "</pre>";
+			
+		}
+
 
 		// overview, if no action
 		if (!$action) {
@@ -648,7 +671,14 @@ function simple_fields_options() {
 					?>
 				</ul>
 			</div>	
-
+			
+			<div class="simple-fields-debug">
+				<h3><?php echo __('Debug', 'simple-fields') ?></h3>
+				<ul>
+					<li><a href='<?php echo EASY_FIELDS_FILE ?>&amp;action=simple-fields-view-debug-info'><?php echo __('View debug information', 'simple-fields') ?></a></li>
+				</ul>
+			</div>
+			
 			<?php
 
 		} // end simple_fields_options
