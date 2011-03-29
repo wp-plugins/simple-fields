@@ -260,6 +260,7 @@ function simple_fields_options() {
 			)
 			*/
 			if ($_POST) {
+			
 				$field_group_id = (int) $_POST["field_group_id"];
 				$field_groups[$field_group_id]["name"] = $_POST["field_group_name"];
 				$field_groups[$field_group_id]["repeatable"] = (bool) $_POST["field_group_repeatable"];
@@ -269,7 +270,17 @@ function simple_fields_options() {
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 		
 				update_option("simple_fields_groups", $field_groups);
-	
+				
+				// we can have changed the options of a field group, so update connectors using this field group
+				$post_connectors = (array) simple_fields_get_post_connectors();
+				foreach ($post_connectors as $connector_id => $connector_options) {
+					if (isset($connector_options["field_groups"][$field_group_id])) {
+						// field group existed, update name
+						$post_connectors[$connector_id]["field_groups"][$field_group_id]["name"] = $_POST["field_group_name"];
+					}
+				}
+				update_option("simple_fields_post_connectors", $post_connectors);
+				
 				$simple_fields_did_save = true;
 			}
 			#$action = "simple-fields-edit-field-groups";
@@ -341,7 +352,9 @@ function simple_fields_options() {
 								<?php
 								foreach ($post_connector_in_edit["field_groups"] as $one_post_connector_added_field) {
 									if ($one_post_connector_added_field["deleted"]) { continue; }
+									
 									#d($one_post_connector_added_field);
+									
 									?>
 									<li>
 										<div class='simple-fields-post-connector-addded-fields-handle'></div>

@@ -53,7 +53,9 @@ As always, make a backup of your database first!
 
 1. Upload the folder "simple-fields" to "/wp-content/plugins/"
 1. Activate the plugin through the "Plugins" menu in WordPress
-1. Done!
+1. Start poking around with Simple Fields under Settings > Simple Fields
+1. Get help at http://eskapism.se/code-playground/simple-fields/ and ask your questions at http://wordpress.org/tags/simple-fields?forum_id=10
+1. That's it; you know have a super cool and powerful CMS based on WordPress!
 
 
 == Screenshots ==
@@ -68,6 +70,10 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.3.x =
+- If a field group was renamed, that was not reflected in the post connector edit screen
+- 
 
 = 0.3.8 =
 - Better handling of international chars when selecting file
