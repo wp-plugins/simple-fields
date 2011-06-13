@@ -528,7 +528,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						if ($do_video) {
 							$video_upload_iframe_src = apply_filters('video_upload_iframe_src', "$media_upload_iframe_src?type=video");
 							$video_title = __('Add Video');	
-							$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\" id=\"add_video{$rand}\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
+							$media .= "<a class='simple_fields_tiny_media_button' href=\"{$video_upload_iframe_src}&amp;post_id={$post_id}&amp;simple_fields_action=select_file_for_tiny&amp;TB_iframe=true\" title='$video_title'><img src='images/media-button-video.gif' alt='$video_title' /></a> ";
 						}
 					
 						if ($do_audio) {

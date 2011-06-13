@@ -61,11 +61,16 @@
 		$parent.find(".simple-fields-metabox-field-textarea-tinymce-media").show();
 		
 		var tiny_id = $parent.find(".simple-fields-metabox-field-textarea-tinymce").attr("id");
+		
+		switchEditors.go(tiny_id, "tinymce");
+		/*
 		var tiny_init = tinyMCEPreInit.mceInit;
 		tiny_init.mode = "exact";
 		tiny_init.theme_advanced_resizing = true;
 		tiny_init.elements = tiny_id;
 		tinyMCE.init( tiny_init );
+		*/
+		
 		return false;
 	});
 	$(".simple_fields_editor_switch_html").live("click", function() {
@@ -77,7 +82,10 @@
 		$parent.find(".simple-fields-metabox-field-textarea-tinymce-media").hide();
 
 		var tiny_id = $parent.find(".simple-fields-metabox-field-textarea-tinymce").attr("id");
+		/*
 		tinyMCE.execCommand('mceRemoveControl', false, tiny_id);
+		*/
+		switchEditors.go(tiny_id, "html");
 		return false;
 
 	});
