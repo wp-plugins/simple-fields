@@ -179,7 +179,7 @@ function simple_fields_options() {
 					<p class="submit">
 						<input class="button-primary" type="submit" value="Save Changes" />
 						<input type="hidden" name="post_type" value="<?php echo $post_type ?>" />
-						or 
+						<?php _e('or', 'simple_fields');  ?>
 						<a href="<?php echo EASY_FIELDS_FILE ?>"><?php _e('cancel', 'simple-fields') ?></a>
 					</p>
 				</form>
@@ -223,7 +223,7 @@ function simple_fields_options() {
 				$connector_id = (int) $_POST["post_connector_id"];
 				$post_connectors[$connector_id]["name"] = (string) $_POST["post_connector_name"];
 				$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
-				$post_connectors[$connector_id]["post_types"] = (array) $_POST["post_types"];
+				$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
 
 				// a post type can only have one default connector, so make sure only the connector
 				// that we are saving now has it; remove it from all others;
@@ -243,6 +243,7 @@ function simple_fields_options() {
 				*/
 				
 				update_option("simple_fields_post_connectors", $post_connectors);
+
 				$simple_fields_did_save_connector = true;
 			}
 			#$action = "simple-fields-edit-connectors";
@@ -267,7 +268,7 @@ function simple_fields_options() {
 			
 				$field_group_id = (int) $_POST["field_group_id"];
 				$field_groups[$field_group_id]["name"] = $_POST["field_group_name"];
-				$field_groups[$field_group_id]["repeatable"] = (bool) $_POST["field_group_repeatable"];
+				$field_groups[$field_group_id]["repeatable"] = (bool) (isset($_POST["field_group_repeatable"]));
 				$field_groups[$field_group_id]["fields"] = (array) $_POST["field"];
 		
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
@@ -447,6 +448,7 @@ function simple_fields_options() {
 	
 			// if new, save it as unnamed, and then set to edit that
 			if ($field_group_id == 0) {
+				$highest_id = 0;
 				foreach ($field_groups as $oneGroup) {
 					if ($oneGroup["id"]>$highest_id) {
 						$highest_id = $oneGroup["id"];
@@ -588,8 +590,6 @@ function simple_fields_options() {
 				} elseif (isset($simple_fields_did_save_post_type_defaults) && $simple_fields_did_save_post_type_defaults) {
 					?><div id="message" class="updated"><p><?php _e('Post type defaults saved', 'simple-fields') ?></p></div><?php
 				}
-
-				
 				
 				$field_group_count = 0;
 				foreach ($field_groups as $oneFieldGroup) {

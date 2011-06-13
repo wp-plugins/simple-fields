@@ -74,6 +74,8 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 = 0.3.x =
 - If a field group was renamed, that was not reflected in the post connector edit screen
 - Added debug page
+- Fixed some notice-errors (the wp debug bar is wonderful, btw!)
+- 
 
 = 0.3.8 =
 - Better handling of international chars when selecting file

@@ -24,12 +24,12 @@ function simple_fields_post_dbx_post_sidebar() {
  * http://mondaybynoon.com/2010/10/12/attachments-1-5/#comment-27524
  */
 function simple_fields_post_admin_init() {
-	if ($_GET["simple_fields_action"] == "select_file") {
+	if (isset($_GET["simple_fields_action"]) && $_GET["simple_fields_action"] == "select_file") {
 		add_filter('gettext', 'simple_fields_hijack_thickbox_text', 1, 3);
 	}
 }
 function simple_fields_hijack_thickbox_text($translated_text, $source_text, $domain) {
-	if ($_GET["simple_fields_action"] == "select_file") {
+	if (isset($_GET["simple_fields_action"]) && $_GET["simple_fields_action"] == "select_file") {
 		if ('Insert into Post' == $source_text) {
 			return __('Select', 'simple_fields' );
 		}
@@ -98,7 +98,7 @@ function simple_fields_media_upload_form_url($url) {
 
 // remove gallery and remote url tab in file select
 function simple_fields_media_upload_tabs($arr_tabs) {
-	if ($_GET["simple_fields_action"] == "select_file" || $_GET["simple_fields_action"] == "select_file_for_tiny") {
+	if ( (isset($_GET["simple_fields_action"]) || isset($_GET["simple_fields_action"]) ) && ($_GET["simple_fields_action"] == "select_file" || $_GET["simple_fields_action"] == "select_file_for_tiny") ) {
 		unset($arr_tabs["gallery"], $arr_tabs["type_url"]);
 	}
 	return $arr_tabs;
@@ -163,7 +163,7 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	// verify this came from the our screen and with proper authorization,
 	// because save_post can be triggered at other times
-	if ( !wp_verify_nonce( $_POST['simple_fields_nonce'], plugin_basename(__FILE__) )) {
+	if (!isset($_POST['simple_fields_nonce']) || !wp_verify_nonce( $_POST['simple_fields_nonce'], plugin_basename(__FILE__) )) {
 		return $post_id;
 	}
 
@@ -229,10 +229,10 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 				
 			
 				// determine type of field we are saving
-				$field_info = $field_groups_option[$one_field_group_id]["fields"][$one_field_id];
+				$field_info = isset($field_groups_option[$one_field_group_id]["fields"][$one_field_id]) ? $field_groups_option[$one_field_group_id]["fields"][$one_field_id] : NULL;
 				$field_type = $field_info["type"]; // @todo: this should be a function
 				$do_wpautop = false;
-				if ($field_type == "textarea" && $field_info["type_textarea_options"]["use_html_editor"] == 1) {
+				if ($field_type == "textarea" && isset($field_info["type_textarea_options"]["use_html_editor"]) && $field_info["type_textarea_options"]["use_html_editor"] == 1) {
 					// it's a tiny edit area, so use wpautop to fix p and br
 					$do_wpautop = true;
 				}
@@ -477,11 +477,11 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 				} elseif ("textarea" == $field["type"]) {
 	
 					$textarea_value_esc = esc_html($saved_value);
-					$textarea_options = $field["type_textarea_options"];
+					$textarea_options = isset($field["type_textarea_options"]) ? $field["type_textarea_options"] : array();
 					
 					$textarea_class = "";
 					$textarea_class_wrapper = "";
-					if ($textarea_options["use_html_editor"]) {
+					if (isset($textarea_options["use_html_editor"])) {
 						$textarea_class = "simple-fields-metabox-field-textarea-tinymce";
 						$textarea_class_wrapper = "simple-fields-metabox-field-textarea-tinymce-wrapper";
 					}
@@ -490,15 +490,15 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 
 					// tiny-insert-media-buttons
 					
-					if ($textarea_options["use_html_editor"]) {
+					if (isset($textarea_options["use_html_editor"])) {
 
 						// switch html/tinymce
-						echo "<div class='simple_fields_editor_switch'>".__('View', 'simple-fields')."View <a class='selected simple_fields_editor_switch_visual' href='#'>".__('Visual', 'simple-fields')."</a> <a href='#' class='simple_fields_editor_switch_html'>".__('HTML', 'simple-fields')."</a></div>";
+						echo "<div class='simple_fields_editor_switch'>".__('View', 'simple-fields')." <a class='selected simple_fields_editor_switch_visual' href='#'>".__('Visual', 'simple-fields')."</a> <a href='#' class='simple_fields_editor_switch_html'>".__('HTML', 'simple-fields')."</a></div>";
 
 						if ( current_user_can( 'upload_files' ) )
 
 						$media = "<div class='simple-fields-metabox-field-textarea-tinymce-media'>";
-						$media .= __("Upload/Insert");
+						$media .= __("Upload/Insert", "simple-fields");
 						
 						$media_upload_iframe_src = "media-upload.php";
 
@@ -581,7 +581,6 @@ function simple_fields_media_send_to_editor($html) {
 
 /**
  * head of admin area
- * ! css/scripts moved to admin_init
  */
 function simple_fields_admin_head() {
 
@@ -592,6 +591,8 @@ function simple_fields_admin_head() {
 
 		$post_type = $post->post_type;
 		$arr_post_types = simple_fields_post_connector_attached_types();
+		
+		// check if the post type being edited is among the post types we want to add boxes for
 		if (in_array($post_type, $arr_post_types)) {
 			
 			// general meta box to select fields for the post
@@ -599,15 +600,27 @@ function simple_fields_admin_head() {
 			
 			$connector_to_use = simple_fields_get_selected_connector_for_post($post);
 			
-			// get connector
+			// get connector to use for this post
 			$post_connectors = simple_fields_get_post_connectors();
 			if (isset($post_connectors[$connector_to_use])) {
-				$field_groups = get_option("simple_fields_groups");
+				
+				//$field_groups = get_option("simple_fields_groups");
+				$field_groups = simple_fields_get_field_groups();
 				$selected_post_connector = $post_connectors[$connector_to_use];
+				
+				// get the field groups for the selected connector
 				$selected_post_connector_field_groups = $selected_post_connector["field_groups"];
+
 				foreach ($selected_post_connector_field_groups as $one_post_connector_field_group) {
-					// add
+
+					// check that the connector is not deleted
+					if ($one_post_connector_field_group["deleted"]) {
+						continue;
+					}
+
+					// check that the field group for the connector we want to add also actually exists
 					if (isset($field_groups[$one_post_connector_field_group["id"]])) {
+												
 						$field_group_to_add = $field_groups[$one_post_connector_field_group["id"]];
 
 						$meta_box_id = "simple_fields_connector_" . $field_group_to_add["id"];
@@ -672,7 +685,7 @@ function simple_fields_get_selected_connector_for_post($post) {
 	
 	// if selected connector is deleted, then return none
 	$post_connectors = simple_fields_get_post_connectors();
-	if ($post_connectors[$connector_to_use]["deleted"]) {
+	if (isset($post_connectors[$connector_to_use]["deleted"]) && $post_connectors[$connector_to_use]["deleted"]) {
 		$connector_to_use = "__none__";
 	}
 	
