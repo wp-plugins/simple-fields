@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.8
+Stable tag: 0.3.9
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -71,11 +71,11 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
-= 0.3.x =
-- If a field group was renamed, that was not reflected in the post connector edit screen
-- Added debug page
-- Fixed some notice-errors (the wp debug bar is wonderful, btw!)
-- 
+= 0.3.9 =
+- Added: debug page
+- Fixed: If a field group was renamed, that was not reflected in the post connector edit screen
+- Fixed: some notice-errors (the wp debug bar is wonderful, btw!)
+- Fixed: Sometimes a deleted field group would still show up when editing a post
 
 = 0.3.8 =
 - Better handling of international chars when selecting file
