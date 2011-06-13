@@ -179,17 +179,15 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	$post_id = (int) $post_id;
 	$fieldgroups = (isset($_POST["simple_fields_fieldgroups"])) ? $_POST["simple_fields_fieldgroups"] : null;
-	// (array) 
-	#bonny_d($fieldgroups);exit;
-	#echo "<hr>Saving post";
-	$field_groups_option = get_option("simple_fields_groups");
 	
+	$field_groups_option = get_option("simple_fields_groups");
+
+	if ( !$table = _get_meta_table("post") ) { return false; }
+	global $wpdb;
+
 	if ($post_id && is_array($fieldgroups)) {
 
 		// remove existing simple fields custom fields for this post
-		if ( !$table = _get_meta_table("post") ) { return false; }
-
-		global $wpdb;
 		$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
 
 		// cleanup missing keys, due to checkboxes not being checked
@@ -198,20 +196,20 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 		
 			foreach ($one_field_group_fields as $posted_id => $posted_vals) {
 				if ($posted_id == "added") {
-					#echo "<br><br>posted_id: $posted_id";
-					#echo "<br>posted_vals: "; bonny_d($posted_vals);
-					#$fieldgroups_fixed[$one_field_group_id][$posted_id]["added"] = $posted_vals;
+					// echo "<br><br>posted_id: $posted_id";
+					// echo "<br>posted_vals: "; bonny_d($posted_vals);
+					// $fieldgroups_fixed[$one_field_group_id][$posted_id]["added"] = $posted_vals;
 					continue;
 				}
 				$fieldgroups_fixed[$one_field_group_id][$posted_id] = array();
-		#		echo "<br><br>posted_id: $posted_id";
-		#		echo "<br>posted_vals: "; bonny_d($posted_vals);
-			#	bonny_d($added_vals);
+				// echo "<br><br>posted_id: $posted_id";
+				// echo "<br>posted_vals: "; bonny_d($posted_vals);
+				// bonny_d($added_vals);
 				// loopa igenom "added"-värdena och fixa så att allt finns
 				foreach ($one_field_group_fields["added"] as $added_id => $added_val) {
-					#$fieldgroups_fixed
-					#echo "<br>added_id: $added_id";
-					#echo "<br>added_val: $added_val";
+					// $fieldgroups_fixed
+					// echo "<br>added_id: $added_id";
+					// echo "<br>added_val: $added_val";
 					$fieldgroups_fixed[$one_field_group_id][$posted_id][$added_id] = $fieldgroups[$one_field_group_id][$posted_id][$added_id];
 				}
 			}
@@ -261,8 +259,12 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 			}
 			
 		}
-
-	} // if array
+		// if array
+	} else if (empty($fieldgroups)) {
+		// if fieldgroups are empty we still need to save it
+		// remove existing simple fields custom fields for this post
+		$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
+	} 
 
 }
 
@@ -309,13 +311,15 @@ function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 		echo "<ul class='simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable'>";
 
 		// check for prev. saved fieldgroups
-		# _simple_fields_fieldGroupID_1_fieldID_added_numInSet_0
+		// _simple_fields_fieldGroupID_1_fieldID_added_numInSet_0
 		// try until returns empty
 		$num_added_field_groups = 0;
+
 		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
 			$num_added_field_groups++;
 		}
-
+		//var_dump( get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_0", true) );
+		//echo "num_added_field_groups: $num_added_field_groups";
 		// now add them. ooooh my, this is fancy stuff.
 		$use_defaults = null;
 		for ($num_in_set=0; $num_in_set<$num_added_field_groups; $num_in_set++) {
@@ -628,6 +632,7 @@ function simple_fields_admin_head() {
 						$meta_box_context = $one_post_connector_field_group["context"];
 						$meta_box_priority = $one_post_connector_field_group["priority"];
 						$meta_box_callback = create_function ("", " simple_fields_meta_box_output({$one_post_connector_field_group["id"]}, $post->ID); ");
+						
 						add_meta_box( $meta_box_id, $meta_box_title, $meta_box_callback, $post_type, $meta_box_context, $meta_box_priority );
 						
 					}
