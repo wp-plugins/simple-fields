@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://eskapism.se/code-playground/simple-fields/
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 0.3.7
+Version: 0.3.9
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -37,7 +37,7 @@ if (isset($_GET["wp_abspath"])) {
 
 define( "EASY_FIELDS_URL", WP_PLUGIN_URL . '/simple-fields/');
 define( "EASY_FIELDS_NAME", "Simple Fields"); 
-define( "EASY_FIELDS_VERSION", "0.3.7");
+define( "EASY_FIELDS_VERSION", "0.3.8");
 #define( "EASY_FIELDS_FILE", "options-general.php?page=simple-fields-options"); // this still feels nasty...
 
 load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
@@ -71,7 +71,7 @@ function simple_fields_admin_init() {
 	wp_enqueue_style('simple-fields-styles', EASY_FIELDS_URL.'styles.css', false, EASY_FIELDS_VERSION);
 	wp_register_script('simple-fields-scripts', EASY_FIELDS_URL.'scripts.js', false, EASY_FIELDS_VERSION);
 	wp_localize_script('simple-fields-scripts', 'sfstrings', array(
-		'delete' => __('Delete', 'simple-fields'),
+		'txtDelete' => __('Delete', 'simple-fields'),
 		'confirmDelete' => __('Delete this field?', 'simple-fields'),
 		'confirmDeleteGroup' => __('Delete this group?', 'simple-fields'),
 		'confirmDeleteConnector' => __('Delete this post connector?', 'simple-fields'),

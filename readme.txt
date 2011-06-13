@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.7
+Stable tag: 0.3.9
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -53,7 +53,9 @@ As always, make a backup of your database first!
 
 1. Upload the folder "simple-fields" to "/wp-content/plugins/"
 1. Activate the plugin through the "Plugins" menu in WordPress
-1. Done!
+1. Start poking around with Simple Fields under Settings > Simple Fields
+1. Get help at http://eskapism.se/code-playground/simple-fields/ and ask your questions at http://wordpress.org/tags/simple-fields?forum_id=10
+1. That's it; you know have a super cool and powerful CMS based on WordPress!
 
 
 == Screenshots ==
@@ -69,9 +71,16 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
-= 0.3.x =
+= 0.3.9 =
+- Added: debug page
+- Fixed: If a field group was renamed, that was not reflected in the post connector edit screen
+- Fixed: some notice-errors (the wp debug bar is wonderful, btw!)
+- Fixed: Sometimes a deleted field group would still show up when editing a post
+
+= 0.3.8 =
 - Better handling of international chars when selecting file
 - html_esc on file names
+- Repeatable fields did not work in Safari
 
 = 0.3.7 =
 - Now more localized than ever before. Lots of thanks to Ricardo Tomasi who made the required changes.

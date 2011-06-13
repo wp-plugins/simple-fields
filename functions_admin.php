@@ -31,6 +31,10 @@ function simple_fields_get_post_connectors() {
 	return (array) get_option("simple_fields_post_connectors");
 }
 
+function simple_fields_get_field_groups() {
+	return (array) get_option("simple_fields_groups");
+}
+
 function simple_fields_admin_menu() {
 	add_submenu_page( 'options-general.php' , EASY_FIELDS_NAME, EASY_FIELDS_NAME, "administrator", "simple-fields-options", "simple_fields_options");
 }
@@ -175,7 +179,7 @@ function simple_fields_options() {
 					<p class="submit">
 						<input class="button-primary" type="submit" value="Save Changes" />
 						<input type="hidden" name="post_type" value="<?php echo $post_type ?>" />
-						or 
+						<?php _e('or', 'simple_fields');  ?>
 						<a href="<?php echo EASY_FIELDS_FILE ?>"><?php _e('cancel', 'simple-fields') ?></a>
 					</p>
 				</form>
@@ -219,7 +223,7 @@ function simple_fields_options() {
 				$connector_id = (int) $_POST["post_connector_id"];
 				$post_connectors[$connector_id]["name"] = (string) $_POST["post_connector_name"];
 				$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
-				$post_connectors[$connector_id]["post_types"] = (array) $_POST["post_types"];
+				$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
 
 				// a post type can only have one default connector, so make sure only the connector
 				// that we are saving now has it; remove it from all others;
@@ -239,6 +243,7 @@ function simple_fields_options() {
 				*/
 				
 				update_option("simple_fields_post_connectors", $post_connectors);
+
 				$simple_fields_did_save_connector = true;
 			}
 			#$action = "simple-fields-edit-connectors";
@@ -260,16 +265,27 @@ function simple_fields_options() {
 			)
 			*/
 			if ($_POST) {
+			
 				$field_group_id = (int) $_POST["field_group_id"];
 				$field_groups[$field_group_id]["name"] = $_POST["field_group_name"];
-				$field_groups[$field_group_id]["repeatable"] = (bool) $_POST["field_group_repeatable"];
+				$field_groups[$field_group_id]["repeatable"] = (bool) (isset($_POST["field_group_repeatable"]));
 				$field_groups[$field_group_id]["fields"] = (array) $_POST["field"];
 		
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 		
 				update_option("simple_fields_groups", $field_groups);
-	
+				
+				// we can have changed the options of a field group, so update connectors using this field group
+				$post_connectors = (array) simple_fields_get_post_connectors();
+				foreach ($post_connectors as $connector_id => $connector_options) {
+					if (isset($connector_options["field_groups"][$field_group_id])) {
+						// field group existed, update name
+						$post_connectors[$connector_id]["field_groups"][$field_group_id]["name"] = $_POST["field_group_name"];
+					}
+				}
+				update_option("simple_fields_post_connectors", $post_connectors);
+				
 				$simple_fields_did_save = true;
 			}
 			#$action = "simple-fields-edit-field-groups";
@@ -341,7 +357,9 @@ function simple_fields_options() {
 								<?php
 								foreach ($post_connector_in_edit["field_groups"] as $one_post_connector_added_field) {
 									if ($one_post_connector_added_field["deleted"]) { continue; }
+									
 									#d($one_post_connector_added_field);
+									
 									?>
 									<li>
 										<div class='simple-fields-post-connector-addded-fields-handle'></div>
@@ -430,6 +448,7 @@ function simple_fields_options() {
 	
 			// if new, save it as unnamed, and then set to edit that
 			if ($field_group_id == 0) {
+				$highest_id = 0;
 				foreach ($field_groups as $oneGroup) {
 					if ($oneGroup["id"]>$highest_id) {
 						$highest_id = $oneGroup["id"];
@@ -518,6 +537,25 @@ function simple_fields_options() {
 		
 		}
 
+		// view debug information
+		if ("simple-fields-view-debug-info" == $action) {
+
+			echo "<h3>Post Connectors</h3>\n";
+			echo "<p>Called with function <code>simple_fields_get_post_connectors()</code>";
+			echo "<pre>";
+			print_r( simple_fields_get_post_connectors() );
+			echo "</pre>";
+
+			echo "<hr />";
+			
+			echo "<h3>Field Groups</h3>\n";
+			echo "<p>Called with function <code>simple_fields_get_field_groups()</code>";
+			echo "<pre>";
+			print_r( simple_fields_get_field_groups() );
+			echo "</pre>";
+			
+		}
+
 
 		// overview, if no action
 		if (!$action) {
@@ -552,8 +590,6 @@ function simple_fields_options() {
 				} elseif (isset($simple_fields_did_save_post_type_defaults) && $simple_fields_did_save_post_type_defaults) {
 					?><div id="message" class="updated"><p><?php _e('Post type defaults saved', 'simple-fields') ?></p></div><?php
 				}
-
-				
 				
 				$field_group_count = 0;
 				foreach ($field_groups as $oneFieldGroup) {
@@ -635,7 +671,14 @@ function simple_fields_options() {
 					?>
 				</ul>
 			</div>	
-
+			
+			<div class="simple-fields-debug">
+				<h3><?php echo __('Debug', 'simple-fields') ?></h3>
+				<ul>
+					<li><a href='<?php echo EASY_FIELDS_FILE ?>&amp;action=simple-fields-view-debug-info'><?php echo __('View debug information', 'simple-fields') ?></a></li>
+				</ul>
+			</div>
+			
 			<?php
 
 		} // end simple_fields_options
