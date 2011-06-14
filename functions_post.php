@@ -163,6 +163,7 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 
 	// verify this came from the our screen and with proper authorization,
 	// because save_post can be triggered at other times
+	// so not checking nonce can lead to errors, for example losing post connector
 	if (!isset($_POST['simple_fields_nonce']) || !wp_verify_nonce( $_POST['simple_fields_nonce'], plugin_basename(__FILE__) )) {
 		return $post_id;
 	}
@@ -170,9 +171,6 @@ function simple_fields_save_postdata($post_id = null, $post = null) {
 	// verify if this is an auto save routine. If it is our form has not been submitted, so we dont want to do anything
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return $post_id; }
 	
-	// @todo: check permissions, check wp_verify_nonce
-	// not checking nonce can lead to errors, for example losing post connector
-
 	// attach post connector
 	$simple_fields_selected_connector = (isset($_POST["simple_fields_selected_connector"])) ? $_POST["simple_fields_selected_connector"] : null;
 	update_post_meta($post_id, "_simple_fields_selected_connector", $simple_fields_selected_connector);
@@ -723,16 +721,19 @@ function simple_fields_edit_post_side_field_settings() {
 	$arr_connectors = simple_fields_get_post_connectors_for_post_type($post->post_type);
 	$connector_default = simple_fields_get_default_connector_for_post_type($post->post_type);
 	$connector_selected = simple_fields_get_selected_connector_for_post($post);
-	
+
+	// $connector_selected returns the id of the connector to use, yes, but we want the "real" connector, not the id of the inherited or so
+	$real_connector_to_use = get_post_meta($post->ID, "_simple_fields_selected_connector", true);
+	//echo "real_connector_to_use: $real_connector_to_use";
 	?>
 	<div class="inside">
 		<div>
 			<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
-				<option <?php echo ($connector_selected == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
-				<option <?php echo ($connector_selected == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?></option>
+				<option <?php echo ($real_connector_to_use == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
+				<option <?php echo ($real_connector_to_use == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?></option>
 				<?php foreach ($arr_connectors as $one_connector) : ?>
 					<?php if ($one_connector["deleted"]) { continue; } ?>
-					<option <?php echo ($connector_selected == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
+					<option <?php echo ($real_connector_to_use == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
 				<?php endforeach; ?>
 			</select>
 		</div>

@@ -22,24 +22,34 @@
 			var tiny_init = tinyMCEPreInit.mceInit;
 			tiny_init.mode = "exact";
 			tiny_init.theme_advanced_resizing = true;
-			var elms_to_convert = jQuery(".simple-fields-metabox-field-textarea-tinymce");
-			var str_elms_to_convert = "";
+			var elms_to_convert = jQuery("textarea.simple-fields-metabox-field-textarea-tinymce");
+			//var str_elms_to_convert = "";
+			var arr_elms_to_convert = [];
 			for (var i=0; i<elms_to_convert.length; i++) {
 				var one_elm = elms_to_convert[i];
 				// check if this element id already is a tiny editor
 				if (tinyMCE.get(one_elm.id)) {
 					// exists, do nada
+					arr_elms_to_convert.push(one_elm.id);
 				} else {
 					// does not exist, not a tiny editor, so add to the list of ids to convert to editors
-					str_elms_to_convert += one_elm.id + ",";
+					//str_elms_to_convert += one_elm.id + ",";
+					arr_elms_to_convert.push(one_elm.id);
 				}
 				
 			}
-			str_elms_to_convert = str_elms_to_convert.replace(/,$/, "");
-			if (str_elms_to_convert != "") {
-				tiny_init.elements = str_elms_to_convert;
-				tinyMCE.init( tiny_init );
+			//str_elms_to_convert = str_elms_to_convert.replace(/,$/, "");
+			//if (str_elms_to_convert != "") {
+			//	tiny_init.elements = str_elms_to_convert;
+				//tinyMCE.init( tiny_init );
+			//}
+
+			// fix so new lines and stuff don't get lost (when drag n dropping)
+			//console.log(arr_elms_to_convert);
+			for (var i = 0; i<arr_elms_to_convert.length; i++) {
+				switchEditors.go(arr_elms_to_convert[i], "tinymce");
 			}
+			
 		}
 	}
 	
