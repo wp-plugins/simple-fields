@@ -217,11 +217,11 @@ function simple_fields_options() {
 		if ("edit-post-connector-save" == $action) {
 			if ($_POST) {
 				
-				#d($_POST);
+				//d($_POST);
 				#d($post_connectors);
 				
 				$connector_id = (int) $_POST["post_connector_id"];
-				$post_connectors[$connector_id]["name"] = (string) $_POST["post_connector_name"];
+				$post_connectors[$connector_id]["name"] = (string) stripslashes($_POST["post_connector_name"]);
 				$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
 				$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
 
@@ -264,12 +264,14 @@ function simple_fields_options() {
 			    [field_group_id] => 59
 			)
 			*/
+			// print_r($_POST);
 			if ($_POST) {
 			
 				$field_group_id = (int) $_POST["field_group_id"];
-				$field_groups[$field_group_id]["name"] = $_POST["field_group_name"];
+				$field_groups[$field_group_id]["name"] = stripslashes($_POST["field_group_name"]);
 				$field_groups[$field_group_id]["repeatable"] = (bool) (isset($_POST["field_group_repeatable"]));
-				$field_groups[$field_group_id]["fields"] = (array) $_POST["field"];
+				
+				$field_groups[$field_group_id]["fields"] = (array) stripslashes_deep($_POST["field"]);
 		
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
@@ -281,7 +283,7 @@ function simple_fields_options() {
 				foreach ($post_connectors as $connector_id => $connector_options) {
 					if (isset($connector_options["field_groups"][$field_group_id])) {
 						// field group existed, update name
-						$post_connectors[$connector_id]["field_groups"][$field_group_id]["name"] = $_POST["field_group_name"];
+						$post_connectors[$connector_id]["field_groups"][$field_group_id]["name"] = stripslashes($_POST["field_group_name"]);
 					}
 				}
 				update_option("simple_fields_post_connectors", $post_connectors);
