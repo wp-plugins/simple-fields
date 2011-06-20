@@ -242,6 +242,15 @@ function simple_fields_options() {
 				$post_connectors[$connector_id]["post_types_type_default"] = $post_types_type_default;
 				*/
 				
+				// for some reason I got an empty connector (array key was empty) so check for these and remove
+				$post_connectors_tmp = array();
+				foreach ($post_connectors as $key => $one_connector) {
+					if (!empty($one_connector)) {
+						$post_connectors_tmp[$key] = $one_connector;
+					}
+				}
+				$post_connectors = $post_connectors_tmp;
+
 				update_option("simple_fields_post_connectors", $post_connectors);
 
 				$simple_fields_did_save_connector = true;
