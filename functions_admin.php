@@ -733,6 +733,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$out .= "
 	<li class='simple-fields-field-group-one-field simple-fields-field-group-one-field-id-{$fieldID}'>
 		<div class='simple-fields-field-group-one-field-handle'></div>
+
 		<div class='simple-fields-field-group-one-field-row'>
 			<label class='simple-fields-field-group-one-field-name-label'>".__('Name', 'simple-fields')."</label>
 			<!-- <br /> -->

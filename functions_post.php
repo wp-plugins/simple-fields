@@ -376,7 +376,12 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 
 			$custom_field_key = "_simple_fields_fieldGroupID_{$field_group_id}_fieldID_{$field_id}_numInSet_{$num_in_set}";
 			$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
-
+			
+			$description = "";
+			if (!empty($field["description"])) {
+				$description = sprintf("<div class='simple-fields-metabox-field-description'>%s</div>", esc_html($field["description"]));
+			}
+			
 			?>
 			<div class="simple-fields-metabox-field">
 				<?php
@@ -396,10 +401,12 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					}
 					echo "<input $str_checked id='$field_unique_id' type='checkbox' name='$field_name' value='1' />";
 					echo "<label class='simple-fields-for-checkbox' for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 	
 				} elseif ("radiobuttons" == $field["type"]) {
 	
 					echo "<label>" . $field["name"] . "</label>";
+					echo $description;
 					$radio_options = $field["type_radiobuttons_options"];
 					$radio_checked_by_default_num = $radio_options["checked_by_default_num"];
 
@@ -426,6 +433,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	
 				} elseif ("dropdown" == $field["type"]) {
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 					echo "<select id='$field_unique_id' name='$field_name'>";
 					foreach ($field["type_dropdown_options"] as $one_option_internal_name => $one_option) {
 						// $one_option_internal_name = dropdown_num_3
@@ -453,6 +461,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					}
 					echo "<div class='simple-fields-metabox-field-file'>";
 						echo "<label>{$field["name"]}</label>";
+						echo $description;
 						echo "<div class='simple-fields-metabox-field-file-col1'>";
 							echo "<div class='simple-fields-metabox-field-file-selected-image'>$image_html</div>";
 						echo "</div>";
@@ -474,6 +483,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 
 					$text_value_esc = esc_html($saved_value);
 					echo "<label>".__('image', 'simple-fields')."</label>";
+					echo $description;
 					echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 					
 				} elseif ("textarea" == $field["type"]) {
@@ -489,6 +499,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					}
 
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 
 					// tiny-insert-media-buttons
 					
@@ -552,12 +563,14 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	
 					$text_value_esc = esc_html($saved_value);
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 					echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 	
 				} elseif ("color" == $field["type"]) {
 					
 					$text_value_esc = esc_html($saved_value);
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 					echo "<input class='text simple-fields-field-type-color' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 
 				} elseif ("date" == $field["type"]) {
@@ -567,10 +580,11 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					
 					$text_value_esc = esc_html($saved_value);
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
 					echo "<input class='text simple-fields-field-type-date' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 
 				}
-
+				// echo "<pre>";print_r($field);echo "</pre>";
 				?>
 				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong><?php _e('Meta key:', 'simple-fields') ?></strong> <?php echo $custom_field_key ?></div>
 			</div><!-- // end simple-fields-metabox-field -->

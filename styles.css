@@ -30,8 +30,14 @@ ul.simple-fields-edit-field-groups-added-fields li:nth-child(odd) {
 	margin-bottom: .75em;
 }
 
+.simple-fields-field-group-one-field-row label,
+.simple-fields-field-type-options label
+ {
+	display: block;
+}
+
 .simple-fields-field-group-one-field-row-description {
-	display: none; /* removed until i determine whether to use it or not */
+/* 	display: none; */
 }
 
 div.delete a {
@@ -348,6 +354,11 @@ ul.simple-fields-file-browser-list h3 {
 .simple-fields-metabox-field-file-col2 {
 	margin-left: 56px;
 	margin-top: -46px;
+}
+
+.simple-fields-metabox-field-description {
+	font-style: italic;
+	color: #666;
 }
 
 .simple-fields-bonny-plugins-inner-sidebar {
