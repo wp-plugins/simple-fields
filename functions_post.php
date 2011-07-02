@@ -554,7 +554,23 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
 					echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 	
+				} elseif ("color" == $field["type"]) {
+					
+					$text_value_esc = esc_html($saved_value);
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo "<input class='text simple-fields-field-type-color' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+
+				} elseif ("date" == $field["type"]) {
+
+					// $datef = __( 'M j, Y @ G:i' ); // same format as in meta-boxes.php
+					// echo date_i18n( $datef, strtotime( current_time('mysql') ) );
+					
+					$text_value_esc = esc_html($saved_value);
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo "<input class='text simple-fields-field-type-date' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+
 				}
+
 				?>
 				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong><?php _e('Meta key:', 'simple-fields') ?></strong> <?php echo $custom_field_key ?></div>
 			</div><!-- // end simple-fields-metabox-field -->
@@ -752,7 +768,7 @@ echo "<br>connector_default: $connector_default";
 				<option <?php echo ($saved_connector_to_use == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
 				<option <?php echo ($saved_connector_to_use == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?>
 					<?php
-					if ($str_connector_name) {
+					if (isset($str_connector_name) && $str_connector_name) {
 						echo "($str_connector_name)";
 					} else {
 						_e('(no parent found)', 'simple-fields');

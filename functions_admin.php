@@ -707,6 +707,10 @@ function simple_fields_field_group_add_field() {
 	exit;
 }
 
+/**
+ * Returns the output for a new or existing field
+ * That it: 
+ */
 function simple_fields_field_group_add_field_template($fieldID, $field_group_in_edit = null) {
 	$fields = $field_group_in_edit["fields"];
 	$field_name = esc_html($fields[$fieldID]["name"]);
@@ -718,8 +722,12 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$field_type_checkbox_option_checked_by_default = (int) @$fields[$fieldID]["type_checkbox_options"]["checked_by_default"];
 	$field_type_radiobuttons_options = (array) @$fields[$fieldID]["type_radiobuttons_options"];
 	$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
+	$field_type_post_options = (array) @$fields[$fieldID]["type_post_options"];
+	$field_type_taxonomy_options = (array) @$fields[$fieldID]["type_taxonomy_options"];
+	$field_type_date_options = (array) @$fields[$fieldID]["type_date_options"];
+	$field_type_date_option_use_time = @$field_type_date_options["use_time"];
 	
-	#d($field_type_radiobuttons_options);
+	// echo "<pre>";print_r($field_type_post_options);echo "</pre>";
 	
 	$out = "";
 	$out .= "
@@ -730,11 +738,13 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 			<!-- <br /> -->
 			<input type='text' class='regular-text simple-fields-field-group-one-field-name' name='field[{$fieldID}][name]' value='{$field_name}' />
 		</div>
+		
 		<div class='simple-fields-field-group-one-field-row simple-fields-field-group-one-field-row-description'>
 			<label>".__('Description', 'simple-fields')."</label>
 			<!-- <br /> -->
 			<input type='text' class='regular-text' name='field[{$fieldID}][description]' value='{$field_description}' />
 		</div>
+		
 		<div class='simple-fields-field-group-one-field-row'>
 			<label>".__('Type', 'simple-fields')."</label>
 			<!-- <br /> -->
@@ -746,6 +756,10 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 				<option value='radiobuttons'" . (($field_type=="radiobuttons") ? " selected='selected' " : "") . ">".__('Radio buttons', 'simple-fields')."</option>
 				<option value='dropdown'" . (($field_type=="dropdown") ? " selected='selected' " : "") . ">".__('Dropdown', 'simple-fields')."</option>
 				<option value='file'" . (($field_type=="file") ? " selected='selected' " : "") . ">".__('File', 'simple-fields')."</option>
+				<option value='post'" . (($field_type=="post") ? " selected='selected' " : "") . ">".__('Post', 'simple-fields')."</option>
+				<option value='taxonomy'" . (($field_type=="taxonomy") ? " selected='selected' " : "") . ">".__('Taxonomy', 'simple-fields')."</option>
+				<option value='color'" . (($field_type=="color") ? " selected='selected' " : "") . ">".__('Color', 'simple-fields')."</option>
+				<option value='date'" . (($field_type=="date") ? " selected='selected' " : "") . ">".__('Date', 'simple-fields')."</option>
 			</select>
 
 			<div class='simple-fields-field-group-one-field-row " . (($field_type=="text") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-text'>
@@ -756,6 +770,52 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 			<input type='checkbox' name='field[{$fieldID}][type_textarea_options][use_html_editor]' " . (($field_type_textarea_option_use_html_editor) ? " checked='checked'" : "") . " value='1' /> ".__('Use HTML-editor', 'simple-fields')."
 		</div>
 		";
+		
+		// date
+		$out .= "<div class='" . (($field_type=="date") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-date'>";
+		$out .= "<input type='checkbox' name='field[{$fieldID}][type_date_options][use_time]' " . (($field_type_date_option_use_time) ? " checked='checked'" : "") . " value='1' /> ".__('Also show time', 'simple-fields');
+		$out .= "</div>";
+
+		// connect post - select post type
+		$out .= "<div class='" . (($field_type=="post") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-post'>";
+		$out .= sprintf("<label>%s</label>", __('Post type', 'simple-fields'));
+		$out .= sprintf("<select name='%s'>", "field[$fieldID][type_post_options][post_type]");
+		$out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["post_type"]) ? " selected='selected' " : "") ,"", "Any");
+		$post_types = get_post_types(NULL, "objects");
+		foreach ($post_types as $one_post_type) {
+			// skip some built in types
+			if (in_array($one_post_type->name, array("attachment", "revision", "nav_menu_item"))) {
+				continue;
+			}
+			$out .= sprintf("<option %s value='%s'>%s</option>", ((isset($field_type_post_options["post_type"]) && $field_type_post_options["post_type"] == $one_post_type->name) ? " selected='selected' " : ""), $one_post_type->name, $one_post_type->labels->name);
+			
+		}
+		$out .= "</select>";
+		$out .= "<div>";
+		$out .= "<label>Additional arguments</label>";
+		$out .= sprintf("<input type='text' name='%s' value='%s' />", "field[$fieldID][type_post_options][additional_arguments]", @$field_type_post_options["additional_arguments"]);
+		$out .= sprintf("<br /><span class='description'>Here you can <a href='http://codex.wordpress.org/How_to_Pass_Tag_Parameters#Tags_with_query-string-style_parameters'>pass your own parameters</a> to <a href='http://codex.wordpress.org/Class_Reference/WP_Query'>WP_Query</a>.</span>");
+		$out .= "</div>";
+		$out .= "</div>";
+
+		// connect taxonomy - select taxonomy
+		/*
+		$out .= "<div class='" . (($field_type=="taxonomy") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-taxonomy-post'>";
+		$out .= sprintf("<label>%s</label>", __('Taxonomy', 'simple-fields'));
+		$out .= sprintf("<select name='%s'>", "field[$fieldID][type_taxonomy_options][taxonomy]");
+		$out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["taxonomy"]) ? " selected='selected' " : "") ,"", "Any");
+		$taxonomies = get_taxonomies(NULL, "objects");
+		foreach ($taxonomies as $one_tax) {
+			// skip some built in types
+			if (in_array($one_tax->name, array("attachment", "revision", "nav_menu_item"))) {
+				continue;
+			}
+			$out .= sprintf("<option %s value='%s'>%s</option>", (($field_type_taxonomy_options["taxonomy"] == $one_tax->name) ? " selected='selected' " : ""), $one_tax->name, $one_tax->labels->name);
+			
+		}
+		$out .= "</select>";
+		$out .= "</div>";
+		*/
 		
 		// radiobuttons
 		$radio_buttons_added = "";

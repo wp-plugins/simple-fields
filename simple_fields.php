@@ -59,6 +59,10 @@ function simple_fields_admin_init() {
 	wp_enqueue_script("jquery-ui-effects-highlight", EASY_FIELDS_URL . "effects.highlight.js");
 	wp_enqueue_script("thickbox");
 	wp_enqueue_style("thickbox");
+	wp_enqueue_script("jscolor", EASY_FIELDS_URL . "jscolor/jscolor.js"); // color picker for type color
+	wp_enqueue_script("date", EASY_FIELDS_URL . "datepicker/date.js"); // date picker for type date
+	wp_enqueue_script("jquery-datepicker", EASY_FIELDS_URL . "datepicker/jquery.datePicker.js"); // date picker for type date
+	wp_enqueue_style('jquery-datepicker', EASY_FIELDS_URL.'datepicker/datePicker.css', false, EASY_FIELDS_VERSION);
 
 	// add css and scripts
 	wp_enqueue_style('simple-fields-styles', EASY_FIELDS_URL.'styles.css', false, EASY_FIELDS_VERSION);

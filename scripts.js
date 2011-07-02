@@ -1,4 +1,7 @@
 
+jscolor.bindClass = "simple-fields-field-type-color";
+var simple_fields_datepicker_args = { "clickInput": true };
+
 (function($) {
 
 	// add new field to the field group
@@ -252,6 +255,10 @@
 			$response.slideDown("slow", function() {
 				simple_fields_metabox_tinymce_attach();
 				$response.effect("highlight", 1000);
+				// add jscolor to possibly new fields
+				jscolor.init();
+				// add datepicker too
+				$('input.simple-fields-field-type-date', $ul).datePicker(simple_fields_datepicker_args);
 			});
 			$t.html("<a href='#'>+ "+sfstrings.add+"</a>");
 
@@ -433,6 +440,7 @@
 				simple_fields_metabox_tinymce_detach();
 			},
 			stop: function(event, ui) {
+				// add back tiny editors
 				simple_fields_metabox_tinymce_attach();
 			}
 		});
@@ -466,6 +474,9 @@
 			});	
 
 		}
+		
+		// type date
+		$('input.simple-fields-field-type-date').datePicker(simple_fields_datepicker_args);
 		
 	});
 
