@@ -382,6 +382,8 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 				$description = sprintf("<div class='simple-fields-metabox-field-description'>%s</div>", esc_html($field["description"]));
 			}
 			
+			// echo "<pre>";print_r($field);echo "</pre>";
+			
 			?>
 			<div class="simple-fields-metabox-field">
 				<?php
@@ -470,8 +472,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
 
 							$field_unique_id_esc = rawurlencode($field_unique_id);
-							#$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
-							// xxx
+							// $file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
 							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=-1&TB_iframe=true";
 							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>".__('Select file', 'simple-fields')."</a>";
 							
@@ -583,6 +584,36 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo $description;
 					echo "<input class='text simple-fields-field-type-date' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
 
+				} elseif ("taxonomy" == $field["type"]) {
+					
+					$arr_taxonomies = get_taxonomies(array(), "objects");					
+					$enabled_taxonomies = (array) @$field["type_taxonomy_options"]["enabled_taxonomies"];
+					
+					//echo "<pre>";print_r($enabled_taxonomies );echo "</pre>";
+					
+					$text_value_esc = esc_html($saved_value);
+					// var_dump($saved_value);
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
+					
+					echo "<select name='$field_name'>";
+					printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
+					foreach ($arr_taxonomies as $one_taxonomy) {
+						if (in_array($one_taxonomy->name, $enabled_taxonomies)) {
+							continue;
+						}
+						$selected = ($saved_value == $one_taxonomy->name) ? ' selected="selected" ' : '';
+						printf ("<option %s value='%s'>%s</option>", $selected, $one_taxonomy->name, $one_taxonomy->label);
+					}
+					echo "</select>";
+					
+				} elseif ("post" == $field["type"]) {
+					
+					$text_value_esc = esc_html($saved_value);
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
+					echo "<input class='text simple-fields-field-type-post' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+					
 				}
 				// echo "<pre>";print_r($field);echo "</pre>";
 				?>

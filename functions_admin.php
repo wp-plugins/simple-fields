@@ -272,8 +272,19 @@ function simple_fields_options() {
 			    [page_options] => field_group_name
 			    [field_group_id] => 59
 			)
+					[type_taxonomy_options] => Array
+                        (
+                            [enabled_taxonomies] => Array
+                                (
+                                    [0] => category
+                                    [1] => post_tag
+                                    [2] => post_format
+                                    [3] => mentions
+                                )
+
+                        )
 			*/
-			// print_r($_POST);
+			// echo "<pre>";print_r($_POST);exit;
 			if ($_POST) {
 			
 				$field_group_id = (int) $_POST["field_group_id"];
@@ -284,6 +295,7 @@ function simple_fields_options() {
 		
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
+				$field_groups[$field_group_id]["type_taxonomy_options"] = (array) @$_POST["type_taxonomy_options"];
 		
 				update_option("simple_fields_groups", $field_groups);
 				
@@ -724,10 +736,11 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
 	$field_type_post_options = (array) @$fields[$fieldID]["type_post_options"];
 	$field_type_taxonomy_options = (array) @$fields[$fieldID]["type_taxonomy_options"];
+	$field_type_taxonomy_options["enabled_taxonomies"] = (array) @$field_type_taxonomy_options["enabled_taxonomies"];
 	$field_type_date_options = (array) @$fields[$fieldID]["type_date_options"];
 	$field_type_date_option_use_time = @$field_type_date_options["use_time"];
 	
-	// echo "<pre>";print_r($field_type_post_options);echo "</pre>";
+	// echo "<pre>";print_r($field_type_taxonomy_options);echo "</pre>";
 	
 	$out = "";
 	$out .= "
@@ -789,7 +802,6 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 				continue;
 			}
 			$out .= sprintf("<option %s value='%s'>%s</option>", ((isset($field_type_post_options["post_type"]) && $field_type_post_options["post_type"] == $one_post_type->name) ? " selected='selected' " : ""), $one_post_type->name, $one_post_type->labels->name);
-			
 		}
 		$out .= "</select>";
 		$out .= "<div>";
@@ -800,23 +812,23 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		$out .= "</div>";
 
 		// connect taxonomy - select taxonomy
-		/*
-		$out .= "<div class='" . (($field_type=="taxonomy") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-taxonomy-post'>";
-		$out .= sprintf("<label>%s</label>", __('Taxonomy', 'simple-fields'));
-		$out .= sprintf("<select name='%s'>", "field[$fieldID][type_taxonomy_options][taxonomy]");
-		$out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["taxonomy"]) ? " selected='selected' " : "") ,"", "Any");
+		$out .= "<div class='" . (($field_type=="taxonomy") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-taxonomy'>";
+		$out .= sprintf("<label>%s</label>", __('Taxonomies to show in dropdown', 'simple-fields'));
+		//$out .= sprintf("<select name='%s'>", "field[$fieldID][type_taxonomy_options][taxonomy]");
+		// $out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["taxonomy"]) ? " selected='selected' " : "") ,"", "Any");
 		$taxonomies = get_taxonomies(NULL, "objects");
+		$loopnum = 0;
+		
 		foreach ($taxonomies as $one_tax) {
 			// skip some built in types
 			if (in_array($one_tax->name, array("attachment", "revision", "nav_menu_item"))) {
-				continue;
+			    continue;
 			}
-			$out .= sprintf("<option %s value='%s'>%s</option>", (($field_type_taxonomy_options["taxonomy"] == $one_tax->name) ? " selected='selected' " : ""), $one_tax->name, $one_tax->labels->name);
-			
+			$input_name = "field[{$fieldID}][type_taxonomy_options][enabled_taxonomies][]";
+			$out .= sprintf("%s<input name='%s' type='checkbox' %s value='%s'> %s", ($loopnum>0 ? "<br />" : ""), $input_name, ((in_array($one_tax->name, $field_type_taxonomy_options["enabled_taxonomies"])) ? " checked='checked' " : ""), $one_tax->name, $one_tax->labels->name . " ($one_tax->name)");
+			$loopnum++;
 		}
-		$out .= "</select>";
 		$out .= "</div>";
-		*/
 		
 		// radiobuttons
 		$radio_buttons_added = "";
