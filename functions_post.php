@@ -599,7 +599,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo "<select name='$field_name'>";
 					printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
 					foreach ($arr_taxonomies as $one_taxonomy) {
-						if (in_array($one_taxonomy->name, $enabled_taxonomies)) {
+						if (!in_array($one_taxonomy->name, $enabled_taxonomies)) {
 							continue;
 						}
 						$selected = ($saved_value == $one_taxonomy->name) ? ' selected="selected" ' : '';
