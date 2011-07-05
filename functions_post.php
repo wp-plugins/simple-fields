@@ -461,7 +461,11 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 						$image_post = get_post($attachment_id);
 						$image_name = esc_html($image_post->post_title);
 					}
-					echo "<div class='simple-fields-metabox-field-file'>";
+					$class = "";
+					if ($description) {
+						$class = "simple-fields-metabox-field-with-description";
+					}
+					echo "<div class='simple-fields-metabox-field-file $class'>";
 						echo "<label>{$field["name"]}</label>";
 						echo $description;
 						echo "<div class='simple-fields-metabox-field-file-col1'>";
@@ -477,6 +481,9 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>".__('Select file', 'simple-fields')."</a>";
 							
 							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>".__('Clear', 'simple-fields')."</a>";
+							
+							echo " | <a href='#' class='simple-fields-metabox-field-file-edit'>".__('Edit', 'simple-fields') . "</a>";
+							
 						echo "</div>";
 					echo "</div>";
 

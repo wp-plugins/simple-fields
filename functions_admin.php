@@ -430,10 +430,14 @@ function simple_fields_options() {
 												<input <?php echo (in_array($one_post_type->name, $post_connector_in_edit["post_types"]) ? " checked='checked' " : ""); ?> type="checkbox" name="post_types[]" value="<?php echo $one_post_type->name ?>" />
 												<?php echo $one_post_type->name ?>
 											</td>
+											<?php
+											/*
 											<!-- <td>
 												<input <?php echo (in_array($one_post_type->name, $post_connector_in_edit["post_types_type_default"]) ? " checked='checked' " : "") ?> type="checkbox" name="post_types_type_default[]" value="<?php echo $one_post_type->name ?>" />
 												Default connector for post type <?php echo $one_post_type->name ?>
 											</td> -->
+											*/
+										?>
 										</tr>
 										<?php
 									}

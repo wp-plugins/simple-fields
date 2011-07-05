@@ -322,7 +322,29 @@ var simple_fields_datepicker_args = { "clickInput": true };
 		$li.find(".simple-fields-metabox-field-file-fileID").val("");
 		$li.find(".simple-fields-metabox-field-file-selected-image").text("");
 		$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
+		$li.find(".simple-fields-metabox-field-file-edit").attr("href", "#");
 		return false;
+	});
+
+	// edit attachment
+	// kind of dirty to set it on mouseover, but it works
+	// always sets the url
+	$(".simple-fields-metabox-field-file-edit").live("mouseenter", function(e) {
+		
+		var $li = $(this).closest(".simple-fields-metabox-field-file");
+		var file_id = $li.find(".simple-fields-metabox-field-file-fileID").attr("value");
+
+		if (file_id == 0 || file_id == "") {
+			$(this).attr("href", "#");
+		} else {
+			var url = ajaxurl.replace(/admin-ajax.php$/, "") + "media.php?attachment_id="+file_id+"&action=edit";
+			$(this).attr("href", url);
+		}
+	});
+	$(".simple-fields-metabox-field-file-edit").live("click", function(e) {
+		if ($(this).attr("href") == "#") {
+			e.preventDefault();
+		}
 	});
 
 	// media buttons
