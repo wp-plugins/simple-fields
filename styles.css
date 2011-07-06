@@ -364,6 +364,12 @@ ul.simple-fields-file-browser-list h3 {
 	color: #666;
 }
 
+.simple-fields-metabox-field-file-edit, .simple-fields-metabox-field-file-clear {
+	border-left: 1px solid #555555;
+	padding-left: 4px;
+	margin-left: 4px;
+}
+
 .simple-fields-bonny-plugins-inner-sidebar {
 	float: right;
 	width: 210px;

@@ -145,9 +145,20 @@ function simple_fields_media_send_to_editor($html, $id) {
 		?>
 		<script type="text/javascript">
 			var win = window.dialogArguments || opener || parent || top;
-			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").val(<?php echo $file_id ?>);
-			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").closest(".simple-fields-metabox-field-file").find(".simple-fields-metabox-field-file-selected-image").html("<?php echo $image_html ?>");
-			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").closest(".simple-fields-metabox-field-file").closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image-name").text(unescape("<?php echo $file_name?>"));
+			var file_id = <?php echo $file_id ?>;
+			win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").val(file_id);
+			var sfmff = win.jQuery("#<?php echo $simple_fields_file_field_unique_id ?>").closest(".simple-fields-metabox-field-file");
+			sfmff.find(".simple-fields-metabox-field-file-selected-image").html("<?php echo $image_html ?>").show();
+			sfmff.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image-name").html(unescape("<?php echo $file_name?>")).show();
+			
+			// show clear and edit-links
+			//var url = ajaxurl.replace(/admin-ajax.php$/, "") + "media.php?attachment_id="+file_id+"&action=edit";
+			var url = "<?php echo admin_url("media.php?attachment_id={$file_id}&action=edit") ?>";
+
+			sfmff.find(".simple-fields-metabox-field-file-edit").attr("href", url).show();
+			sfmff.find(".simple-fields-metabox-field-file-clear").show();
+			
+			// close popup
 			win.tb_remove();
 		</script>
 		<?php
@@ -472,17 +483,18 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 							echo "<div class='simple-fields-metabox-field-file-selected-image'>$image_html</div>";
 						echo "</div>";
 						echo "<div class='simple-fields-metabox-field-file-col2'>";
-							echo "<input type='hidden' class='text simple-fields-metabox-field-file-fileID' name='$field_name' id='$field_unique_id' value='$attachment_id' />";
-							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
+							echo "<input type='hidden' class='text simple-fields-metabox-field-file-fileID' name='$field_name' id='$field_unique_id' value='$attachment_id' />";							
 
 							$field_unique_id_esc = rawurlencode($field_unique_id);
 							// $file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=$post_id&TB_iframe=true";
 							$file_url = "media-upload.php?simple_fields_dummy=1&simple_fields_action=select_file&simple_fields_file_field_unique_id=$field_unique_id_esc&post_id=-1&TB_iframe=true";
 							echo "<a class='thickbox simple-fields-metabox-field-file-select' href='$file_url'>".__('Select file', 'simple-fields')."</a>";
 							
-							echo " | <a href='#' class='simple-fields-metabox-field-file-clear'>".__('Clear', 'simple-fields')."</a>";
-							
-							echo " | <a href='#' class='simple-fields-metabox-field-file-edit'>".__('Edit', 'simple-fields') . "</a>";
+							$class = ($attachment_id) ? " " : " hidden ";
+							$href_edit = ($attachment_id) ? admin_url("media.php?attachment_id={$attachment_id}&action=edit") : "#";
+							echo " <a href='{$href_edit}' class='simple-fields-metabox-field-file-edit $class'>".__('Edit', 'simple-fields') . "</a>";
+							echo " <a href='#' class='simple-fields-metabox-field-file-clear $class'>".__('Clear', 'simple-fields')."</a>";							
+							echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
 							
 						echo "</div>";
 					echo "</div>";

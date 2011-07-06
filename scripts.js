@@ -303,48 +303,42 @@ var simple_fields_datepicker_args = { "clickInput": true };
 		}
 		return false;
 	});
-
+	
+	// click on select file for a field
 	$(".simple-fields-metabox-field-file-select").live("click", function() {
 		var input = $(this).closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-fileID");
 		simple_fields_metabox_field_file_select_input_selectedID = input;
 	});
 	
+	// select a file in the file browser (that is in a popup)
 	$(".simple-fields-file-browser-file-select").live("click", function() {
+
+		sfmfli.find(".simple-fields-metabox-field-file-edit").show();
+		sfmf.find(".simple-fields-metabox-field-file-clear").show();
+
 		var file_id = $(this).closest("li").find("input[name='simple-fields-file-browser-list-file-id']").val();
 		var file_thumb = $(this).closest("li").find(".thumbnail img").attr("src");
 		var file_name = $(this).closest("li").find("h3").text();
+
 		self.parent.simple_fields_metabox_file_select(file_id, file_thumb, file_name);
 		self.parent.tb_remove();
 	});
 
+	// clear the file
 	$(".simple-fields-metabox-field-file-clear").live("click", function() {
 		var $li = $(this).closest(".simple-fields-metabox-field-file");
 		$li.find(".simple-fields-metabox-field-file-fileID").val("");
-		$li.find(".simple-fields-metabox-field-file-selected-image").text("");
-		$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
-		$li.find(".simple-fields-metabox-field-file-edit").attr("href", "#");
-		return false;
-	});
-
-	// edit attachment
-	// kind of dirty to set it on mouseover, but it works
-	// always sets the url
-	$(".simple-fields-metabox-field-file-edit").live("mouseenter", function(e) {
+		//$li.find(".simple-fields-metabox-field-file-selected-image").text("");		
+		//$li.find(".simple-fields-metabox-field-file-selected-image-name").text("");
 		
-		var $li = $(this).closest(".simple-fields-metabox-field-file");
-		var file_id = $li.find(".simple-fields-metabox-field-file-fileID").attr("value");
-
-		if (file_id == 0 || file_id == "") {
-			$(this).attr("href", "#");
-		} else {
-			var url = ajaxurl.replace(/admin-ajax.php$/, "") + "media.php?attachment_id="+file_id+"&action=edit";
-			$(this).attr("href", url);
-		}
-	});
-	$(".simple-fields-metabox-field-file-edit").live("click", function(e) {
-		if ($(this).attr("href") == "#") {
-			e.preventDefault();
-		}
+		$li.find(".simple-fields-metabox-field-file-selected-image").fadeOut();
+		$li.find(".simple-fields-metabox-field-file-selected-image-name").fadeOut();
+				
+		// hide clear and edit
+		$li.find(".simple-fields-metabox-field-file-edit").attr("href", "#").fadeOut();
+		$li.find(".simple-fields-metabox-field-file-clear").fadeOut();
+		
+		return false;
 	});
 
 	// media buttons
@@ -556,10 +550,11 @@ var simple_fields_is_simple_fields_popup = false;
 function simple_fields_metabox_file_select(file_id, file_thumb, file_name) {
 	simple_fields_metabox_field_file_select_input_selectedID.val(file_id);
 	$file_thumb_tag = jQuery("<img src='"+file_thumb+"' alt='' />");
-	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image").html($file_thumb_tag);
-	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").find(".simple-fields-metabox-field-file-selected-image-name").text(file_name);
-	simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field").effect("highlight", 4000);
-	
+	var sfmf = simple_fields_metabox_field_file_select_input_selectedID.closest(".simple-fields-metabox-field");
+	sfmf.find(".simple-fields-metabox-field-file-selected-image").html($file_thumb_tag);
+	sfmf.find(".simple-fields-metabox-field-file-selected-image-name").text(file_name);
+	sfmf.effect("highlight", 4000);
+
 }
 // simple-fields-metabox-field-file
 
