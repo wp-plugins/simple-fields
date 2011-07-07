@@ -735,6 +735,8 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					
 				} elseif ("post" == $field["type"]) {
 					
+					$text_value_esc = esc_html($saved_value);
+					
 					$type_post_options = (array) @$field["type_post_options"];
 					$enabled_post_types = $type_post_options["enabled_post_types"];
 					
@@ -748,7 +750,14 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo "</div>";
 					
 					// output the post types that are selected for this post field
-					printf("<input name='%s' value='%s' />", "simple-fields-metabox-field-post-enabled-post-types", join(",", $enabled_post_types));
+					printf("<input type='hidden' name='%s' value='%s' />", "simple-fields-metabox-field-post-enabled-post-types", join(",", $enabled_post_types));
+					
+					// print the id of the current post
+					echo "<input type='hidden' class='simple-fields-field-type-post-postID' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+					
+					// name of the selected post
+					echo "<div class='simple-fields-field-type-post-postName'></div>";
+					
 					
 					echo "</div>";
 				}

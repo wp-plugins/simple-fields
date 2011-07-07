@@ -416,6 +416,25 @@ var simple_fields_datepicker_args = { "clickInput": true };
 
 	});
 	
+	// in dialog: click on post = update input in field group
+	$(".simple-fields-meta-box-field-group-field-type-post-dialog-post-posts a").live("click", function(e) {
+		
+		e.preventDefault();
+		
+		var a = $(this);
+		var post_id = a.attr("href").match(/post=([\d]+)/)[1];
+		var dialog = $("div.simple-fields-meta-box-field-group-field-type-post-dialog");
+		var originLink = dialog.data("originLink");
+		originLink = $(originLink);
+		
+		var div = originLink.closest(".simple-fields-metabox-field");
+		div.find(".simple-fields-field-type-post-postID").attr("value", post_id);
+		div.find(".simple-fields-field-type-post-postName").text(a.text());
+		
+		dialog.dialog("close");
+		
+	});
+	
 	/**
 	 * ondomready stuff
 	 */
