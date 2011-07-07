@@ -739,6 +739,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$field_type_radiobuttons_options = (array) @$fields[$fieldID]["type_radiobuttons_options"];
 	$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
 	$field_type_post_options = (array) @$fields[$fieldID]["type_post_options"];
+	$field_type_post_options["enabled_post_types"] = (array) @$field_type_post_options["enabled_post_types"];
 	$field_type_taxonomy_options = (array) @$fields[$fieldID]["type_taxonomy_options"];
 	$field_type_taxonomy_options["enabled_taxonomies"] = (array) @$field_type_taxonomy_options["enabled_taxonomies"];
 	$field_type_date_options = (array) @$fields[$fieldID]["type_date_options"];
@@ -794,32 +795,44 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		$out .= "<input type='checkbox' name='field[{$fieldID}][type_date_options][use_time]' " . (($field_type_date_option_use_time) ? " checked='checked'" : "") . " value='1' /> ".__('Also show time', 'simple-fields');
 		$out .= "</div>";
 
-		// connect post - select post type
+		// connect post - select post types
 		$out .= "<div class='" . (($field_type=="post") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-post'>";
-		$out .= sprintf("<label>%s</label>", __('Post type', 'simple-fields'));
-		$out .= sprintf("<select name='%s'>", "field[$fieldID][type_post_options][post_type]");
-		$out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["post_type"]) ? " selected='selected' " : "") ,"", "Any");
+		$out .= "<div class='simple-fields-field-group-one-field-row'>";
+		$out .= sprintf("<label>%s</label>", __('Post types to select from', 'simple-fields'));
+		//$out .= sprintf("<select name='%s'>", "field[$fieldID][type_post_options][post_type]");
+		//$out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["post_type"]) ? " selected='selected' " : "") ,"", "Any");
+
+		// list all post types in checkboxes
 		$post_types = get_post_types(NULL, "objects");
+		$loopnum = 0;
 		foreach ($post_types as $one_post_type) {
 			// skip some built in types
 			if (in_array($one_post_type->name, array("attachment", "revision", "nav_menu_item"))) {
 				continue;
 			}
-			$out .= sprintf("<option %s value='%s'>%s</option>", ((isset($field_type_post_options["post_type"]) && $field_type_post_options["post_type"] == $one_post_type->name) ? " selected='selected' " : ""), $one_post_type->name, $one_post_type->labels->name);
+			$input_name = "field[{$fieldID}][type_post_options][enabled_post_types][]";
+			$out .= sprintf("%s<input name='%s' type='checkbox' %s value='%s'> %s</input>", 
+								($loopnum>0 ? "<br />" : ""), 
+								$input_name,
+								((in_array($one_post_type->name, $field_type_post_options["enabled_post_types"])) ? " checked='checked' " : ""), 
+								$one_post_type->name, 
+								$one_post_type->labels->name . " ($one_post_type->name)"
+							);
+			$loopnum++;
 		}
-		$out .= "</select>";
-		$out .= "<div>";
+		$out .= "</div>";
+
+		$out .= "<div ckass='simple-fields-field-group-one-field-row'>";
 		$out .= "<label>Additional arguments</label>";
 		$out .= sprintf("<input type='text' name='%s' value='%s' />", "field[$fieldID][type_post_options][additional_arguments]", @$field_type_post_options["additional_arguments"]);
 		$out .= sprintf("<br /><span class='description'>Here you can <a href='http://codex.wordpress.org/How_to_Pass_Tag_Parameters#Tags_with_query-string-style_parameters'>pass your own parameters</a> to <a href='http://codex.wordpress.org/Class_Reference/WP_Query'>WP_Query</a>.</span>");
 		$out .= "</div>";
-		$out .= "</div>";
+		$out .= "</div>"; // whole divs that shows/hides
+
 
 		// connect taxonomy - select taxonomy
 		$out .= "<div class='" . (($field_type=="taxonomy") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-taxonomy'>";
 		$out .= sprintf("<label>%s</label>", __('Taxonomies to show in dropdown', 'simple-fields'));
-		//$out .= sprintf("<select name='%s'>", "field[$fieldID][type_taxonomy_options][taxonomy]");
-		// $out .= sprintf("<option %s value='%s'>%s</option>", (empty($field_type_post_options["taxonomy"]) ? " selected='selected' " : "") ,"", "Any");
 		$taxonomies = get_taxonomies(NULL, "objects");
 		$loopnum = 0;
 		
@@ -829,7 +842,13 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 			    continue;
 			}
 			$input_name = "field[{$fieldID}][type_taxonomy_options][enabled_taxonomies][]";
-			$out .= sprintf("%s<input name='%s' type='checkbox' %s value='%s'> %s", ($loopnum>0 ? "<br />" : ""), $input_name, ((in_array($one_tax->name, $field_type_taxonomy_options["enabled_taxonomies"])) ? " checked='checked' " : ""), $one_tax->name, $one_tax->labels->name . " ($one_tax->name)");
+			$out .= sprintf("%s<input name='%s' type='checkbox' %s value='%s'> %s", 
+								($loopnum>0 ? "<br />" : ""), 
+								$input_name, 
+								((in_array($one_tax->name, $field_type_taxonomy_options["enabled_taxonomies"])) ? " checked='checked' " : ""), 
+								$one_tax->name, 
+								$one_tax->labels->name . " ($one_tax->name)"
+							);
 			$loopnum++;
 		}
 		$out .= "</div>";

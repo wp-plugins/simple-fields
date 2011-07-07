@@ -6,8 +6,32 @@ add_filter( 'media_upload_tabs', 'simple_fields_media_upload_tabs', 15);
 add_filter( 'media_upload_form_url', 'simple_fields_media_upload_form_url');
 add_filter( 'attachment_fields_to_edit', 'simple_fields_attachment_fields_to_edit', 10, 2 );
 add_action( 'admin_head', 'simple_fields_admin_head_select_file' );
+add_action( 'admin_footer', 'simple_fields_admin_footer' );
 add_action( 'admin_init', 'simple_fields_post_admin_init' );
 add_action( 'dbx_post_sidebar', 'simple_fields_post_dbx_post_sidebar' );
+
+/**
+ * Output HTML for dialog in bottom
+ */
+function simple_fields_admin_footer() {
+	// HTML for post dialog
+	?>
+	<div class="simple-fields-meta-box-field-group-field-type-post-dialog hidden">
+		<p>Show posts of type:</p>
+		<div class="simple-fields-meta-box-field-group-field-type-post-dialog-select-type"></div>
+		<div class="submitbox">
+			<div class="simple-fields-postdialog-link-cancel">
+				<a href="#" class="submitdelete deletion">Cancel</a>
+			</div>
+			<!--
+			<div class="simple-fields-postdialog-link-update">
+				<input type="submit" tabindex="100" value="Add Link" class="button-primary" class="wp-link-submit" name="wp-link-submit">
+			</div>
+			-->
+		</div>
+	</div>
+	<?php
+}
 
 /**
  * output nonce
@@ -628,11 +652,22 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					
 				} elseif ("post" == $field["type"]) {
 					
-					$text_value_esc = esc_html($saved_value);
-					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-					echo $description;
-					echo "<input class='text simple-fields-field-type-post' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+					$type_post_options = (array) @$field["type_post_options"];
+					$enabled_post_types = $type_post_options["enabled_post_types"];
 					
+					echo "<div class='simple-fields-metabox-field-post'>";
+					// echo "<pre>"; print_r($type_post_options); echo "</pre>";
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;					
+
+					echo "<div>";
+					printf("<a class='%s' href='#'>%s</a>", "simple-fields-metabox-field-post-select", __("Select post", "simple-fields"));
+					echo "</div>";
+					
+					// output the post types that are selected for this post field
+					printf("<input name='%s' value='%s' />", "simple-fields-metabox-field-post-enabled-post-types", join(",", $enabled_post_types));
+					
+					echo "</div>";
 				}
 				// echo "<pre>";print_r($field);echo "</pre>";
 				?>

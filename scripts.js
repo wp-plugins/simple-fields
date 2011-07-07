@@ -349,6 +349,47 @@ var simple_fields_datepicker_args = { "clickInput": true };
 		return false;
 	});
 	
+	// field type post
+	// popup a dialog where the user can choose  the post to attach
+	$("a.simple-fields-metabox-field-post-select").live("click", function(e) {
+		e.preventDefault();
+		
+		var a = $(this);
+		// get post types to show
+		var div = a.closest(".simple-fields-metabox-field");
+		var enabled_post_types = div.find("input[name='simple-fields-metabox-field-post-enabled-post-types']").val();
+		
+		$("div.simple-fields-meta-box-field-group-field-type-post-dialog").data("originLink", this).dialog({
+			width: 480,
+			height: 'auto',
+			modal: true,
+			dialogClass: 'wp-dialog',
+			zIndex: 300000,
+			open: function(event, ui) {
+				//console.log("event", event);
+				//console.log("ui", ui);
+				//console.log("originLink", $(this).data("originLink"));
+				var originLink = $($(this).data("originLink"));
+				//console.log(enabled_post_types);
+				var select_type = $("div.simple-fields-meta-box-field-group-field-type-post-dialog-select-type");
+				arr_enabled_post_types = enabled_post_types.split(",");
+				var html = "<ul>";
+				if (arr_enabled_post_types.length > 1) {
+					html += "<li><a href=''>All</a></li>";
+				}
+				$(arr_enabled_post_types).each(function(i, elm){
+					html += "<li><a href=''>"+elm+"</a></li>";
+				});
+				html += "<ul>";
+				select_type.html(html);
+			}
+		});
+
+	});
+	$(".simple-fields-postdialog-link-cancel").live("click", function(e) {
+		e.preventDefault();
+		$("div.simple-fields-meta-box-field-group-field-type-post-dialog").dialog("close");
+	});
 	
 	/**
 	 * ondomready stuff
