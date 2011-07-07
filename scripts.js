@@ -430,9 +430,22 @@ var simple_fields_datepicker_args = { "clickInput": true };
 		var div = originLink.closest(".simple-fields-metabox-field");
 		div.find(".simple-fields-field-type-post-postID").attr("value", post_id);
 		div.find(".simple-fields-field-type-post-postName").text(a.text());
+		div.find(".simple-fields-metabox-field-post-clear").show();
+		div.find(".simple-fields-field-type-post-postName").show();
+
 		
 		dialog.dialog("close");
 		
+	});
+	
+	// clear post id and name
+	$(".simple-fields-metabox-field-post-clear").live("click", function(e) {
+		e.preventDefault();
+		var a = $(this);
+		var div = a.closest(".simple-fields-metabox-field");
+		div.find(".simple-fields-metabox-field-post-clear").hide("fast");
+		div.find(".simple-fields-field-type-post-postName").hide("fast");
+		div.find(".simple-fields-field-type-post-postID").attr("value", "");
 	});
 	
 	/**

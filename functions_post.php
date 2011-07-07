@@ -88,6 +88,16 @@ function simple_fields_field_type_post_dialog_load() {
 			?>
 		</ul>
 	</div>
+	<div class="submitbox">
+		<div class="simple-fields-postdialog-link-cancel">
+			<a href="#" class="submitdelete deletion">Cancel</a>
+		</div>
+		<!--
+		<div class="simple-fields-postdialog-link-update">
+			<input type="submit" tabindex="100" value="Add Link" class="button-primary" class="wp-link-submit" name="wp-link-submit">
+		</div>
+		-->
+	</div>
 	<?php
 		
 	exit;
@@ -98,22 +108,7 @@ function simple_fields_field_type_post_dialog_load() {
  */
 function simple_fields_admin_footer() {
 	// HTML for post dialog
-	?>
-	<div class="simple-fields-meta-box-field-group-field-type-post-dialog hidden">
-		<p>Show posts of type:</p>
-		<div class="simple-fields-meta-box-field-group-field-type-post-dialog-select-type"></div>
-		<div class="submitbox">
-			<div class="simple-fields-postdialog-link-cancel">
-				<a href="#" class="submitdelete deletion">Cancel</a>
-			</div>
-			<!--
-			<div class="simple-fields-postdialog-link-update">
-				<input type="submit" tabindex="100" value="Add Link" class="button-primary" class="wp-link-submit" name="wp-link-submit">
-			</div>
-			-->
-		</div>
-	</div>
-	<?php
+	?><div class="simple-fields-meta-box-field-group-field-type-post-dialog hidden"></div><?php
 }
 
 /**
@@ -735,7 +730,15 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					
 				} elseif ("post" == $field["type"]) {
 					
-					$text_value_esc = esc_html($saved_value);
+					$saved_value_int = (int) $saved_value;
+					if ($saved_value_int) {
+						//$saved_post = get_post($saved_value_int);
+						$saved_post_name = get_the_title($saved_value_int);
+						$showHideClass = "";
+					} else {
+						$saved_post_name = "";
+						$showHideClass = "hidden";
+					}
 					
 					$type_post_options = (array) @$field["type_post_options"];
 					$enabled_post_types = $type_post_options["enabled_post_types"];
@@ -747,17 +750,17 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 
 					echo "<div>";
 					printf("<a class='%s' href='#'>%s</a>", "simple-fields-metabox-field-post-select", __("Select post", "simple-fields"));
+					printf("<a class='%s' href='#'>%s</a>", "simple-fields-metabox-field-post-clear $showHideClass", __("Clear", "simple-fields"));
 					echo "</div>";
 					
 					// output the post types that are selected for this post field
 					printf("<input type='hidden' name='%s' value='%s' />", "simple-fields-metabox-field-post-enabled-post-types", join(",", $enabled_post_types));
+										
+					// name of the selected post
+					echo "<div class='simple-fields-field-type-post-postName $showHideClass'>$saved_post_name</div>";
 					
 					// print the id of the current post
-					echo "<input type='hidden' class='simple-fields-field-type-post-postID' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
-					
-					// name of the selected post
-					echo "<div class='simple-fields-field-type-post-postName'></div>";
-					
+					echo "<input type='hidden' class='simple-fields-field-type-post-postID' name='$field_name' id='$field_unique_id' value='$saved_value_int' />";
 					
 					echo "</div>";
 				}

@@ -364,7 +364,8 @@ ul.simple-fields-file-browser-list h3 {
 	color: #666;
 }
 
-.simple-fields-metabox-field-file-edit, .simple-fields-metabox-field-file-clear {
+.simple-fields-metabox-field-file-edit, .simple-fields-metabox-field-file-clear,
+.simple-fields-metabox-field-post-clear {
 	border-left: 1px solid #555555;
 	padding-left: 4px;
 	margin-left: 4px;
@@ -385,10 +386,14 @@ ul.simple-fields-file-browser-list h3 {
 .simple-fields-meta-box-field-group-field-type-post-dialog {
 	margin: 10px;
 }
+.simple-fields-meta-box-field-group-field-type-post-dialog p {
+	margin: 0;
+}
 
 .simple-fields-meta-box-field-group-field-type-post-dialog-post-types {
-	border-bottom: 1px solid #DFDFDF;
+/*	border-bottom: 1px solid #DFDFDF;
 	padding-bottom: 10px;
+	margin-bottom: 10px; */
 	margin-bottom: 10px;
 }
 .simple-fields-meta-box-field-group-field-type-post-dialog-post-types li {
@@ -407,6 +412,9 @@ ul.simple-fields-file-browser-list h3 {
 .simple-fields-meta-box-field-group-field-type-post-dialog-post-posts-wrap {
 	height: 185px;
 	overflow: auto;
+	border: 1px solid #DFDFDF;
+	padding: 10px;
+	margin-bottom: 10px;
 }
 
 .simple-fields-meta-box-field-group-field-type-post-dialog-post-posts ul {
