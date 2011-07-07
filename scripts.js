@@ -371,8 +371,13 @@ var simple_fields_datepicker_args = { "clickInput": true };
 				//console.log("originLink", $(this).data("originLink"));
 				var originLink = $($(this).data("originLink"));
 				//console.log(enabled_post_types);
-				var select_type = $("div.simple-fields-meta-box-field-group-field-type-post-dialog-select-type");
+				//var select_type = $("div.simple-fields-meta-box-field-group-field-type-post-dialog-select-type");
 				arr_enabled_post_types = enabled_post_types.split(",");
+				$(this).text("Loading...").load(ajaxurl, {
+					"action": "simple_fields_field_type_post_dialog_load",
+					"arr_enabled_post_types": arr_enabled_post_types
+				});
+				/*
 				var html = "<ul>";
 				if (arr_enabled_post_types.length > 1) {
 					html += "<li><a href=''>All</a></li>";
@@ -382,6 +387,7 @@ var simple_fields_datepicker_args = { "clickInput": true };
 				});
 				html += "<ul>";
 				select_type.html(html);
+				*/
 			}
 		});
 
@@ -389,6 +395,25 @@ var simple_fields_datepicker_args = { "clickInput": true };
 	$(".simple-fields-postdialog-link-cancel").live("click", function(e) {
 		e.preventDefault();
 		$("div.simple-fields-meta-box-field-group-field-type-post-dialog").dialog("close");
+	});
+	
+	// in dialog: click on post type
+	$(".simple-fields-meta-box-field-group-field-type-post-dialog-post-types a").live("click", function(e) {
+
+		e.preventDefault();
+		var a = $(this);
+		var dialog = $("div.simple-fields-meta-box-field-group-field-type-post-dialog");
+		var originLink = dialog.data("originLink");
+		originLink = $(originLink);
+		var div = originLink.closest(".simple-fields-metabox-field");
+		var enabled_post_types = div.find("input[name='simple-fields-metabox-field-post-enabled-post-types']").val();
+
+		dialog.load(ajaxurl, {
+			"action": "simple_fields_field_type_post_dialog_load",
+			"arr_enabled_post_types": arr_enabled_post_types,
+			"selected_post_type": a.attr("href")
+		});
+
 	});
 	
 	/**

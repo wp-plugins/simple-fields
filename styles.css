@@ -381,3 +381,34 @@ ul.simple-fields-file-browser-list h3 {
 	margin-right: -250px;
 	float: left;
 }
+
+.simple-fields-meta-box-field-group-field-type-post-dialog {
+	margin: 10px;
+}
+
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-types {
+	border-bottom: 1px solid #DFDFDF;
+	padding-bottom: 10px;
+	margin-bottom: 10px;
+}
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-types li {
+	display: inline;
+	margin-right: 5px;
+}
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-types li.selected {
+	font-weight: bold;
+}
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-posts,
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-posts li
+ {
+	line-height: 1;
+	margin: 4px 0 4px 0;
+}
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-posts-wrap {
+	height: 185px;
+	overflow: auto;
+}
+
+.simple-fields-meta-box-field-group-field-type-post-dialog-post-posts ul {
+	margin-left: 20px;
+}

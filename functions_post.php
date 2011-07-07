@@ -11,6 +11,89 @@ add_action( 'admin_init', 'simple_fields_post_admin_init' );
 add_action( 'dbx_post_sidebar', 'simple_fields_post_dbx_post_sidebar' );
 
 /**
+ * Fetch content for post type dialog via AJAX
+ */
+add_action('wp_ajax_simple_fields_field_type_post_dialog_load', 'simple_fields_field_type_post_dialog_load');
+function simple_fields_field_type_post_dialog_load() {
+	//echo "<pre>";print_r($_POST); 
+	/*
+	Array
+	(
+	    [action] => simple_fields_field_type_post_dialog_load
+	    [arr_enabled_post_types] => Array
+	        (
+	            [0] => post
+	            [1] => page
+	            [2] => feedback
+	        )
+	
+	)
+	*/
+	$arr_enabled_post_types = (array) $_POST["arr_enabled_post_types"];
+	$existing_post_types = get_post_types(NULL, "objects");
+	$selected_post_type = (string) @$_POST["selected_post_type"];
+	?>
+	<p>Show posts of type:</p>
+	<ul class="simple-fields-meta-box-field-group-field-type-post-dialog-post-types">
+		<?php
+		$loopnum = 0;
+		foreach ($existing_post_types as $key => $val) {
+			if (!in_array($key, $arr_enabled_post_types)) {
+				continue;
+			}
+			if (empty($selected_post_type) && $loopnum == 0) {
+				$selected_post_type = $key;
+			}
+			$class = "";
+			if ($selected_post_type == $key) {
+				$class = "selected";
+			}
+			printf("\n<li class='%s'><a href='%s'>%s</a></li>", $class, "$key", $val->labels->name);
+			$loopnum++;
+		}
+	?>
+	</ul>
+	
+	<div class="simple-fields-meta-box-field-group-field-type-post-dialog-post-posts-wrap">
+		<ul class="simple-fields-meta-box-field-group-field-type-post-dialog-post-posts">
+			<?php
+			/*
+			$args = array(
+				"post_type" => $selected_post_type,
+				"numberposts" => -1
+			);
+			$posts = get_posts($args);
+			echo "<ul>";
+			foreach ($posts as $post) {
+				printf("<li>%s</li>", $post->post_title);
+			}
+			echo "</ul>";
+			*/
+			// get root items
+			$args = array(
+				"echo" => 0,
+				"sort_order" => "ASC",
+				"sort_column" => "menu_order",
+				"post_type" => $selected_post_type,
+				"post_status" => "publish"
+			);
+			$hierarchical = (bool) $existing_post_types[$selected_post_type]->hierarchical;
+			if ($hierarchical) {
+				$args["parent"] = 0;
+				$args["post_parent"] = 0;
+			}
+		
+			$output = simple_fields_get_pages($args);
+			echo $output;
+			?>
+		</ul>
+	</div>
+	<?php
+		
+	exit;
+}
+
+/**
  * Output HTML for dialog in bottom
  */
 function simple_fields_admin_footer() {
@@ -643,7 +726,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
 					foreach ($arr_taxonomies as $one_taxonomy) {
 						if (!in_array($one_taxonomy->name, $enabled_taxonomies)) {
-							continue;
+							continue;	
 						}
 						$selected = ($saved_value == $one_taxonomy->name) ? ' selected="selected" ' : '';
 						printf ("<option %s value='%s'>%s</option>", $selected, $one_taxonomy->name, $one_taxonomy->label);
@@ -1086,3 +1169,58 @@ function simple_fields_get_all_fields_and_values_for_post($post_id) {
 	return $selected_post_connector;
 }
 # $custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group_id}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
+
+/**
+ * Code from Admin Menu Tree Page View
+ */
+function simple_fields_get_pages($args) {
+
+	$defaults = array(
+    	"post_type" => "page",
+		"xparent" => "0",
+		"xpost_parent" => "0",
+		"numberposts" => "-1",
+		"orderby" => "menu_order",
+		"order" => "ASC",
+		"post_status" => "any"
+	);
+	$args = wp_parse_args( $args, $defaults );
+	$pages = get_posts($args);
+
+	$output = "";
+	$str_child_output = "";
+	foreach ($pages as $one_page) {
+		$edit_link = get_edit_post_link($one_page->ID);
+		$title = get_the_title($one_page->ID);
+		$title = esc_html($title);
+				
+		$class = "";
+		if (isset($_GET["action"]) && $_GET["action"] == "edit" && isset($_GET["post"]) && $_GET["post"] == $one_page->ID) {
+			$class = "current";
+		}
+
+		// add css if we have childs
+		$args_childs = $args;
+		$args_childs["parent"] = $one_page->ID;
+		$args_childs["post_parent"] = $one_page->ID;
+		$args_childs["child_of"] = $one_page->ID;
+		$str_child_output = simple_fields_get_pages($args_childs);
+		
+		$output .= "<li class='$class'>";
+		$output .= "<a href='$edit_link' data-post-id='".$one_page->ID."'>";
+		$output .= $title;
+		$output .= "</a>";
+
+		// add child articles
+		$output .= $str_child_output;
+		
+		$output .= "</li>";
+	}
+	
+	// if this is a child listing, add ul
+	if (isset($args["child_of"]) && $args["child_of"] && $output != "") {
+		$output = "<ul class='simple-fields-tree-page-tree_childs'>$output</ul>";
+	}
+	
+	return $output;
+}
