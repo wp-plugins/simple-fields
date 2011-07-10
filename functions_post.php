@@ -792,7 +792,9 @@ function simple_fields_media_send_to_editor($html) {
 */
 
 /**
- * head of admin area
+ * Head of admin area
+ * - Add meta box with info about currently selected connector + options to choose another one
+ * - Add meta boxes with field groups
  */
 function simple_fields_admin_head() {
 
@@ -819,6 +821,13 @@ function simple_fields_admin_head() {
 				//$field_groups = get_option("simple_fields_groups");
 				$field_groups = simple_fields_get_field_groups();
 				$selected_post_connector = $post_connectors[$connector_to_use];
+				
+				// check if we should hide the editor, using css to keep things simple
+				// echo "<pre>";print_r($selected_post_connector);echo "</pre>";
+				$hide_editor = (bool) isset($selected_post_connector["hide_editor"]) && $selected_post_connector["hide_editor"];
+				if ($hide_editor) {
+					?><style type="text/css">#postdivrich, #postdiv { display: none; }</style><?php
+				}
 				
 				// get the field groups for the selected connector
 				$selected_post_connector_field_groups = $selected_post_connector["field_groups"];

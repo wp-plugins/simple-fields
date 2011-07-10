@@ -210,54 +210,6 @@ function simple_fields_options() {
 			$action = "";
 		}
 		
-
-		/**
-		 * save a post connector
-		 */
-		if ("edit-post-connector-save" == $action) {
-			if ($_POST) {
-				
-				//d($_POST);
-				#d($post_connectors);
-				
-				$connector_id = (int) $_POST["post_connector_id"];
-				$post_connectors[$connector_id]["name"] = (string) stripslashes($_POST["post_connector_name"]);
-				$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
-				$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
-
-				// a post type can only have one default connector, so make sure only the connector
-				// that we are saving now has it; remove it from all others;
-				/*
-				$post_types_type_default = (array) $_POST["post_types_type_default"];
-				foreach ($post_types_type_default as $one_default_post_type) {
-					foreach ($post_connectors as $one_post_connector) {
-						if (in_array($one_default_post_type, $one_post_connector["post_types_type_default"])) {
-							$array_key = array_search($one_default_post_type, $one_post_connector["post_types_type_default"]);
-							if ($array_key !== false) {
-								unset($post_connectors[$one_post_connector["id"]]["post_types_type_default"][$array_key]);
-							}
-						}
-					}
-				}
-				$post_connectors[$connector_id]["post_types_type_default"] = $post_types_type_default;
-				*/
-				
-				// for some reason I got an empty connector (array key was empty) so check for these and remove
-				$post_connectors_tmp = array();
-				foreach ($post_connectors as $key => $one_connector) {
-					if (!empty($one_connector)) {
-						$post_connectors_tmp[$key] = $one_connector;
-					}
-				}
-				$post_connectors = $post_connectors_tmp;
-
-				update_option("simple_fields_post_connectors", $post_connectors);
-
-				$simple_fields_did_save_connector = true;
-			}
-			#$action = "simple-fields-edit-connectors";
-			$action = "";
-		}
 		
 		/**
 		 * save a field group
@@ -296,7 +248,7 @@ function simple_fields_options() {
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 				$field_groups[$field_group_id]["type_taxonomy_options"] = (array) @$_POST["type_taxonomy_options"];
-		
+						
 				update_option("simple_fields_groups", $field_groups);
 				
 				// we can have changed the options of a field group, so update connectors using this field group
@@ -314,6 +266,55 @@ function simple_fields_options() {
 			#$action = "simple-fields-edit-field-groups";
 			$action = "";
 					
+		}
+
+		/**
+		 * save a post connector
+		 */
+		if ("edit-post-connector-save" == $action) {
+			if ($_POST) {
+				
+				//d($_POST);
+				#d($post_connectors);
+				
+				$connector_id = (int) $_POST["post_connector_id"];
+				$post_connectors[$connector_id]["name"] = (string) stripslashes($_POST["post_connector_name"]);
+				$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
+				$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
+				$post_connectors[$connector_id]["hide_editor"] = (bool) @$_POST["hide_editor"];
+
+				// a post type can only have one default connector, so make sure only the connector
+				// that we are saving now has it; remove it from all others;
+				/*
+				$post_types_type_default = (array) $_POST["post_types_type_default"];
+				foreach ($post_types_type_default as $one_default_post_type) {
+					foreach ($post_connectors as $one_post_connector) {
+						if (in_array($one_default_post_type, $one_post_connector["post_types_type_default"])) {
+							$array_key = array_search($one_default_post_type, $one_post_connector["post_types_type_default"]);
+							if ($array_key !== false) {
+								unset($post_connectors[$one_post_connector["id"]]["post_types_type_default"][$array_key]);
+							}
+						}
+					}
+				}
+				$post_connectors[$connector_id]["post_types_type_default"] = $post_types_type_default;
+				*/
+				
+				// for some reason I got an empty connector (array key was empty) so check for these and remove
+				$post_connectors_tmp = array();
+				foreach ($post_connectors as $key => $one_connector) {
+					if (!empty($one_connector)) {
+						$post_connectors_tmp[$key] = $one_connector;
+					}
+				}
+				$post_connectors = $post_connectors_tmp;
+
+				update_option("simple_fields_post_connectors", $post_connectors);
+
+				$simple_fields_did_save_connector = true;
+			}
+			#$action = "simple-fields-edit-connectors";
+			$action = "";
 		}
 
 		
@@ -340,17 +341,21 @@ function simple_fields_options() {
 					"field_groups" => array(),
 					"post_types" => array(),
 					#"post_types_type_default" = array(),
-					"deleted" => false,
+					"deleted" => FALSE,
+					"hide_editor" => FALSE
 				);
 				
 				update_option("simple_fields_post_connectors", $post_connectors);
 
 			} else {
 				// existing post connector
+				
+				// set a default value for hide_editor if it does not exist. did not exist until 0.5
+				$post_connectors[$connector_id]["hide_editor"] = (bool) @$post_connectors[$connector_id]["hide_editor"];
 			}
 
 			$post_connector_in_edit = $post_connectors[$connector_id];
-
+			// echo "<pre>";print_r($post_connector_in_edit);echo "</pre>";
 			?>
 			<h3><?php _e('Post Connector details', 'simple-fields') ?></h3>
 
@@ -410,6 +415,18 @@ function simple_fields_options() {
 								}
 								?>
 							</ul>
+						</td>
+					</tr>
+					
+					<tr>
+						<th><?php _e('Options', 'simple-fields') ?></th>
+						<td><input
+							 type="checkbox" 
+							 <?php echo $post_connector_in_edit["hide_editor"] == TRUE ? " checked='checked' " : "" ?>
+							 name="hide_editor" 
+							 class="" 
+							 value="1" />
+							 <?php _e('Hide the built in editor', 'simple-fields') ?>
 						</td>
 					</tr>
 					
