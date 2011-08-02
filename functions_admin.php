@@ -241,16 +241,28 @@ function simple_fields_options() {
 			
 				$field_group_id = (int) $_POST["field_group_id"];
 				$field_groups[$field_group_id]["name"] = stripslashes($_POST["field_group_name"]);
+				$field_groups[$field_group_id]["description"] = stripslashes($_POST["field_group_description"]);
 				$field_groups[$field_group_id]["repeatable"] = (bool) (isset($_POST["field_group_repeatable"]));
 				
 				$field_groups[$field_group_id]["fields"] = (array) stripslashes_deep($_POST["field"]);
-		
+				/*
+				if just one empty array like this, unset first elm
+				happens if no fields have been added (now why would you do such an evil thing?!)
+	            [fields] => Array
+	                (
+	                    [0] => 
+	                )
+				*/
+				if (sizeof($field_groups[$field_group_id]["fields"]) == 1 && empty($field_groups[$field_group_id]["fields"][0])) {
+					unset($field_groups[$field_group_id]["fields"][0]);
+				}
+				
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 				$field_groups[$field_group_id]["type_taxonomy_options"] = (array) @$_POST["type_taxonomy_options"];
 						
 				update_option("simple_fields_groups", $field_groups);
-				
+				//echo "<pre>";print_r($field_groups);echo "</pre>";
 				// we can have changed the options of a field group, so update connectors using this field group
 				$post_connectors = (array) simple_fields_get_post_connectors();
 				foreach ($post_connectors as $connector_id => $connector_options) {
@@ -532,12 +544,19 @@ function simple_fields_options() {
 	            		<th><label for="field_group_name"><?php _e('Name', 'simple-fields') ?></label></th>
 	            		<td>
 	            			<input type="text" name="field_group_name" id="field_group_name" class="regular-text" value="<?php echo esc_html($field_group_in_edit["name"]) ?>" />
+	            			
+							<br />
+	            			<label for="field_group_description">
+								<?php _e('Description', 'simple-fields') ?>
+								<input type="text" name="field_group_description" id="field_group_description" class="regular-text" value="<?php echo esc_html($field_group_in_edit["description"]) ?>" />
+							</label>
+
 	            			<br />	
 	            			<label for="field_group_repeatable">
 								<input type="checkbox" <?php echo ($field_group_in_edit["repeatable"] == true) ? "checked='checked'" : ""; ?> value="1" id="field_group_repeatable" name="field_group_repeatable" />
 								<?php _e('Repeatable', 'simple-fields') ?>
 							</label>
-	
+								
 	            		</td>
 	            	</tr>
 	            	<tr>
@@ -796,6 +815,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 				<option value='taxonomy'" . (($field_type=="taxonomy") ? " selected='selected' " : "") . ">".__('Taxonomy', 'simple-fields')."</option>
 				<option value='color'" . (($field_type=="color") ? " selected='selected' " : "") . ">".__('Color', 'simple-fields')."</option>
 				<option value='date'" . (($field_type=="date") ? " selected='selected' " : "") . ">".__('Date', 'simple-fields')."</option>
+				<option value='author'" . (($field_type=="author") ? " selected='selected' " : "") . ">".__('Author', 'simple-fields')."</option>
 			</select>
 
 			<div class='simple-fields-field-group-one-field-row " . (($field_type=="text") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-text'>

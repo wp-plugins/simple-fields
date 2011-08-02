@@ -412,6 +412,12 @@ function simple_fields_meta_box_output($post_connector_field_id, $post_id) {
 	echo "<div class='simple-fields-meta-box-field-group-wrapper'>";
 	echo "<input type='hidden' name='simple-fields-meta-box-field-group-id' value='$post_connector_field_id' />";
 
+	// show description
+	if (!empty($current_field_group["description"])) {
+		printf("<p class='%s'>%s</p>", "simple-fields-meta-box-field-group-description", esc_html($current_field_group["description"]));
+	}
+	//echo "<pre>";print_r($current_field_group);echo "</pre>";
+
 	if ($current_field_group["repeatable"]) {
 
 		echo "
@@ -763,7 +769,65 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					echo "<input type='hidden' class='simple-fields-field-type-post-postID' name='$field_name' id='$field_unique_id' value='$saved_value_int' />";
 					
 					echo "</div>";
-				}
+
+				} elseif ("author" == $field["type"]) {
+				
+					$saved_value_int = (int) $saved_value;
+				
+					echo "<div class='simple-fields-metabox-field-post'>";
+					// echo "<pre>"; print_r($type_post_options); echo "</pre>";
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
+					
+					// must set orderby or it will not get any users at all. yes. it's that weird.
+					$args = array(
+						//' role' => 'any'
+						"orderby" => "login",
+						"order" => "asc"
+					);
+					$users_query = new WP_User_Query( $args );
+					$users = $users_query->results;
+					
+					// echo "<pre>";print_r($users);
+					/*
+				    [0] => stdClass Object
+				        (
+				            [ID] => 1
+				            [user_login] => admin
+				            [user_pass] => $P$BKPla7vRGQ4h/6tgUDdIad11Jv5GHX.
+				            [user_nicename] => admin
+				            [user_email] => par.thernstrom@gmail.com
+				            [user_url] => 
+				            [user_registered] => 2011-05-06 07:53:19
+				            [user_activation_key] => 
+				            [user_status] => 0
+				            [display_name] => admin
+				        )					
+					*/
+					echo "<select name='$field_name' id='$field_unique_id'>";
+					printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
+					foreach ($users as $one_user) {
+						$first_name = get_the_author_meta("first_name", $one_user->ID);
+						$last_name = get_the_author_meta("last_name", $one_user->ID);
+						$first_and_last_name = "";
+						if (!empty($first_name) || !empty($last_name)) {
+							$first_and_last_name = $first_name . " " . $last_name;
+							$first_and_last_name = trim($first_and_last_name);
+							$first_and_last_name = " ($first_and_last_name)";
+						}
+						
+						printf("<option %s value='%s'>%s</option>", 
+							($saved_value_int == $one_user->ID) ? " selected='selected' " : "",
+							$one_user->ID,
+							$one_user->display_name . "$first_and_last_name"
+						);
+					}
+					echo "</select>";
+					
+					echo "</div>";
+
+
+				} // field types
 				// echo "<pre>";print_r($field);echo "</pre>";
 				?>
 				<div class="simple-fields-metabox-field-custom-field-key hidden highlight"><strong><?php _e('Meta key:', 'simple-fields') ?></strong> <?php echo $custom_field_key ?></div>
