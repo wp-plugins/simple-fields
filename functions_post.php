@@ -770,7 +770,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					
 					echo "</div>";
 
-				} elseif ("author" == $field["type"]) {
+				} elseif ("user" == $field["type"]) {
 				
 					$saved_value_int = (int) $saved_value;
 				
