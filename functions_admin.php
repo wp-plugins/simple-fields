@@ -236,7 +236,7 @@ function simple_fields_options() {
 
                         )
 			*/
-			// echo "<pre>";print_r($_POST);exit;
+			#echo "<pre>";print_r($_POST);exit;
 			if ($_POST) {
 			
 				$field_group_id = (int) $_POST["field_group_id"];
@@ -257,12 +257,16 @@ function simple_fields_options() {
 					unset($field_groups[$field_group_id]["fields"][0]);
 				}
 				
+				// @todo: are these used? options are saved on a per field basis… right?!
 				$field_groups[$field_group_id]["type_textarea_options"] = (array) @$_POST["type_textarea_options"];
 				$field_groups[$field_group_id]["type_radiobuttons_options"] = (array) @$_POST["type_radiobuttons_options"];
 				$field_groups[$field_group_id]["type_taxonomy_options"] = (array) @$_POST["type_taxonomy_options"];
+				//$field_groups[$field_group_id]["type_taxonomyterm_options"] = (array) @$_POST["type_taxonomyterm_options"];
+
+				// echo "<pre>fields_groups:"; print_r($field_groups);exit;
 						
 				update_option("simple_fields_groups", $field_groups);
-				//echo "<pre>";print_r($field_groups);echo "</pre>";
+				// echo "<pre>";print_r($field_groups);echo "</pre>";
 				// we can have changed the options of a field group, so update connectors using this field group
 				$post_connectors = (array) simple_fields_get_post_connectors();
 				foreach ($post_connectors as $connector_id => $connector_options) {
@@ -774,14 +778,22 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 	$field_type_checkbox_option_checked_by_default = (int) @$fields[$fieldID]["type_checkbox_options"]["checked_by_default"];
 	$field_type_radiobuttons_options = (array) @$fields[$fieldID]["type_radiobuttons_options"];
 	$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
+
 	$field_type_post_options = (array) @$fields[$fieldID]["type_post_options"];
 	$field_type_post_options["enabled_post_types"] = (array) @$field_type_post_options["enabled_post_types"];
+
 	$field_type_taxonomy_options = (array) @$fields[$fieldID]["type_taxonomy_options"];
 	$field_type_taxonomy_options["enabled_taxonomies"] = (array) @$field_type_taxonomy_options["enabled_taxonomies"];
+
 	$field_type_date_options = (array) @$fields[$fieldID]["type_date_options"];
 	$field_type_date_option_use_time = @$field_type_date_options["use_time"];
-	
+
+	$field_type_taxonomyterm_options = (array) @$fields[$fieldID]["type_taxonomyterm_options"];
+	$field_type_taxonomyterm_options["enabled_taxonomy"] = (string) @$field_type_taxonomyterm_options["enabled_taxonomy"];
+
+	// echo "<pre>field_type_taxonomyterm_options:"; print_r($field_type_taxonomyterm_options);
 	// echo "<pre>";print_r($field_type_taxonomy_options);echo "</pre>";
+	// echo "<pre>";print_r($fields[$fieldID]);echo "</pre>";
 	
 	$out = "";
 	$out .= "
@@ -813,6 +825,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 				<option value='file'" . (($field_type=="file") ? " selected='selected' " : "") . ">".__('File', 'simple-fields')."</option>
 				<option value='post'" . (($field_type=="post") ? " selected='selected' " : "") . ">".__('Post', 'simple-fields')."</option>
 				<option value='taxonomy'" . (($field_type=="taxonomy") ? " selected='selected' " : "") . ">".__('Taxonomy', 'simple-fields')."</option>
+				<option value='taxonomyterm'" . (($field_type=="taxonomyterm") ? " selected='selected' " : "") . ">".__('Taxonomy Term', 'simple-fields')."</option>
 				<option value='color'" . (($field_type=="color") ? " selected='selected' " : "") . ">".__('Color', 'simple-fields')."</option>
 				<option value='date'" . (($field_type=="date") ? " selected='selected' " : "") . ">".__('Date', 'simple-fields')."</option>
 				<option value='user'" . (($field_type=="user") ? " selected='selected' " : "") . ">".__('User', 'simple-fields')."</option>
@@ -859,7 +872,7 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		}
 		$out .= "</div>";
 
-		$out .= "<div ckass='simple-fields-field-group-one-field-row'>";
+		$out .= "<div class='simple-fields-field-group-one-field-row'>";
 		$out .= "<label>Additional arguments</label>";
 		$out .= sprintf("<input type='text' name='%s' value='%s' />", "field[$fieldID][type_post_options][additional_arguments]", @$field_type_post_options["additional_arguments"]);
 		$out .= sprintf("<br /><span class='description'>Here you can <a href='http://codex.wordpress.org/How_to_Pass_Tag_Parameters#Tags_with_query-string-style_parameters'>pass your own parameters</a> to <a href='http://codex.wordpress.org/Class_Reference/WP_Query'>WP_Query</a>.</span>");
@@ -867,12 +880,11 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 		$out .= "</div>"; // whole divs that shows/hides
 
 
-		// connect taxonomy - select taxonomy
+		// connect taxonomy - select taxonomies
 		$out .= "<div class='" . (($field_type=="taxonomy") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-taxonomy'>";
 		$out .= sprintf("<label>%s</label>", __('Taxonomies to show in dropdown', 'simple-fields'));
 		$taxonomies = get_taxonomies(NULL, "objects");
 		$loopnum = 0;
-		
 		foreach ($taxonomies as $one_tax) {
 			// skip some built in types
 			if (in_array($one_tax->name, array("attachment", "revision", "nav_menu_item"))) {
@@ -889,7 +901,38 @@ function simple_fields_field_group_add_field_template($fieldID, $field_group_in_
 			$loopnum++;
 		}
 		$out .= "</div>";
+
+		// taxonomyterm - select taxonomies, like above
+		$out .= "<div class='" . (($field_type=="taxonomyterm") ? "" : " hidden ") . " simple-fields-field-type-options simple-fields-field-type-options-taxonomyterm'>";
+		$out .= "<div class='simple-fields-field-group-one-field-row'>";
+		$out .= sprintf("<label>%s</label>", __('Taxonomy to select terms from', 'simple-fields'));
+		$taxonomies = get_taxonomies(NULL, "objects");
+		$loopnum = 0;
+		foreach ($taxonomies as $one_tax) {
+			// skip some built in types
+			if (in_array($one_tax->name, array("attachment", "revision", "nav_menu_item"))) {
+			    continue;
+			}
+			$input_name = "field[{$fieldID}][type_taxonomyterm_options][enabled_taxonomy]";
+			$out .= sprintf("%s<input name='%s' type='radio' %s value='%s'> %s", 
+								($loopnum>0 ? "<br />" : ""), 
+								$input_name, 
+								($one_tax->name == $field_type_taxonomyterm_options["enabled_taxonomy"]) ? " checked='checked' " : "", 
+								$one_tax->name, 
+								$one_tax->labels->name . " ($one_tax->name)"
+							);
+			$loopnum++;
+		}
+		$out .= "</div>";
 		
+		$out .= "<div class='simple-fields-field-group-one-field-row'>";
+		$out .= "<label>Additional arguments</label>";
+		$out .= sprintf("<input type='text' name='%s' value='%s' />", "field[$fieldID][type_taxonomyterm_options][additional_arguments]", @$field_type_taxonomyterm_options["additional_arguments"]);
+		$out .= sprintf("<br /><span class='description'>Here you can <a href='http://codex.wordpress.org/How_to_Pass_Tag_Parameters#Tags_with_query-string-style_parameters'>pass your own parameters</a> to <a href='http://codex.wordpress.org/Function_Reference/get_terms#Parameters'>get_terms()</a>.</span>");
+		$out .= "</div>";
+		
+		$out .= "</div>";
+
 		// radiobuttons
 		$radio_buttons_added = "";
 		$radio_buttons_highest_id = 0;

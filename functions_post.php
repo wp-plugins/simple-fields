@@ -10,6 +10,17 @@ add_action( 'admin_footer', 'simple_fields_admin_footer' );
 add_action( 'admin_init', 'simple_fields_post_admin_init' );
 add_action( 'dbx_post_sidebar', 'simple_fields_post_dbx_post_sidebar' );
 
+// little debug version
+function sf_d($var) {
+	echo "<pre>";
+	if (is_array($var)) {
+		print_r($var);
+	} else {
+		echo $var;
+	}
+	echo "</pre>";
+}
+
 /**
  * Fetch content for post type dialog via AJAX
  */
@@ -727,12 +738,62 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 					printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
 					foreach ($arr_taxonomies as $one_taxonomy) {
 						if (!in_array($one_taxonomy->name, $enabled_taxonomies)) {
-							continue;	
+							continue;
 						}
 						$selected = ($saved_value == $one_taxonomy->name) ? ' selected="selected" ' : '';
 						printf ("<option %s value='%s'>%s</option>", $selected, $one_taxonomy->name, $one_taxonomy->label);
 					}
 					echo "</select>";
+
+
+				} elseif ("taxonomyterm" == $field["type"]) {
+					
+					$enabled_taxonomy = @$field["type_taxonomyterm_options"]["enabled_taxonomy"];
+					$additional_arguments = @$field["type_taxonomyterm_options"]["additional_arguments"];
+
+					// echo "saved_value:";sf_d($saved_value);
+
+					// hämta alla terms som finns för taxonomy $enabled_taxonomy
+					// @todo: kunna skicka in args här, t.ex. för orderby
+					
+					// check if taxonomy is hierachical
+					// _get_term_hierarchy($taxonomy) {
+					/*
+					$is_hierarchical = is_taxonomy_hierarchical($enabled_taxonomy);
+					if ( $is_hierarchical ) {
+						// echo "<br>is hierarchical";
+						$existing_terms = _get_term_hierarchy($enabled_taxonomy);
+					} else {
+						// echo "<br>is not hierarchical";
+						$existing_terms = get_terms($enabled_taxonomy, "&{$additional_arguments}");
+					}
+					*/
+
+					echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
+					echo $description;
+
+/*
+wp_terms_checklist($post->ID, array( 'taxonomy' => $taxonomy, 'popular_cats' => $popular_ids ) ) ?>
+<?php wp_terms_checklist($post_ID, array( 'taxonomy' => 'category', 'popular_cats' => $popular_ids ) ) ?>
+xxx
+wp_terms_checklist
+*/
+$arr_selected_cats = (array) $saved_value;
+
+$walker = new Walker_Category_Checklist2();
+$args = array(
+	"taxonomy" => $enabled_taxonomy,
+	"selected_cats" => $arr_selected_cats,
+	"walker" => $walker,
+	"sf_field_name" => $field_name // walker is ot able to get this one, therefor global
+);
+global $simple_fields_taxonomyterm_walker_field_name; // sorry for global…!
+$simple_fields_taxonomyterm_walker_field_name = $field_name;
+echo "<ul class='simple-fields-metabox-field-taxonomymeta-terms'>";
+wp_terms_checklist(NULL, $args);
+echo "</ul>";
+					
+					//echo "<pre>terms:";print_r($existing_terms);echo "</pre>";
 					
 				} elseif ("post" == $field["type"]) {
 					
@@ -839,6 +900,7 @@ function simple_fields_meta_box_output_one_field_group($field_group_id, $num_in_
 	</li>
 	<?php
 }
+
 
 
 #add_filter( "media_send_to_editor", "simple_fields_media_send_to_editor", 15 );
@@ -1308,4 +1370,46 @@ function simple_fields_get_pages($args) {
 	}
 	
 	return $output;
+}
+
+class Walker_Category_Checklist2 extends Walker {
+	var $tree_type = 'category';
+	var $db_fields = array ('parent' => 'parent', 'id' => 'term_id');
+
+	function start_lvl(&$output, $depth, $args) {
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent<ul class='children'>\n";
+	}
+
+	function end_lvl(&$output, $depth, $args) {
+		$indent = str_repeat("\t", $depth);
+		$output .= "$indent</ul>\n";
+	}
+
+	function start_el(&$output, $category, $depth, $args) {
+		
+		global $simple_fields_taxonomyterm_walker_field_name;
+				
+		extract($args);
+		if ( empty($taxonomy) )
+			$taxonomy = 'category';
+
+		// @todo: use custom simple fields name for all inputs
+		$name = $simple_fields_taxonomyterm_walker_field_name;
+		/*
+		if ( $taxonomy == 'category' ) {
+			$name = 'post_category';
+		} else {
+			$name = 'tax_input['.$taxonomy.']';
+		}
+		*/
+
+		$class = in_array( $category->term_id, $popular_cats ) ? ' class="popular-category"' : '';
+		//$output .= "\n<li id='{$taxonomy}-{$category->term_id}'$class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="'.$name.'[]" id="in-'.$taxonomy.'-' . $category->term_id . '"' . checked( in_array( $category->term_id, $selected_cats ), true, false ) . disabled( empty( $args['disabled'] ), false, false ) . ' /> ' . esc_html( apply_filters('the_category', $category->name )) . '</label>';
+		$output .= "\n<li $class>" . '<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="'.$name.'[]" ' . checked( in_array( $category->term_id, $selected_cats ), true, false ) . disabled( empty( $args['disabled'] ), false, false ) . ' /> ' . esc_html( apply_filters('the_category', $category->name )) . '</label>';
+	}
+
+	function end_el(&$output, $category, $depth, $args) {
+		$output .= "</li>\n";
+	}
 }

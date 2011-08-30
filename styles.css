@@ -422,3 +422,20 @@ ul.simple-fields-file-browser-list h3 {
 .simple-fields-meta-box-field-group-field-type-post-dialog-post-posts ul {
 	margin-left: 20px;
 }
+
+.simple-fields-metabox-field-taxonomymeta-terms {
+	height: 100px;
+	overflow: auto;
+	margin-top: 5px;
+}
+.simple-fields-metabox-field-taxonomymeta-terms li {
+	line-height: 1;
+}
+.simple-fields-metabox-field-taxonomymeta-terms ul.children {
+	margin-left: 18px;
+	margin-top: 5px;
+	
+}
+.simple-fields-metabox-field-taxonomymeta-terms label {
+	font-weight: normal;
+}
