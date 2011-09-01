@@ -13,7 +13,7 @@ add_action( 'dbx_post_sidebar', 'simple_fields_post_dbx_post_sidebar' );
 // little debug version
 function sf_d($var) {
 	echo "<pre>";
-	if (is_array($var)) {
+	if (is_array($var) || is_object($var)) {
 		print_r($var);
 	} else {
 		echo $var;
@@ -1075,21 +1075,34 @@ function simple_fields_edit_post_side_field_settings() {
 		$saved_connector_to_use = $connector_default;
 	}
 	/*
-echo "<br>saved_connector_to_use: $saved_connector_to_use";
-echo "<br>connector_selected: $connector_selected";
-echo "<br>connector_default: $connector_default";
-	// */
-	// name of inherited connector
-	if ($saved_connector_to_use == "__inherit__") {
-		$str_connector_name = "";
+	echo "<br>saved_connector_to_use: $saved_connector_to_use";
+	echo "<br>connector_selected: $connector_selected";
+	echo "<br>connector_default: $connector_default";
+	on parent post we can use simple_fields_get_selected_connector_for_post($post) to get the right one?
+	can't use that function on the current post, because it won't work if we don't acually have inherit
+	confused? I AM!
+	*/
+	
+	// get name of inherited post connector
+	$parents = get_post_ancestors($post);
+	$str_inherit_parent_connector_name = __('(no parent found)', 'simple-fields');
+	if (empty($parents)) {
+	} else {
+		$post_parent = get_post($post->post_parent);
+		$parent_selected_connector = simple_fields_get_selected_connector_for_post($post_parent);
+		$str_parent_connector_name = "";
+		if ($parent_selected_connector)
 		foreach ($arr_connectors as $one_connector) {
-			if ($one_connector["id"] == $connector_selected) {
-				$str_connector_name = $one_connector["name"];
+			if ($one_connector["id"] == $parent_selected_connector) {
+				$str_parent_connector_name = $one_connector["name"];
 				break;
 			}
 		}
+		if ($str_parent_connector_name) {
+			$str_inherit_parent_connector_name = "({$str_parent_connector_name})";
+		}
 	}
-
+	
 	?>
 	<div class="inside">
 		<div>
@@ -1097,11 +1110,7 @@ echo "<br>connector_default: $connector_default";
 				<option <?php echo ($saved_connector_to_use == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
 				<option <?php echo ($saved_connector_to_use == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?>
 					<?php
-					if (isset($str_connector_name) && $str_connector_name) {
-						echo "($str_connector_name)";
-					} else {
-						_e('(no parent found)', 'simple-fields');
-					}
+					echo $str_inherit_parent_connector_name;
 					?>
 				</option>
 				<?php foreach ($arr_connectors as $one_connector) : ?>

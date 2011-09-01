@@ -55,8 +55,8 @@ function simple_fields_admin_init() {
 	wp_enqueue_script("jquery");
 	wp_enqueue_script("jquery-ui-core");
 	wp_enqueue_script("jquery-ui-sortable");
-	wp_enqueue_script("jquery-ui-effects-core", EASY_FIELDS_URL . "effects.core.js");
-	wp_enqueue_script("jquery-ui-effects-highlight", EASY_FIELDS_URL . "effects.highlight.js");
+	wp_enqueue_script("jquery-ui-effects-core", EASY_FIELDS_URL . "jquery.effects.core.js");
+	wp_enqueue_script("jquery-ui-effects-highlight", EASY_FIELDS_URL . "jquery.effects.highlight.js");
 	wp_enqueue_script("thickbox");
 	wp_enqueue_style("thickbox");
 	wp_enqueue_script("jscolor", EASY_FIELDS_URL . "jscolor/jscolor.js"); // color picker for type color
