@@ -263,6 +263,10 @@ ul.simple-fields-metabox-field-group-fields-repeatable .simple-fields-metabox-fi
 	-webkit-border-radius: 6px 6px 0 0;
 	border-radius: 6px 6px 0 0;
 }
+.simple-fields-metabox-field-textarea-tinymce-wrapper .mce_fullscreen {
+	display: none !important;
+}
+
 .simple-fields-metabox-field-textarea-tinymce-wrapper .simple-fields-metabox-field-group textarea {
 
 }
