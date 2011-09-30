@@ -4,7 +4,7 @@ Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
 Tested up to: 3.0
-Stable tag: 0.3.9
+Stable tag: 0.4
 
 Add different kind of input fields to your edit post page. Field can be of type textarea, TinyMCE, checkbox, radio buttons, drop downs or files.
 
@@ -70,6 +70,30 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+= 0.4 =
+- Massive update!
+- Backup: Lots of new stuff in this version of the plugin, so pleeeeeeease make sure you backup your stuff before installing this. Things may be borked.
+- Added: new field type: taxonomy term! Select taxonomy terms, from any taxonomy in the system. The development of this field type was sponsored by http://plucera.se. Thanks guys!
+- Added: new field type: taxonomy! Select a taxonomy from a drop down with all the taxonomies in the system. The development of this field type was sponsored by http://plucera.se. Thanks guys!
+- Added: new field type: post! Select a post from one or several post types. The development of this field type was sponsored by http://plucera.se. Thanks guys!
+- Added: new field type: user! Select a user from a dropdown of all users in the system.
+- Added: now it's possible to add a description to each field. It will be displayed under the field name, in italic and a bit brighter.
+- Added: new field type: color! Let's you pick a color using a nice colorpicker from http://jscolor.com/
+- Added: new field type: date! Let's you pick a date using a nice date picker from http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/
+- Added: option to hide the built-in wordpress editor (so you can show only fields from simple fields for a post or page)
+- Added: Field type file now has a edit-link so it's easy to edit the attachment. Previosly you had to search for the name in the media library = it was very cumbersome. Now = super easy!
+- Fixed: last group of a repeatable group could not be deleted under some circumstances
+- Fixed: TinyEditor/HTML-editor now remembers line breaks and stuff when switching between visual and HTML.
+- Fixed: if "inherit" was used as the simple fields for a post and the post was saved it would get the inherited connector as the saved one. should be kept "inherit" so it's easier to change the connector of a lots of post (by just changing the connector of the parent)
+- Added: the name of the inherited connector is now shown when editing a post
+- Fixed: jquery ui core and effect highligt are now loaded locally. googlecode.com was awfally slow at times.
+- Fixed: field groups, fields, and connector had problems with apostrophes and similar chars.
+- Fixed: post did not get inherit as connector, even if it was set to that is post type defaults
+- Fixed: full screen disabled for field type tinymce/html since it updated the wrong textarea/tinymce.
+- Updated: jquery.effects.core and jquery.effects.color updated to latest version
+- Finally: probably lots of other stuff has been fixed too. And if you like this plugin, please consider donating or thanking me in some other way. Looooots of time has been spent on this plugin. And when I mean lots of time, I really mean like hundreds of hours.
+
 
 = 0.3.9 =
 - Added: debug page
