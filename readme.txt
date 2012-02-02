@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: eskapism, MarsApril
+Contributors: eskapism, MarsApril, angrycreative, plux
 Donate link: http://eskapism.se/sida/donate/
 Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.0
