@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://eskapism.se/code-playground/simple-fields/
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.0
+Version: 1.0.1
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -51,7 +51,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.0");
+		define( "SIMPLE_FIELDS_VERSION", "1.0.1");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -983,8 +983,10 @@ class simple_fields {
 			}
 		
 			$num_fields_in_group = 0;
-			foreach ($connectors[$i]["field_groups"] as $one_group) {
-				if (!$one_group["deleted"]) $num_fields_in_group++;
+			if (isset($connectors[$i]["field_groups"]) && is_array($connectors[$i]["field_groups"])) {
+				foreach ($connectors[$i]["field_groups"] as $one_group) {
+					if (isset($one_group["deleted"]) && !$one_group["deleted"]) $num_fields_in_group++;
+				}
 			}
 			$connectors[$connectors[$i]["id"]]["field_groups_count"] = $num_fields_in_group;
 		}
@@ -2054,7 +2056,7 @@ class simple_fields {
 					$connector_id = (int) $_POST["post_connector_id"];
 					$post_connectors[$connector_id]["name"] = (string) stripslashes($_POST["post_connector_name"]);
 					$post_connectors[$connector_id]["slug"] = (string) ($_POST["post_connector_slug"]);
-					$post_connectors[$connector_id]["field_groups"] = (array) $_POST["added_fields"];
+					$post_connectors[$connector_id]["field_groups"] = (array) @$_POST["added_fields"];
 					$post_connectors[$connector_id]["post_types"] = (array) @$_POST["post_types"];
 					$post_connectors[$connector_id]["hide_editor"] = (bool) @$_POST["hide_editor"];
 	
@@ -2780,5 +2782,6 @@ class simple_fields {
 
 
 // Boot it up!
+global $sf;
 $sf = new simple_fields();
 $sf->init();
