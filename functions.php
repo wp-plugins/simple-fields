@@ -409,7 +409,7 @@ function simple_fields_merge_arrays($array1 = array(), $array2 = array()) {
   *
  * @param string $slug the slug of this field group. must be unique.
  * @param array $new_field_group settings/options for the new group
- * @param return array the new field group as an array
+ * @return array the new field group as an array
  */
 function simple_fields_register_field_group($slug = "", $new_field_group = array()) {
 
@@ -456,6 +456,9 @@ function simple_fields_register_field_group($slug = "", $new_field_group = array
 		// If no name is given the field group, use the slug as name
 		$new_field_group["name"] = $slug;
 	}
+	
+	// make sure slug is valid
+	$slug = sanitize_key($slug);
 
 	if (!isset($field_groups[$field_group_id])) {
 		// Set up default values if this is a new field group
@@ -521,14 +524,16 @@ function simple_fields_register_field_group($slug = "", $new_field_group = array
 
 			// Find id of possibly existing field using the slug
 			// If existing field is found then merge old values with new
-			foreach ($field_groups[$field_group_id]["fields"] as $one_existing_field) {
-
-				if ($one_existing_field["slug"] == $one_new_field["slug"]) {
-					// Found existing field with same slug
-					// Merge new field values with the old values, so $field_defaults will have the combines values
-					$field_defaults = simple_fields_merge_arrays($field_defaults, $one_existing_field);
+			if (isset($field_groups[$field_group_id]["fields"]) && is_array($field_groups[$field_group_id]["fields"])) {
+				foreach ($field_groups[$field_group_id]["fields"] as $one_existing_field) {
+	
+					if ($one_existing_field["slug"] == $one_new_field["slug"]) {
+						// Found existing field with same slug
+						// Merge new field values with the old values, so $field_defaults will have the combines values
+						$field_defaults = simple_fields_merge_arrays($field_defaults, $one_existing_field);
+					}
+	
 				}
-
 			}
 
 			// Do wierd stuff with field default values
@@ -660,6 +665,8 @@ function simple_fields_register_post_connector($unique_name = "", $new_post_conn
 		$new_post_connector["name"] = $unique_name;
 	}
 
+	$slug = sanitize_key($slug);
+
 	$post_connector_defaults = array(
 		"id" => $connector_id,
 		"key" => $unique_name,
@@ -774,7 +781,7 @@ function simple_fields_register_post_type_default($connector_id_or_special_type 
 
 	}
 
-	$post_type_defaults = (array) get_option("simple_fields_post_type_defaults");
+	$post_type_defaults = $sf->get_post_type_defaults();
 
 	$post_type_defaults[$post_type] = $connector_id_or_special_type;
 	if (isset($post_type_defaults[0])) {
@@ -1042,13 +1049,21 @@ function simple_fields_values($field_slug = NULL, $post_id = NULL, $options = NU
 
 
 /**
- * Return the name of the post connector for the current post in the loop
- *
- * @return mixed False if no connector or connector not found. String name of connector if found.
+ * Return the slug of the post connector for the current post in the loop or for the post specified in $post_id
+ * @param $post_id optional post or post id
+ * @return mixed False if no connector or connector not found. String slug of connector if found.
  */
-function simple_fields_connector() {
+function simple_fields_connector($post_id = NULL) {
+
 	global $post, $sf;
-	$connector_id = $sf->get_selected_connector_for_post($post);
+	
+	if (is_numeric($post_id)) {
+		$post_this = get_post($post_id);
+	} else {
+		$post_this = $post;
+	}
+
+	$connector_id = $sf->get_selected_connector_for_post($post_this);
 
 	if ($connector_id == "__none__") {
 		// no connector selected
@@ -1074,3 +1089,9 @@ function simple_fields_is_connector($slug) {
 	$connector_slug = simple_fields_connector();
 	return ($connector_slug === $slug);
 }
+
+/*
+@todo: add simple_fields_fieldgroup_values() as smart alias to 
+simple_fields_get_post_group_values($post_id, $field_group_name_or_id, $use_name = true, $return_format = 1) {
+use slug and fewer args
+*/

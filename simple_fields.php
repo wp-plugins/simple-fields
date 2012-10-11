@@ -51,14 +51,15 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.0.1");
+		define( "SIMPLE_FIELDS_VERSION", "1.0.2");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
 		require( dirname(__FILE__) . "/functions.php" );
 		require( dirname(__FILE__) . "/class_simple_fields_field.php" );
-		require( dirname(__FILE__) . "/field_types/field_example.php" );
-		require( dirname(__FILE__) . "/field_types/field_minimalistic_example.php" );
+		
+		// require( dirname(__FILE__) . "/field_types/field_example.php" );
+		// require( dirname(__FILE__) . "/field_types/field_minimalistic_example.php" );
 
 		$this->plugin_foldername_and_filename = basename(dirname(__FILE__)) . "/" . basename(__FILE__);
 		$this->registered_field_types = array();
@@ -243,11 +244,10 @@ class simple_fields {
 	 * @return mixed int connector id or string __none__ or __inherit__
 	 */
 	function get_default_connector_for_post_type($post_type) {
-		$post_type_defaults = (array) get_option("simple_fields_post_type_defaults");
+		$post_type_defaults = $this->get_post_type_defaults();
 		$selected_post_type_default = (isset($post_type_defaults[$post_type]) ? $post_type_defaults[$post_type] : "__none__");
 		return $selected_post_type_default;
 	}
-
 
 	/**
 	 * Output HTML for dialog in bottom
@@ -993,6 +993,10 @@ class simple_fields {
 	
 		return $connectors;
 	}
+
+	function get_post_type_defaults() {
+		return (array) get_option("simple_fields_post_type_defaults");
+	}
 	
 	/**
 	 * Returns all defined field groups
@@ -1186,9 +1190,15 @@ class simple_fields {
 		<?php
 	} // function 
 
+
 	/**
 	 * get selected post connector for a post
-	 * @param object $post
+	 * a post has a post connector, or no connector
+	 * this function will return the inherited connector if post is set to inherit connector
+	 * unless it's the top most post since then nere are no more to inherit
+	 * should not return be __none__ then?
+	 *
+	 * @param object $post or int post id
 	 * @return id or string __none__
 	 */
 	function get_selected_connector_for_post($post) {
@@ -1200,6 +1210,9 @@ class simple_fields {
 		#d($post);
 		
 		global $sf;
+		
+		// make sure $post is a post object
+		if (is_numeric($post)) $post = get_post($post);
 		
 		$post_type = $post->post_type;
 		$connector_to_use = null;
@@ -2403,7 +2416,7 @@ class simple_fields {
 				echo "<hr>";
 				echo "<h3>simple_fields_post_type_defaults</h3>";
 				echo '<p>Called with: get_option("simple_fields_post_type_defaults")';
-				sf_d( get_option("simple_fields_post_type_defaults") );
+				sf_d( $this->get_post_type_defaults() );
 				
 			}
 	
@@ -2701,7 +2714,9 @@ class simple_fields {
 		update_option("simple_fields_options", $new_options);
 	}
 	
-	// Some debug functions
+	/**
+	 * If debug option is enabled then output debug-box by hooking onto the_content
+	 */
 	function maybe_add_debug_info() {
 		global $sf;
 		$options = $sf->get_options();
@@ -2709,14 +2724,19 @@ class simple_fields {
 		
 			// 1 = debug for admins only, 2 = debug for all
 			if ( ($options["debug_type"] === 1 && current_user_can("edit_themes")) ||  $options["debug_type"] === 2) {
-				add_filter("the_content", array($this, "simple_fields_value_get_functions_test"));
+				
+				// enqueu jquery because that is used to show/hide the debug box
+				wp_enqueue_script("jquery");
+				
+				// add filter
+				add_filter("the_content", array($this, "simple_fields_content_debug_output"));
 			}	
 	
 		}
 	}
 	
 	// Outputs the names of the post connectors attached to the post you view + outputs the values
-	function simple_fields_value_get_functions_test($the_content) {
+	function simple_fields_content_debug_output($the_content) {
 		
 		$output = "";
 		$output_all = "";
