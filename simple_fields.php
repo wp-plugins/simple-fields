@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://eskapism.se/code-playground/simple-fields/
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.0.1
+Version: 1.0.2
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
