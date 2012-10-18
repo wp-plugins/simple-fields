@@ -58,7 +58,7 @@ function simple_fields_get_post_value($post_id, $field_name_or_id, $single = tru
 				}
 	
 				$saved_values = isset($one_field["saved_values"]) ? $one_field["saved_values"] : null;
-	
+
 				if ($one_field["type"] == "radiobuttons" || $one_field["type"] == "dropdown") {
 					if ($one_field["type"] == "radiobuttons") {
 						$get_value_key = "type_radiobuttons_options";
@@ -201,6 +201,7 @@ function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") 
 
 	// Remove deleted field groups
 	if (!$args["include_deleted"]) {
+
 		$arr_field_groups_to_keep = array();
 		foreach ($selected_post_connector["field_groups"] as $one_field_group_id => $one_field_group) {
 
@@ -233,12 +234,19 @@ function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") 
 		}
 
 		// now fetch the stored values, one field at a time
+		// echo "<br>num_added_field_groups: $num_added_field_groups";
+		// for repeatable field groups num_added_field_groups is the number of added field groups
 		for ($num_in_set = 0; $num_in_set < $num_added_field_groups; $num_in_set++) {
 
 			// fetch value for each field
 			foreach ($selected_post_connector["field_groups"][$one_field_group["id"]]["fields"] as $one_field_id => $one_field_value) {
 
+#echo "<br>num in set: $num_in_set";
+#sf_d($one_field_value);
+
 				$custom_field_key = "_simple_fields_fieldGroupID_{$one_field_group["id"]}_fieldID_{$one_field_id}_numInSet_{$num_in_set}";
+#echo "<br>custom field key: $custom_field_key";
+
 				$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
 
 				if ($one_field_value["type"] == "textarea") {
@@ -261,10 +269,19 @@ function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") 
 				$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["saved_values"][$num_in_set] = $saved_value;
 				$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["meta_keys"][$num_in_set] = $custom_field_key;
 
+#if (strpos($custom_field_key, "_simple_fields_fieldGroupID_23_fieldID_2_numInSet_") !== FALSE) { // name/string
+#if (strpos($custom_field_key, "_simple_fields_fieldGroupID_23_fieldID_2_numInSet_") !== FALSE) { // file/id
+	#sf_d($custom_field_key);
+	#echo "<br>saved value for $custom_field_key: ";var_dump($saved_value);
+	#sf_d($selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]);
+#}
+
+
 			}
 		}
 
 	}
+	#sf_d($selected_post_connector);
 	return $selected_post_connector;
 }
 
@@ -665,7 +682,7 @@ function simple_fields_register_post_connector($unique_name = "", $new_post_conn
 		$new_post_connector["name"] = $unique_name;
 	}
 
-	$slug = sanitize_key($slug);
+	$unique_name = sanitize_key($unique_name);
 
 	$post_connector_defaults = array(
 		"id" => $connector_id,
@@ -942,6 +959,8 @@ function simple_fields_values($field_slug = NULL, $post_id = NULL, $options = NU
 		$arr_field_slugs = explode(",", $field_slug);
 		if ($arr_field_slugs) {
 			foreach ($arr_field_slugs as $one_of_the_comma_separated_slug) {
+			
+				$one_of_the_comma_separated_slug = trim($one_of_the_comma_separated_slug);
 
 				$one_slug_values = simple_fields_values($one_of_the_comma_separated_slug, $post_id, $options);
 
@@ -979,19 +998,59 @@ function simple_fields_values($field_slug = NULL, $post_id = NULL, $options = NU
 		// Loop the fields in this field group
 		foreach ($one_field_group["fields"] as $one_field_group_field) { 
 
+//_simple_fields_fieldGroupID_23_fieldID_2_numInSet_
+#file
+#sf_d($one_field_group_field);
+
 			// Skip deleted fields
 			if ($one_field_group_field["deleted"]) continue;
 
 			if ($field_slug === $one_field_group_field["slug"]) {
+			
+				// Detect options for the field with this slug
+				// options are in format:
+				// extended_output=1&file[extended_output]=1&file[anotherOptions]=yepp indeed
+				// where the first arg is for all fields, and the one with square-brackets are for specific slugs
+				$parsed_options = wp_parse_args($options);				
+				$parsed_options_for_this_field = array();
 
+				// First check for settings saved for the field (in gui or through register_field_group)
+				$field_options_key = "type_".$one_field_group_field["type"]."_options";
+				if (isset($one_field_group_field[$field_options_key])) {
+					// settings exist for this field
+					if (isset($one_field_group_field[$field_options_key]["enable_extended_return_values"]) && $one_field_group_field[$field_options_key]["enable_extended_return_values"]) {
+						$parsed_options_for_this_field["extended_return"] = 1;
+					}
+
+				}
+				
+				// check for options savailable for all fields
+				// all keys for values that are not arrays. these are args that are meant for all slugs
+				foreach ($parsed_options as $key => $val) {
+					if (!is_array($val)) {
+						$parsed_options_for_this_field = array_merge($parsed_options_for_this_field, array($key => $val));
+					}
+				}
+
+				// check for options for just this specific slug
+				// if our field slug is available as a key and that key is an array = value is for this field slug
+				if ( isset($parsed_options[$one_field_group_field["slug"]]) && is_array($parsed_options[$one_field_group_field["slug"]]) ) {
+					$parsed_options_for_this_field = array_merge($parsed_options_for_this_field, $parsed_options[$one_field_group_field["slug"]]);
+				}
+
+				// that's it, we have the options that should be available for this field slug
+				// echo "<br>field: " . $one_field_group_field["slug"];
+				// sf_d($parsed_options_for_this_field);
+					
 				// Slug is found. Get and return values.
 				// If no value is set. Should we return string, null, or false? NULL as in "no value exists"?
 				$saved_values = isset($one_field_group_field["saved_values"]) ? $one_field_group_field["saved_values"] : NULL;
 
 				// If no values just return
 				// But return an array, since that's what we except it to return
-				if (!sizeof($saved_values)) return array();
-
+				// if (!sizeof($saved_values)) return array(); // no, don't return here. let the action further down run.
+				if (!sizeof($saved_values)) $saved_values = array();
+				
 				/*
 					For old/core/legacy fields it's like this:
 					Array
@@ -1022,11 +1081,25 @@ function simple_fields_values($field_slug = NULL, $post_id = NULL, $options = NU
 
 					// Use the custom field object to output this value, since we can't guess how the data is supposed to be used
 					$custom_field_type = $sf->registered_field_types[$one_field_group_field["type"]];
-					$saved_values = $custom_field_type->return_values($saved_values, $options);
+					$saved_values = $custom_field_type->return_values($saved_values, $parsed_options_for_this_field);
 
 				} else {
 
 					// legacy/core field type, uses plain $saved_values
+					// ...but since 1.0.3 you can use extened return
+					// $parsed_options_for_this_field
+
+					// Check if field should return extended return values
+					if ( isset($parsed_options_for_this_field["extended_return"]) && (bool) $parsed_options_for_this_field["extended_return"] ) {
+						// check if current field type supports this
+						if ( in_array($one_field_group_field["type"], array("file", "radiobuttons", "dropdown", "post", "user", "taxonomy", "taxonomyterm", "date")) ) {
+							
+							foreach ($saved_values as $one_saved_value_key => $one_saved_value) {
+								$saved_values[$one_saved_value_key] = $sf->get_extended_return_values_for_field($one_field_group_field, $one_saved_value);
+							}
+							
+						}
+					}
 
 				}
 
