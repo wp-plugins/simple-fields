@@ -19,18 +19,21 @@ var simple_fields = (function() {
 
 	// add new field to the field group
 	function simple_fields_field_group_add_field() {
+
 		simple_fields_highest_field_id++;
+
 		var data = {
 			action: 'simple_fields_field_group_add_field',
 			simple_fields_highest_field_id: simple_fields_highest_field_id
 		};
+
 		$.post(ajaxurl, data, function(response) {
 			var ul = $("#simple-fields-field-group-existing-fields ul:first");
 			$response = $(response);
 			ul.append($response);
 			ul.find(".simple-fields-field-group-one-field:last").effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
-			//$response.effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
 		});
+
 	}
 	
 	function simple_fields_metabox_tinymce_attach() {
@@ -256,10 +259,10 @@ var simple_fields = (function() {
 	// - post id
 	// - num in (new) set
 	var simple_fields_new_fields_count = 0;
-	$(".simple-fields-metabox-field-add").live("click", function() {
+	$(".simple-fields-metabox-field-add").live("click", function(e) {
 
 		var $t = $(this);
-		//var $a = $(this).find("a");
+		
 		$t.text(sfstrings.adding);
 		var $wrapper = $(this).parents(".simple-fields-meta-box-field-group-wrapper");
 		var field_group_id = $wrapper.find("input[name=simple-fields-meta-box-field-group-id]").val();
@@ -271,13 +274,23 @@ var simple_fields = (function() {
 			"field_group_id": field_group_id,
 			"post_id": post_id
 		};
+
+		var is_link_at_bottom = $t.hasClass("simple-fields-metabox-field-add-bottom");
 	
 		$.post(ajaxurl, data, function(response) {
 
 			$ul = $wrapper.find("ul.simple-fields-metabox-field-group-fields");
 			$response = $(response);
 			$response.hide();
-			$ul.prepend($response);
+			if (is_link_at_bottom) {
+				$ul.append($response);
+			} else {
+				$ul.prepend($response);
+			}
+
+			var wrapper = $ul.closest(".simple-fields-meta-box-field-group-wrapper");
+			// var lis = $ul.find(">li");
+
 			$response.slideDown("slow", function() {
 				
 				simple_fields_metabox_tinymce_attach();
@@ -292,7 +305,10 @@ var simple_fields = (function() {
 				//simple_fields.dispatchEvent();
 				$(document.body).trigger("field_group_added", $response);
 			});
+
 			$t.html("<a href='#'>+ "+sfstrings.add+"</a>");
+			//wrapper.find(".simple-fields-metabox-field-add-bottom").show();
+			wrapper.addClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
 
 		});
 		
@@ -331,7 +347,22 @@ var simple_fields = (function() {
 	$(".simple-fields-metabox-field-group-delete").live("click", function() {
 		if (confirm(sfstrings.confirmRemoveGroup)) {
 			var li = $(this).closest("li");
-			li.hide("slow", function() { li.remove(); });
+			li.hide("slow", function() {
+
+				var wrapper = li.closest("div.simple-fields-meta-box-field-group-wrapper");
+				var ul = li.closest("ul.simple-fields-metabox-field-group-fields");
+				li.remove();
+				
+				// If removed last fieldgroup, hide the add link
+				if (ul.find(">li").length === 0) {
+					//wrapper.find("div.simple-fields-metabox-field-add-bottom").hide("slow");
+					wrapper.removeClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
+				} else {
+					wrapper.addClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
+				}
+
+			});
+
 		}
 		return false;
 	});

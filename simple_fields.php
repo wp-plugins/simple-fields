@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.0.3
+Version: 1.0.4
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -51,7 +51,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.0.3");
+		define( "SIMPLE_FIELDS_VERSION", "1.0.4");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -421,20 +421,16 @@ class simple_fields {
 		<li class="simple-fields-metabox-field-group <?php echo $field_group_css ?>">
 			<?php // must use this "added"-thingie do be able to track added field group that has no added values (like unchecked checkboxes, that we can't detect ?>
 			<input type="hidden" name="simple_fields_fieldgroups[<?php echo $field_group_id ?>][added][<?php echo $num_in_set ?>]" value="1" />
-			
 			<div class="simple-fields-metabox-field-group-handle"></div>
 			<?php
 			// if repeatable: add remove-link
 			if ($repeatable) {
 				?><div class="hidden simple-fields-metabox-field-group-delete"><a href="#" title="<?php _e('Remove field group', 'simple-fields') ?>"></a></div><?php
 			}
-			?>
-			<?php
 			
 			// Output content for each field in this fieldgroup
 			// LI = fieldgroup
 			// DIV = field
-
 			foreach ($current_field_group["fields"] as $field) {
 			
 				if ($field["deleted"]) { continue; }
@@ -453,6 +449,9 @@ class simple_fields {
 					$description = sprintf("<div class='simple-fields-metabox-field-description'>%s</div>", esc_html($field["description"]));
 				}
 				
+				// div that wraps around each outputed field
+				// Output will be similar to this
+				// <div class="simple-fields-metabox-field simple-fields-fieldgroups-field-1-1 simple-fields-fieldgroups-field-type-text" data-fieldgroup_id="1" data-field_id="1" data-num_in_set="0">
 				?>
 				<div class="simple-fields-metabox-field <?php echo $field_class ?>" 
 					data-fieldgroup_id=<?php echo $field_group_id ?>
@@ -460,6 +459,7 @@ class simple_fields {
 					data-num_in_set=<?php echo $num_in_set ?>
 					>
 					<?php
+
 					// different output depending on field type
 					if ("checkbox" == $field["type"]) {
 		
@@ -474,17 +474,27 @@ class simple_fields {
 						} else {
 							$str_checked = "";
 						}
+
+						echo "<div class='simple-fields-metabox-field-first'>";
+						echo "</div>";
+						echo "<div class='simple-fields-metabox-field-second'>";
 						echo "<input $str_checked id='$field_unique_id' type='checkbox' name='$field_name' value='1' />";
 						echo "<label class='simple-fields-for-checkbox' for='$field_unique_id'> " . $field["name"] . "</label>";
 						echo $description;
+						echo "</div>";
 		
 					} elseif ("radiobuttons" == $field["type"]) {
 		
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label>" . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 						$radio_options = $field["type_radiobuttons_options"];
 						$radio_checked_by_default_num = @$radio_options["checked_by_default_num"];
 	
+						echo $description;
+
 						$loopNum = 0;
 						foreach ($radio_options as $one_radio_option_key => $one_radio_option_val) {
 							if ($one_radio_option_key == "checked_by_default_num") { continue; }
@@ -503,12 +513,20 @@ class simple_fields {
 							echo "<label for='$radio_field_unique_id' class='simple-fields-for-radiobutton'> ".$one_radio_option_val["value"]."</label>";
 							echo "</div>";
 							
+							
 							$loopNum++;
 						}
+
+
+						echo "</div>";
 		
 					} elseif ("dropdown" == $field["type"]) {
+
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 						echo "<select id='$field_unique_id' name='$field_name'>";
 						foreach ($field["type_dropdown_options"] as $one_option_internal_name => $one_option) {
 							// $one_option_internal_name = dropdown_num_3
@@ -521,6 +539,8 @@ class simple_fields {
 							echo "<option $selected value='$one_option_internal_name'>$dropdown_value_esc</option>";
 						}
 						echo "</select>";
+						echo $description;
+						echo "</div>";
 	
 					} elseif ("file" == $field["type"]) {
 	
@@ -544,8 +564,13 @@ class simple_fields {
 							$class = "simple-fields-metabox-field-with-description";
 						}
 						echo "<div class='simple-fields-metabox-field-file $class'>";
+
+							echo "<div class='simple-fields-metabox-field-first'>";
 							echo "<label>{$field["name"]}</label>";
-							echo $description;
+							echo "</div>";
+
+							echo "<div class='simple-fields-metabox-field-second'>";
+
 							echo "<div class='simple-fields-metabox-field-file-col1'>";
 								echo "<div class='simple-fields-metabox-field-file-selected-image'>$image_html</div>";
 							echo "</div>";
@@ -564,6 +589,11 @@ class simple_fields {
 								echo "<div class='simple-fields-metabox-field-file-selected-image-name'>$image_name</div>";
 								
 							echo "</div>";
+
+							echo $description;
+
+							echo "</div>"; // second
+
 						echo "</div>";
 	
 					} elseif ("image" == $field["type"]) {
@@ -603,8 +633,11 @@ class simple_fields {
 							}
 						}
 						
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 	
 						if (isset($textarea_options["use_html_editor"])) {
 							// This helps get_upload_iframe_src() determine the correct post id for the media upload button
@@ -631,20 +664,32 @@ class simple_fields {
 							echo "<textarea class='simple-fields-metabox-field-textarea' name='$field_name' id='$field_unique_id' cols='50' rows='$textarea_rows'>$textarea_value_esc</textarea>";
 							echo "</div>";
 						}
+						
+						echo $description;
+
+						echo "</div>";
 		
 					} elseif ("text" == $field["type"]) {
 		
 						$text_value_esc = esc_html($saved_value);
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+						echo "<div class='simple-fields-metabox-field-second'>";
 						echo "<input class='text' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+						echo $description;
+						echo "</div>";
 		
 					} elseif ("color" == $field["type"]) {
 						
 						$text_value_esc = esc_html($saved_value);
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+						echo "<div class='simple-fields-metabox-field-second'>";
 						echo "<input class='text simple-fields-field-type-color {pickerClosable:true}' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+						echo $description;
+						echo "</div>";
 	
 					} elseif ("date" == $field["type"]) {
 	
@@ -652,9 +697,13 @@ class simple_fields {
 						// echo date_i18n( $datef, strtotime( current_time('mysql') ) );
 						
 						$text_value_esc = esc_html($saved_value);
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+						echo "<div class='simple-fields-metabox-field-second'>";
 						echo "<input class='text simple-fields-field-type-date' name='$field_name' id='$field_unique_id' value='$text_value_esc' />";
+						echo $description;
+						echo "</div>";
 	
 					} elseif ("taxonomy" == $field["type"]) {
 						
@@ -665,8 +714,11 @@ class simple_fields {
 						
 						$text_value_esc = esc_html($saved_value);
 						// var_dump($saved_value);
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 						
 						echo "<select name='$field_name'>";
 						printf("<option value=''>%s</option>", __('Select...', 'simple-fields'));
@@ -678,6 +730,10 @@ class simple_fields {
 							printf ("<option %s value='%s'>%s</option>", $selected, $one_taxonomy->name, $one_taxonomy->label);
 						}
 						echo "</select>";
+
+						echo $description;
+
+						echo "</div>";
 	
 	
 					} elseif ("taxonomyterm" == $field["type"]) {
@@ -687,10 +743,14 @@ class simple_fields {
 	
 						// hämta alla terms som finns för taxonomy $enabled_taxonomy
 						// @todo: kunna skicka in args här, t.ex. för orderby
-	
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 	
+						echo $description;
+
 						$arr_selected_cats = (array) $saved_value;
 						
 						$walker = new Simple_Fields_Walker_Category_Checklist();
@@ -705,6 +765,9 @@ class simple_fields {
 						echo "<ul class='simple-fields-metabox-field-taxonomymeta-terms'>";
 						wp_terms_checklist(NULL, $args);
 						echo "</ul>";
+						
+
+						echo "</div>";
 						
 					} elseif ("post" == $field["type"]) {
 						
@@ -721,8 +784,13 @@ class simple_fields {
 						$enabled_post_types = $type_post_options["enabled_post_types"];
 						
 						echo "<div class='simple-fields-metabox-field-post'>";
+
+						echo "<div class='simple-fields-metabox-field-first'>";
+
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;					
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 	
 						echo "<div>";
 						printf("<a class='%s' href='#'>%s</a>", "simple-fields-metabox-field-post-select", __("Select post", "simple-fields"));
@@ -741,16 +809,23 @@ class simple_fields {
 						// output additional arguments for this post field
 						echo "<input type='hidden' name='additional_arguments' id='additional_arguments' value='".$type_post_options['additional_arguments']."' />";
 						
+						echo $description;
+
+						echo "</div>";
+
 						echo "</div>";
 	
 					} elseif ("user" == $field["type"]) {
 					
 						$saved_value_int = (int) $saved_value;
 					
-						echo "<div class='simple-fields-metabox-field-post'>";
+						#echo "<div class='simple-fields-metabox-field-post'>";
 						// echo "<pre>"; print_r($type_post_options); echo "</pre>";
+						echo "<div class='simple-fields-metabox-field-first'>";
 						echo "<label for='$field_unique_id'> " . $field["name"] . "</label>";
-						echo $description;
+						echo "</div>";
+
+						echo "<div class='simple-fields-metabox-field-second'>";
 						
 						// must set orderby or it will not get any users at all. yes. it's that weird.
 						$args = array(
@@ -780,8 +855,11 @@ class simple_fields {
 							);
 						}
 						echo "</select>";
+
+						echo $description;
 						
 						echo "</div>";
+						#echo "</div>";
 	
 	
 					} else {
@@ -913,8 +991,20 @@ class simple_fields {
 	 
 	    $field_groups = $this->get_field_groups();
 	    $current_field_group = $field_groups[$post_connector_field_id];
+
+		// check for prev. saved fieldgroups
+		// _simple_fields_fieldGroupID_1_fieldID_added_numInSet_0
+		// try until returns empty
+		$num_added_field_groups = 0;
+		$num_added_field_groups_css = "";
+
+		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
+			$num_added_field_groups++;
+			$num_added_field_groups_css = "simple-fields-meta-box-field-group-wrapper-has-fields-added";
+		}
+
 	 
-	    echo "<div class='simple-fields-meta-box-field-group-wrapper'>";
+	    echo "<div class='simple-fields-meta-box-field-group-wrapper $num_added_field_groups_css'>";
 	    echo "<input type='hidden' name='simple-fields-meta-box-field-group-id' value='$post_connector_field_id' />";
 	 
 	    // show description
@@ -924,7 +1014,8 @@ class simple_fields {
 	    //echo "<pre>";print_r($current_field_group);echo "</pre>";
 	 
 	    if ($current_field_group["repeatable"]) {
-	 
+
+			// add link at top	 
 	        echo "
 	            <div class='simple-fields-metabox-field-add'>
 	                <a href='#'>+ ".__('Add', 'simple-fields')."</a>
@@ -932,14 +1023,6 @@ class simple_fields {
 	        ";
 	        echo "<ul class='simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable'>";
 	 
-	        // check for prev. saved fieldgroups
-	        // _simple_fields_fieldGroupID_1_fieldID_added_numInSet_0
-	        // try until returns empty
-	        $num_added_field_groups = 0;
-	 
-	        while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
-	            $num_added_field_groups++;
-	        }
 	        //var_dump( get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_0", true) );
 	        //echo "num_added_field_groups: $num_added_field_groups";
 	        // now add them. ooooh my, this is fancy stuff.
@@ -949,6 +1032,14 @@ class simple_fields {
 	        }
 	 
 	        echo "</ul>";
+
+			// add link at bottom
+			echo "
+	            <div class='simple-fields-metabox-field-add simple-fields-metabox-field-add-bottom'>
+	                <a href='#'>+ ".__('Add', 'simple-fields')."</a>
+	            </div>
+	        ";
+
 	 
 	    } else {
 	         

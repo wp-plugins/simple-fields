@@ -4,7 +4,7 @@ Donate link: http://simple-fields.com/about/donate/
 Tags: admin, fields, custom fields, advanced custom fields, extended custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.3.1
 Tested up to: 3.4.2
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 
 Add more advanced custom fields types to your edit post page. Field can be of several types, including textarea, checkbox, radio buttons, files and color picker.
 
@@ -164,6 +164,11 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 == Changelog ==
 
+#### Version 1.0.4
+- Added: Add button added to bottom of the added field groups. Will be visible when more than 1 field group is added.
+- Changed: moved to a two column mode/appearance. Makes the fields take upp less space, and making it more clutter free.
+- Changed: minor CSS fixes here and there
+
 #### Version 1.0.3
 - Added: Added options for returning values as "Extended Return Values". 
 Very useful when working with for example files: 
@@ -174,6 +179,7 @@ Please see the [documentation for Extended Return Values](http://simple-fields.c
 - Added: option to set the height for textarea fields (inlcuding HTML/TinyMCE-editor-mode)
 - Added: new field type: divider. Useful if you have a field group with many fields. By adding the divider field to a field group it simply created a shite space or a space with a line. It's written using the new Extension API btw, so feel free to check out the source if you want to create something similar yourself.
 - Changed: The debug output also includes example on how to get all field in a field group at once.
+- Changed: The edit field group admin page now is a bit more compact. Makes easier to get an overview of all the added fields.
 
 #### Version 1.0.2
 - Changed: Don't load example field types
