@@ -1,10 +1,10 @@
 === Simple Fields ===
 Contributors: eskapism, MarsApril, samface, angrycreative, earth people
-Donate link: http://eskapism.se/sida/donate/
-Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
+Donate link: http://simple-fields.com/about/donate/
+Tags: admin, fields, custom fields, advanced custom fields, extended custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
 Requires at least: 3.3.1
 Tested up to: 3.4.2
-Stable tag: 1.0
+Stable tag: 1.0.4
 
 Add more advanced custom fields types to your edit post page. Field can be of several types, including textarea, checkbox, radio buttons, files and color picker.
 
@@ -28,8 +28,8 @@ Simple Fields turns WordPress into an even more powerful Content Management Syst
 For more information check out my introductory blog post:
 http://eskapism.se/blogg/2010/05/simple-fields-wp-custom-fields-on-steroids/
 
-Also check out this short tutorial:
-http://eskapism.se/code-playground/simple-fields/tutorial/
+To get started check out the getting started section here:
+http://simple-fields.com/documentation/getting-started/
 
 #### Upgrading? Then backup your database
 
@@ -39,10 +39,10 @@ Please remember to backup your database when you upgrade this plugin. Everything
 
 If you have questions/bug reports/feature requests for Simple Fields please use the WordPress [Support Forum](http://wordpress.org/tags/simple-fields?forum_id=10) or 
 [the new GitHub project page for Simple Fields](github.com/bonny/WordPress-Simple-Fields/).
-There are also [tutorials available for Simple Fields](http://eskapism.se/code-playground/simple-fields/).
+There are also [tutorials available for Simple Fields](http://simple-fields.com/documentation/).
 
 #### Donation and more plugins
-* If you like this plugin don't forget to [donate to support further development](http://eskapism.se/sida/donate/).
+* If you like this plugin don't forget to [donate to support further development](http://simple-fields.com/about/donate/).
 * Also check out some [more CMS-focused plugins](http://wordpress.org/extend/plugins/profile/eskapism) by the same author.
 
 
@@ -53,7 +53,7 @@ As always, make a backup of your database first!
 1. Upload the folder "simple-fields" to "/wp-content/plugins/"
 1. Activate the plugin through the "Plugins" menu in WordPress
 1. Start poking around with Simple Fields under Settings > Simple Fields
-1. Get help at http://eskapism.se/code-playground/simple-fields/ and ask your questions at http://wordpress.org/tags/simple-fields?forum_id=10
+1. Get help at http://simple-fields.com/documentation/ and ask your questions at http://wordpress.org/support/plugin/simple-fields
 1. That's it; you know have a super cool and powerful CMS based on WordPress!
 
 
@@ -163,6 +163,33 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+#### Version 1.0.4
+- Added: Add button added to bottom of the added field groups. Will be visible when more than 1 field group is added.
+- Changed: moved to a two column mode/appearance. Makes the fields take upp less space, and making it more clutter free.
+- Changed: minor CSS fixes here and there
+
+#### Version 1.0.3
+- Added: Added options for returning values as "Extended Return Values". 
+Very useful when working with for example files: 
+instead of just the ID of the file you get the id, the full path to the file, the dimensions if it's a image, and more. 
+This feature is available for these field types: 
+file, radiobutton, dropdown, post, user, taxonomy, taxonomy term and date. 
+Please see the [documentation for Extended Return Values](http://simple-fields.com/documentation/api/extended-return-values/) for more information and examples.
+- Added: option to set the height for textarea fields (inlcuding HTML/TinyMCE-editor-mode)
+- Added: new field type: divider. Useful if you have a field group with many fields. By adding the divider field to a field group it simply created a shite space or a space with a line. It's written using the new Extension API btw, so feel free to check out the source if you want to create something similar yourself.
+- Changed: The debug output also includes example on how to get all field in a field group at once.
+- Changed: The edit field group admin page now is a bit more compact. Makes easier to get an overview of all the added fields.
+
+#### Version 1.0.2
+- Changed: Don't load example field types
+- Fixed: jQuery is needed for debug output but was not enqueued
+- Added: French translation. Thank you very much, translator!
+- Small bugfixes
+- Added unit tests. Hopefully this makes it easier for me to spot bugs in the future. Btw: these are the first unit tests I've ever written, so please feel free to comment on the way I've done it! :)
+
+#### Version 1.0.1
+- Fixed: some warning and notice-errors, for example when a post connector did not have any field groups connected
 
 #### Version 1.0
 - Note: This is a pretty big update, so please backup your databases before installation!
