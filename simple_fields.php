@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.0.4
+Version: 1.0.5
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -51,7 +51,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.0.4");
+		define( "SIMPLE_FIELDS_VERSION", "1.0.5");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -416,6 +416,9 @@ class simple_fields {
 		$current_field_group = $field_groups[$field_group_id];
 		$repeatable = (bool) $current_field_group["repeatable"];
 		$field_group_css = "simple-fields-fieldgroup-$field_group_id";
+		/* if (isset($current_field_group["slug"]) && !empty($current_field_group["slug"])) {
+			$field_group_css .= " simple-fields-fieldgroup-" . $current_field_group["slug"];
+		}*/
 
 		?>
 		<li class="simple-fields-metabox-field-group <?php echo $field_group_css ?>">
@@ -440,6 +443,9 @@ class simple_fields {
 				$field_name = "simple_fields_fieldgroups[$field_group_id][$field_id][$num_in_set]";
 				$field_class = "simple-fields-fieldgroups-field-{$field_group_id}-{$field_id} ";
 				$field_class .= "simple-fields-fieldgroups-field-type-" . $field["type"];
+				if (isset($field["slug"]) && !empty($field["slug"])) {
+					$field_class .= " simple-fields-fieldgroups-field-slug-" . $field["slug"];
+				}
 	
 				$custom_field_key = "_simple_fields_fieldGroupID_{$field_group_id}_fieldID_{$field_id}_numInSet_{$num_in_set}";
 				$saved_value = get_post_meta($post_id, $custom_field_key, true); // empty string if does not exist
@@ -561,7 +567,7 @@ class simple_fields {
 						}
 						$class = "";
 						if ($description) {
-							$class = "simple-fields-metabox-field-with-description";
+							$class = "simple-fields-metabox-field-file-with-description";
 						}
 						echo "<div class='simple-fields-metabox-field-file $class'>";
 
@@ -996,15 +1002,20 @@ class simple_fields {
 		// _simple_fields_fieldGroupID_1_fieldID_added_numInSet_0
 		// try until returns empty
 		$num_added_field_groups = 0;
-		$num_added_field_groups_css = "";
 
 		while (get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_{$num_added_field_groups}", true)) {
 			$num_added_field_groups++;
-			$num_added_field_groups_css = "simple-fields-meta-box-field-group-wrapper-has-fields-added";
 		}
+		
+		$num_added_field_groups_css = "";
+		if ($num_added_field_groups > 0) $num_added_field_groups_css = "simple-fields-meta-box-field-group-wrapper-has-fields-added";
 
+		$field_group_slug_css = "";
+		if (isset($current_field_group["slug"]) && !empty($current_field_group["slug"])) {
+			$field_group_slug_css = "simple-fields-meta-box-field-group-wrapper-slug-" . $current_field_group["slug"];
+		}
 	 
-	    echo "<div class='simple-fields-meta-box-field-group-wrapper $num_added_field_groups_css'>";
+	    echo "<div class='simple-fields-meta-box-field-group-wrapper $num_added_field_groups_css $field_group_slug_css'>";
 	    echo "<input type='hidden' name='simple-fields-meta-box-field-group-id' value='$post_connector_field_id' />";
 	 
 	    // show description
@@ -1021,16 +1032,17 @@ class simple_fields {
 	                <a href='#'>+ ".__('Add', 'simple-fields')."</a>
 	            </div>
 	        ";
+
+	        // Start of list with adeed field groups
 	        echo "<ul class='simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable'>";
 	 
-	        //var_dump( get_post_meta($post_id, "_simple_fields_fieldGroupID_{$post_connector_field_id}_fieldID_added_numInSet_0", true) );
-	        //echo "num_added_field_groups: $num_added_field_groups";
 	        // now add them. ooooh my, this is fancy stuff.
 	        $use_defaults = null;
 	        for ($num_in_set=0; $num_in_set<$num_added_field_groups; $num_in_set++) {
 	            $this->meta_box_output_one_field_group($post_connector_field_id, $num_in_set, $post_id, $use_defaults);  
 	        }
 	 
+	 		// end list with added field groups
 	        echo "</ul>";
 
 			// add link at bottom
@@ -1062,66 +1074,84 @@ class simple_fields {
 	 * @return array
 	 */
 	function get_post_connectors() {
-		$connectors = get_option("simple_fields_post_connectors");
-		if ($connectors === FALSE) $connectors = array();
+
+		// use wp_cache
+		$connectors = wp_cache_get( 'simple_fields_post_connectors' );
+		if (FALSE === $connectors) {
+
+			$connectors = get_option("simple_fields_post_connectors");
 	
-		// calculate number of active field groups
-		// @todo: check this a bit more, does not seem to be any deleted groups. i thought i saved the deletes ones to, but with deleted flag set
-		foreach (array_keys($connectors) as $i) {
-                    
-                    // Sanity check the connector id
-                    if (empty($connectors[$i]["id"]) && empty($connectors[$i]["deleted"])) {
-                        
-                        // Found field group without id, let's try to repair it
-                        $highest_id = 0;
-                        foreach($connectors as $one_connector) {
-                            if ($one_connector["id"] > $highest_id)
-                                $highest_id = $one_connector["id"];
-                            if ($one_connector["id"] === $i)
-                                $id_already_exists = true;
-                        }
-                        
-                        if ($i > 0 && !$id_already_exists) {
-                            // If the array key is larger than 0 and
-                            // not used as id by any other connector,
-                            // then it's the perfect id
-                            $connectors[$i]["id"] = $i;
-                        } else {
-                            // The array key is either less than or equal to 0,
-                            // or another connector is using it as id. In any case,
-                            // let's treat it as a new connector and give it a new id.
-                            $new_id = $highest_id + 1;
-                            $connectors[$i]["id"] = $new_id;
-                            
-                            // Now make sure the array key matches the new id
-                            $connectors[$new_id] = $connectors[$i];
-                            unset($connectors[$i]);
-                            $i = $new_id;
-                        }
-                        
-                    }
+			if ($connectors === FALSE) $connectors = array();
 		
-			// compatibility fix key vs slug
-			if (isset($connectors[$i]["slug"]) && $connectors[$i]["slug"]) {
-				$connectors[$i]["key"] = $connectors[$i]["slug"];
-			} else if (isset($connectors[$i]["key"]) && $connectors[$i]["key"]) {
-				$connectors[$i]["slug"] = $connectors[$i]["key"];
-			}
-		
-			$num_fields_in_group = 0;
-			if (isset($connectors[$i]["field_groups"]) && is_array($connectors[$i]["field_groups"])) {
-				foreach ($connectors[$i]["field_groups"] as $one_group) {
-					if (isset($one_group["deleted"]) && !$one_group["deleted"]) $num_fields_in_group++;
+			// calculate number of active field groups
+			// @todo: check this a bit more, does not seem to be any deleted groups. i thought i saved the deletes ones to, but with deleted flag set
+			foreach (array_keys($connectors) as $i) {
+	                    
+	                    // Sanity check the connector id
+	                    if (empty($connectors[$i]["id"]) && empty($connectors[$i]["deleted"])) {
+	                        
+	                        // Found field group without id, let's try to repair it
+	                        $highest_id = 0;
+	                        foreach($connectors as $one_connector) {
+	                            if ($one_connector["id"] > $highest_id)
+	                                $highest_id = $one_connector["id"];
+	                            if ($one_connector["id"] === $i)
+	                                $id_already_exists = true;
+	                        }
+	                        
+	                        if ($i > 0 && !$id_already_exists) {
+	                            // If the array key is larger than 0 and
+	                            // not used as id by any other connector,
+	                            // then it's the perfect id
+	                            $connectors[$i]["id"] = $i;
+	                        } else {
+	                            // The array key is either less than or equal to 0,
+	                            // or another connector is using it as id. In any case,
+	                            // let's treat it as a new connector and give it a new id.
+	                            $new_id = $highest_id + 1;
+	                            $connectors[$i]["id"] = $new_id;
+	                            
+	                            // Now make sure the array key matches the new id
+	                            $connectors[$new_id] = $connectors[$i];
+	                            unset($connectors[$i]);
+	                            $i = $new_id;
+	                        }
+	                        
+	                    }
+			
+				// compatibility fix key vs slug
+				if (isset($connectors[$i]["slug"]) && $connectors[$i]["slug"]) {
+					$connectors[$i]["key"] = $connectors[$i]["slug"];
+				} else if (isset($connectors[$i]["key"]) && $connectors[$i]["key"]) {
+					$connectors[$i]["slug"] = $connectors[$i]["key"];
 				}
+			
+				$num_fields_in_group = 0;
+				if (isset($connectors[$i]["field_groups"]) && is_array($connectors[$i]["field_groups"])) {
+					foreach ($connectors[$i]["field_groups"] as $one_group) {
+						if (isset($one_group["deleted"]) && !$one_group["deleted"]) $num_fields_in_group++;
+					}
+				}
+				$connectors[$connectors[$i]["id"]]["field_groups_count"] = $num_fields_in_group;
 			}
-			$connectors[$connectors[$i]["id"]]["field_groups_count"] = $num_fields_in_group;
+			
+			wp_cache_set( 'simple_fields_post_connectors', $connectors );
+			
 		}
 	
 		return $connectors;
 	}
 
 	function get_post_type_defaults() {
-		return (array) get_option("simple_fields_post_type_defaults");
+
+		$post_type_defaults = wp_cache_get( 'simple_fields_post_type_defaults' );
+		if (FALSE === $post_type_defaults) {
+			$post_type_defaults = (array) get_option("simple_fields_post_type_defaults");
+			wp_cache_set( 'simple_fields_post_type_defaults', $post_type_defaults );		
+		}
+
+		return $post_type_defaults;
+
 	}
 	
 	/**
@@ -1130,60 +1160,88 @@ class simple_fields {
 	 * @return array
 	 */
 	function get_field_groups() {
-
-		$field_groups = get_option("simple_fields_groups");
-		if ($field_groups === FALSE) $field_groups = array();
 		
-		// Calculate the number of active fields
-		// And some other things
-		foreach (array_keys($field_groups) as $i) {
+		$field_groups = wp_cache_get( 'simple_fields_groups' );
+		if (FALSE === $field_groups) {
+			
+			$field_groups = get_option("simple_fields_groups");
+			if ($field_groups === FALSE) $field_groups = array();
+			
+			// Calculate the number of active fields
+			// And some other things
+			foreach (array_keys($field_groups) as $i) {
+	                    
+                // Sanity check the field group id
+                if (empty($field_groups[$i]["id"]) && empty($field_groups[$i]["deleted"])) {
                     
-                    // Sanity check the field group id
-                    if (empty($field_groups[$i]["id"]) && empty($field_groups[$i]["deleted"])) {
-                        
-                        // Found field group without id, let's try to repair it
-                        $highest_id = 0;
-                        foreach($field_groups as $one_field_group) {
-                            if ($one_field_group["id"] > $highest_id)
-                                $highest_id = $one_field_group["id"];
-                            if ($one_field_group["id"] === $i)
-                                $id_already_exists = true;
-                        }
-                        
-                        if ($i > 0 && !$id_already_exists) {
-                            // If the array key is larger than 0 and
-                            // not used as id by any other field group,
-                            // then it's the perfect id
-                            $field_groups[$i]["id"] = $i;
-                        } else {
-                            // The array key is either less than or equal to 0,
-                            // or another field group is using it as id. In any case,
-                            // let's treat it as a new field group and give it a new id.
-                            $new_id = $highest_id + 1;
-                            $field_groups[$i]["id"] = $new_id;
-                            
-                            // Now make sure the array key matches the new id
-                            $field_groups[$new_id] = $field_groups[$i];
-                            unset($field_groups[$i]);
-                            $i = $new_id;
-                        }
-                        
+                    // Found field group without id, let's try to repair it
+                    $highest_id = 0;
+                    foreach($field_groups as $one_field_group) {
+                        if ($one_field_group["id"] > $highest_id)
+                            $highest_id = $one_field_group["id"];
+                        if ($one_field_group["id"] === $i)
+                            $id_already_exists = true;
                     }
+                    
+                    if ($i > 0 && !$id_already_exists) {
+                        // If the array key is larger than 0 and
+                        // not used as id by any other field group,
+                        // then it's the perfect id
+                        $field_groups[$i]["id"] = $i;
+                    } else {
+                        // The array key is either less than or equal to 0,
+                        // or another field group is using it as id. In any case,
+                        // let's treat it as a new field group and give it a new id.
+                        $new_id = $highest_id + 1;
+                        $field_groups[$i]["id"] = $new_id;
+                        
+                        // Now make sure the array key matches the new id
+                        $field_groups[$new_id] = $field_groups[$i];
+                        unset($field_groups[$i]);
+                        $i = $new_id;
+                    }
+                    
+                }
+	
+				// Make sure we have both key and slug set to same. key = old name for slug
+				if (isset($field_groups[$i]["slug"]) && $field_groups[$i]["slug"]) {
+					$field_groups[$i]["key"] = $field_groups[$i]["slug"];
+				} else if (isset($field_groups[$i]["key"]) && $field_groups[$i]["key"]) {
+					$field_groups[$i]["slug"] = $field_groups[$i]["key"];
+				}
+	
+				$num_active_fields = 0;
+				foreach ($field_groups[$i]["fields"] as $one_field) {
+					if (!$one_field["deleted"]) $num_active_fields++;
+				}
+				$field_groups[$i]["fields_count"] = $num_active_fields;
+				
+				// Also add some info about the field group is belongs to
+				// This can be useful to have if you're only fetching a single field
+				// but need to do something with that fields field group 
+				// (like getting the id to calcualte that custom field meta key to use)
+				foreach ($field_groups[$i]["fields"] as $one_field_id => $one_field) {
 
-			// Make sure we have both key and slug set to same. key = old name for slug
-			if (isset($field_groups[$i]["slug"]) && $field_groups[$i]["slug"]) {
-				$field_groups[$i]["key"] = $field_groups[$i]["slug"];
-			} else if (isset($field_groups[$i]["key"]) && $field_groups[$i]["key"]) {
-				$field_groups[$i]["slug"] = $field_groups[$i]["key"];
+					if (!isset($field_groups[$i]["fields"][$one_field_id]["field_group"])) {
+
+						$field_groups[$i]["fields"][$one_field_id]["field_group"] = array(
+							"id"           => $field_groups[$i]["id"],
+							"name"         => $field_groups[$i]["name"],
+							"slug"         => $field_groups[$i]["id"],
+							"description"  => $field_groups[$i]["description"],
+							"repeatable"   => $field_groups[$i]["repeatable"],
+							"fields_count" => $field_groups[$i]["fields_count"]
+						);
+						
+					}
+					
+				}
 			}
 
-			$num_active_fields = 0;
-			foreach ($field_groups[$i]["fields"] as $one_field) {
-				if (!$one_field["deleted"]) $num_active_fields++;
-			}
-			$field_groups[$i]["fields_count"] = $num_active_fields;
+			wp_cache_set( 'simple_fields_groups', $field_groups );
+			
 		}
-		
+
 		return $field_groups;
 		
 	}
@@ -3317,6 +3375,78 @@ class simple_fields {
 			
 		return $return_field_value;
 	}
+
+	/**
+	 * Gets a field group using it's id. Deleted field groups are not included
+	 * @since 1.0.5
+	 * @param string slug of field group (or id, actually)
+	 * @return mixed array with field group info if field groups exists, false if does not exist
+	 */
+	function get_field_group_by_slug($field_group_slug) {
+		
+		$cache_key = "get_field_group_by_slug_" . $field_group_slug;
+		$return_val = wp_cache_get( $cache_key );		
+		if (FALSE === $return_val) {
+		
+		 	$field_groups = $this->get_field_groups();
+		 	
+			if (!is_numeric($field_group_slug)) {
+	
+				// not number so look for field group with this variable as slug
+				foreach ($field_groups as $one_field_group) {
+					if ($one_field_group["deleted"]) continue;
+					if ($one_field_group["slug"] == $field_group_slug) {
+						wp_cache_set( $cache_key, $one_field_group );
+						return $one_field_group;
+					}
+				}
+				
+				wp_cache_set( $cache_key, FALSE );
+				return FALSE;
+	
+			} else {
+	
+				// look for group using id
+			 	if (isset($field_groups[$field_group_slug]) && is_array($field_groups[$field_group_slug]) && !$field_groups[$field_group_slug]["deleted"]) {
+					wp_cache_set( $cache_key, $field_groups[$field_group_slug] );
+				 	return $field_groups[$field_group_slug];
+			 	} else {
+				 	wp_cache_set( $cache_key, FALSE );
+				 	return FALSE;
+			 	}
+			 	
+			}
+				
+		}
+
+		return $return_val;
+
+	}
+
+
+	/**
+	 * Returns a field from a fieldgroup using their slugs
+	 *
+	 * @since 1.0.5
+	 * @param string $field_slug
+	 * @param string $fieldgroup_slug
+	 * @return mixed Array with field info if field is found, false if not found
+	 */
+	function get_field_by_slug($field_slug = "", $fieldgroup_slug = "") {
+
+		$field_group = $this->get_field_group_by_slug($fieldgroup_slug);
+		if (!$field_group) return FALSE;
+		
+		foreach ($field_group["fields"] as $one_field) {
+			if ($field_slug === $one_field["slug"]) {
+				return $one_field;
+			}
+		}
+		
+		// No field with that slug found
+		return FALSE;
+	}
+
 	
 } // end class
 
