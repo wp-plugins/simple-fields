@@ -38,6 +38,8 @@ function sf_d($var) {
  */
 function simple_fields_get_post_value($post_id, $field_name_or_id, $single = true) {
 
+	global $sf;
+
 	$fetch_by_id = true;
 	if (is_array($field_name_or_id) && sizeof($field_name_or_id) == 2) {
 		$field_group_id = $field_name_or_id[0];
@@ -74,12 +76,33 @@ function simple_fields_get_post_value($post_id, $field_name_or_id, $single = tru
 					}
 				}
 
+				// xxx make sure extended return value works here too
+				// check for settings saved for the field (in gui or through register_field_group)
+				$parsed_options_for_this_field = array();
+				$field_options_key = "type_".$one_field["type"]."_options";
+				if (isset($one_field[$field_options_key])) {
+					// settings exist for this field
+					if (isset($one_field[$field_options_key]["enable_extended_return_values"]) && $one_field[$field_options_key]["enable_extended_return_values"]) {
+						$parsed_options_for_this_field["extended_return"] = 1;
+					}
+
+					if (isset($parsed_options_for_this_field["extended_return"]) && $parsed_options_for_this_field["extended_return"]) {
+						// Yep, use extended return values
+						$num_values = count($saved_values);
+						while ($num_values--) {
+							$saved_values[$num_values] = $sf->get_extended_return_values_for_field($one_field, $saved_values[$num_values]);
+						}
+					}
+
+				}
+				
 				if ($is_found && $single) {
 					$return_val = $saved_values[0];
 				} else if ($is_found) {
 					$return_val = $saved_values;
 				}
 
+				// hm.. can't get here right??!
 				if ($is_found) {
 					return $return_val;
 				}
@@ -183,9 +206,10 @@ function simple_fields_get_post_group_values($post_id, $field_group_name_or_id, 
  * return @array a really fat one!
  */
 function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") {
-
-	$cache_key = 'simple_fields_get_all_fields_and_values_for_post_' . $post_id . json_encode($args);
-	$selected_post_connector = wp_cache_get( $cache_key );
+	
+	global $sf;
+	$cache_key = 'simple_fields_'.$sf->ns_key.'_get_all_fields_and_values_for_post_' . $post_id . json_encode($args);
+	$selected_post_connector = wp_cache_get( $cache_key , 'simple_fields' );
 
 	if (FALSE === $selected_post_connector) {
 
@@ -194,7 +218,6 @@ function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") 
 		);
 		$args = wp_parse_args($args, $defaults);
 	
-		global $sf;
 		$post                     = get_post($post_id);
 		$connector_to_use         = $sf->get_selected_connector_for_post($post);
 		$existing_post_connectors = $sf->get_post_connectors();
@@ -274,12 +297,12 @@ function simple_fields_get_all_fields_and_values_for_post($post_id, $args = "") 
 	
 					$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["saved_values"][$num_in_set] = $saved_value;
 					$selected_post_connector["field_groups"][$one_field_group["id"]]["fields"][$one_field_id]["meta_keys"][$num_in_set] = $custom_field_key;
-
+	
 				}
 			}
 	
 		}
-		wp_cache_set( $cache_key, $selected_post_connector );
+		wp_cache_set( $cache_key, $selected_post_connector, 'simple_fields' );
 	}
 
 	return $selected_post_connector;
@@ -435,7 +458,7 @@ function simple_fields_register_field_group($slug = "", $new_field_group = array
 	$field_groups = $sf->get_field_groups();
 	#sf_d($field_groups);
 	$highest_id = 0;
-	
+
 	// First get the id of the field group we are adding. Existing or highest new.
 	// Loop through all existing field groups to see if the field group we are adding already exists
 	// Exists = an existing field group has the same slug as the group we are adding
@@ -641,10 +664,7 @@ foreach ($field_groups[$field_group_id]["fields"] as $key => $val) {
 
 	} // if passed as arg field group has fields
 
-	#sf_d($field_groups[$field_group_id]);
-	#sf_d($fields);
-
-	wp_cache_delete( "simple_fields_groups" );
+	$sf->clear_caches();
 	update_option("simple_fields_groups", $field_groups);
 
 	return $field_groups[$field_group_id];
@@ -755,8 +775,8 @@ function simple_fields_register_post_connector($unique_name = "", $new_post_conn
 		$post_connectors[$connector_id]["field_groups"] = $field_group_connectors;
 
 	}
-
-	wp_cache_delete("simple_fields_post_connectors");
+	
+	$sf->clear_caches();
 	update_option("simple_fields_post_connectors", $post_connectors);
 
 	return $post_connectors[$connector_id];
@@ -810,8 +830,8 @@ function simple_fields_register_post_type_default($connector_id_or_special_type 
 	if (isset($post_type_defaults[0])) {
 		unset($post_type_defaults[0]);
 	}
-
-	wp_cache_delete("simple_fields_post_type_defaults");
+	
+	$sf->clear_caches();
 	update_option("simple_fields_post_type_defaults", $post_type_defaults);
 
 }
@@ -896,9 +916,10 @@ function simple_fields_set_value($post_id, $field_slug, $new_numInSet = null, $n
 				update_post_meta($post_id, "_simple_fields_fieldGroupID_{$field_group_id}_fieldID_{$field_id}_numInSet_{$num_in_set}", $new_value);
 				update_post_meta($post_id, "_simple_fields_fieldGroupID_{$field_group_id}_fieldID_added_numInSet_{$num_in_set}", 1);
 				update_post_meta($post_id, "_simple_fields_been_saved", 1);
-
-				// value updated. exit function.
-				return;
+				
+				// value updated. clear cache and exit function.
+				$sf->clear_caches();
+				return TRUE;
 
 			} // if
 
@@ -1191,11 +1212,11 @@ function simple_fields_fieldgroup($field_group_id_or_slug, $post_id = NULL, $opt
 		$post_id = $post->ID;
 	}
 
-	$cache_key = "simple_fields_fieldgroup_" . $field_group_id_or_slug . "_" . $post_id . json_encode($options);
-	$values = wp_cache_get( $cache_key );
+	global $sf;
+	$cache_key = "simple_fields_".$sf->ns_key."_fieldgroup_" . $field_group_id_or_slug . "_" . $post_id . json_encode($options);
+	$values = wp_cache_get( $cache_key, 'simple_fields');
 	if (FALSE === $values) {
 	
-		global $sf;
 		$field_group = $sf->get_field_group_by_slug($field_group_id_or_slug);
 	
 		$arr_fields = array();
@@ -1210,11 +1231,10 @@ function simple_fields_fieldgroup($field_group_id_or_slug, $post_id = NULL, $opt
 		} else {
 			$values = simple_fields_value($str_field_slugs, $post_id);
 		}
-		wp_cache_set( $cache_key, $values );
+		wp_cache_set( $cache_key, $values, 'simple_fields' );
 	}
 	return $values;
 }
-
 
 /*
 @todo: add simple_fields_fieldgroup_values() as smart alias to 
