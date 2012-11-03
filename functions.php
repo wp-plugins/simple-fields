@@ -1112,7 +1112,8 @@ function simple_fields_values($field_slug = NULL, $post_id = NULL, $options = NU
 				*/
 
 				// If the type is among the registered_field_types then use it
-				if (isset($sf->registered_field_types[$one_field_group_field["type"]]) && isset($saved_values[0]) && is_array($saved_values[0])) {
+				//if (isset($sf->registered_field_types[$one_field_group_field["type"]]) && isset($saved_values[0]) && is_array($saved_values[0])) {
+				if ( isset($sf->registered_field_types[$one_field_group_field["type"]]) && isset($saved_values[0]) ) {
 
 					// Use the custom field object to output this value, since we can't guess how the data is supposed to be used
 					$custom_field_type = $sf->registered_field_types[$one_field_group_field["type"]];
@@ -1236,8 +1237,3 @@ function simple_fields_fieldgroup($field_group_id_or_slug, $post_id = NULL, $opt
 	return $values;
 }
 
-/*
-@todo: add simple_fields_fieldgroup_values() as smart alias to 
-simple_fields_get_post_group_values($post_id, $field_group_name_or_id, $use_name = true, $return_format = 1) {
-use slug and fewer args
-*/
