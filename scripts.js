@@ -1,5 +1,11 @@
 
-jscolor.bindClass = "simple-fields-field-type-color";
+
+
+
+if (typeof jscolor != "undefined") {
+	jscolor.bindClass = "simple-fields-field-type-color";
+}
+
 var simple_fields_datepicker_args = { "clickInput": true };
 var simple_fields_tinymce_iframes = [];
 
@@ -15,22 +21,26 @@ var simple_fields = (function() {
 	
 })();
 
+// Self invoking function for our JS stuff
 (function($) {
 
 	// add new field to the field group
 	function simple_fields_field_group_add_field() {
+
 		simple_fields_highest_field_id++;
+
 		var data = {
 			action: 'simple_fields_field_group_add_field',
 			simple_fields_highest_field_id: simple_fields_highest_field_id
 		};
+
 		$.post(ajaxurl, data, function(response) {
 			var ul = $("#simple-fields-field-group-existing-fields ul:first");
 			$response = $(response);
 			ul.append($response);
 			ul.find(".simple-fields-field-group-one-field:last").effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
-			//$response.effect("highlight").find(".simple-fields-field-group-one-field-name").focus();
 		});
+
 	}
 	
 	function simple_fields_metabox_tinymce_attach() {
@@ -158,14 +168,16 @@ var simple_fields = (function() {
 		});
 	}
 
-
+	/**
+	 * Edit field types/fields: on field type dropdown change
+	 */
 	$("select.simple-fields-field-type").live("change", function() {
 		// look for simple-fields-field-type-options-<type> and show if
 		var $t = $(this);
 		var selectedFieldType = $t.val();
 		var $li = $t.closest("li");
-		$li.find(".simple-fields-field-type-options").hide("slow");
-		$li.find(".simple-fields-field-type-options-" + selectedFieldType).show("slow");
+		$li.find(".simple-fields-field-type-options").hide();
+		$li.find(".simple-fields-field-type-options-" + selectedFieldType).fadeIn("slow");
 	});
 	
 	$("li.simple-fields-field-group-one-field").live("mouseenter", function() {
@@ -254,10 +266,10 @@ var simple_fields = (function() {
 	// - post id
 	// - num in (new) set
 	var simple_fields_new_fields_count = 0;
-	$(".simple-fields-metabox-field-add").live("click", function() {
+	$(".simple-fields-metabox-field-add").live("click", function(e) {
 
 		var $t = $(this);
-		//var $a = $(this).find("a");
+		
 		$t.text(sfstrings.adding);
 		var $wrapper = $(this).parents(".simple-fields-meta-box-field-group-wrapper");
 		var field_group_id = $wrapper.find("input[name=simple-fields-meta-box-field-group-id]").val();
@@ -269,28 +281,39 @@ var simple_fields = (function() {
 			"field_group_id": field_group_id,
 			"post_id": post_id
 		};
+
+		var is_link_at_bottom = $t.hasClass("simple-fields-metabox-field-add-bottom");
 	
 		$.post(ajaxurl, data, function(response) {
 
 			$ul = $wrapper.find("ul.simple-fields-metabox-field-group-fields");
 			$response = $(response);
 			$response.hide();
-			$ul.prepend($response);
+			if (is_link_at_bottom) {
+				$ul.append($response);
+			} else {
+				$ul.prepend($response);
+			}
+
+			var wrapper = $ul.closest(".simple-fields-meta-box-field-group-wrapper");
+			// var lis = $ul.find(">li");
+
 			$response.slideDown("slow", function() {
 				
 				simple_fields_metabox_tinymce_attach();
-				$response.effect("highlight", 1000);
+				//$response.effect("highlight", 1000);
 				// add jscolor to possibly new fields
 				jscolor.init();
 				// add datepicker too
 				$('input.simple-fields-field-type-date', $ul).datePicker(simple_fields_datepicker_args);
 				
 				// Fire event so plugins can listen to the add-button
-				//simple_fields.trigger("field_group_added");
-				//simple_fields.dispatchEvent();
 				$(document.body).trigger("field_group_added", $response);
 			});
+
 			$t.html("<a href='#'>+ "+sfstrings.add+"</a>");
+			//wrapper.find(".simple-fields-metabox-field-add-bottom").show();
+			wrapper.addClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
 
 		});
 		
@@ -329,7 +352,22 @@ var simple_fields = (function() {
 	$(".simple-fields-metabox-field-group-delete").live("click", function() {
 		if (confirm(sfstrings.confirmRemoveGroup)) {
 			var li = $(this).closest("li");
-			li.hide("slow", function() { li.remove(); });
+			li.hide("slow", function() {
+
+				var wrapper = li.closest("div.simple-fields-meta-box-field-group-wrapper");
+				var ul = li.closest("ul.simple-fields-metabox-field-group-fields");
+				li.remove();
+				
+				// If removed last fieldgroup, hide the add link
+				if (ul.find(">li").length === 0) {
+					//wrapper.find("div.simple-fields-metabox-field-add-bottom").hide("slow");
+					wrapper.removeClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
+				} else {
+					wrapper.addClass("simple-fields-meta-box-field-group-wrapper-has-fields-added");
+				}
+
+			});
+
 		}
 		return false;
 	});
@@ -437,7 +475,7 @@ var simple_fields = (function() {
 
 	});
 	
-	/** 
+	/**
 	 * in dialog: click on a post = update input in field group and then close dialog
 	 */
 	$(".simple-fields-meta-box-field-group-field-type-post-dialog-post-posts a").live("click", function(e) {
@@ -460,7 +498,7 @@ var simple_fields = (function() {
 		
 	});
 	
-	/** 
+	/**
 	 * Field type post: link clear = clear post id and name
 	 */
 	$(".simple-fields-metabox-field-post-clear").live("click", function(e) {
@@ -473,7 +511,7 @@ var simple_fields = (function() {
 	});
 	
 	/**
-	 * ondomready stuff
+	 * ondomready
 	 */
 	$(function() {
 
@@ -583,13 +621,10 @@ var simple_fields = (function() {
 			}
 		});
 
-		
-		// attach TinyMCE to textareas
-		simple_fields_metabox_tinymce_attach();
-		
+			
 		// Media browser: make sure search and filter works by adding hidden inputs
 		// would have been best to do this in PHP, but I can't find any filter for it
-		if ( pagenow == "media-upload-popup" && window.location.search.match(/simple_fields_dummy=/) ) {
+		if ( window.pagenow && window.pagenow == "media-upload-popup" && window.location.search.match(/simple_fields_dummy=/) ) {
 
 			var frm_filter = $("form#filter");
 			
@@ -601,7 +636,7 @@ var simple_fields = (function() {
 			var params = {
 				"simple_fields_dummy": 1,
 				"simple_fields_action": "select_file"
-			}
+			};
 			
 			var match = window.location.search.match(/simple_fields_file_field_unique_id=([\w]+)/);
 			params.simple_fields_file_field_unique_id = match[1];
@@ -613,13 +648,18 @@ var simple_fields = (function() {
 
 		}
 		
-		// type date
-		$('input.simple-fields-field-type-date').datePicker();
+		if (sfstrings.page_type == "post") {
 	
+			// attach TinyMCE to textareas
+			simple_fields_metabox_tinymce_attach();
+
+			// type date
+			$('input.simple-fields-field-type-date').datePicker();
+
+		}
+
 		
-	
-		
-	});
+	}); // end domready
 
 
 }(jQuery));
