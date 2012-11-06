@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.1.2
+Version: 1.1.3
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -54,7 +54,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.1.2");
+		define( "SIMPLE_FIELDS_VERSION", "1.1.3");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -365,6 +365,9 @@ class simple_fields {
 	
 		// verify if this is an auto save routine. If it is our form has not been submitted, so we dont want to do anything
 		if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) { return $post_id; }
+
+		// dont's save if is revision
+		if (wp_is_post_revision($post_id) !== FALSE) return $post_id;
 		
 		// attach post connector
 		$simple_fields_selected_connector = (isset($_POST["simple_fields_selected_connector"])) ? $_POST["simple_fields_selected_connector"] : null;
@@ -381,8 +384,13 @@ class simple_fields {
 		// We have a post_id and we have fieldgroups
 		if ($post_id && is_array($fieldgroups)) {
 	
-			// remove existing simple fields custom fields for this post
-			$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
+			#echo "fieldgroups is:";sf_d($fieldgroups);
+
+			// Delete all exisiting custom fields meta that begins with "_simple_fields_fieldGroupID_", .ie. position 0
+			$post_meta = get_post_custom($post_id);
+			foreach ($post_meta as $meta_key => $meta_val) {
+				if ( strpos($meta_key, "_simple_fields_fieldGroupID_") === 0 ) delete_post_meta($post_id, $meta_key);
+			}
 	
 			// cleanup missing keys, due to checkboxes not being checked
 			$fieldgroups_fixed = $fieldgroups;
@@ -472,7 +480,8 @@ class simple_fields {
 							}
 	
 						}
-
+						
+						// echo "<br>Saving value for post with id $post_id. Custom_field_key is $custom_field_key, custom_field_value is:";sf_d($custom_field_value);
 						update_post_meta($post_id, $custom_field_key, $custom_field_value);
 						$num_in_set++;
 					
@@ -487,6 +496,7 @@ class simple_fields {
 			// remove existing simple fields custom fields for this post
 			$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
 		} 
+		// echo "end save";
 	
 	} // save postdata
 
@@ -1053,11 +1063,13 @@ class simple_fields {
 
 		// Only run code if on a SF page
 		$current_screen = get_current_screen();
+		$is_on_simple_fields_page = FALSE;
 		if ($current_screen->base == "post" && in_array($current_screen->post_type, $this->get_post_connector_attached_types())) {
 			$is_on_simple_fields_page = TRUE;
 			$page_type = "post";
 		}
-		if (!is_on_simple_fields_page) return;
+
+		if (!$is_on_simple_fields_page) return;
 
 		// Add meta box to post
 		global $post, $sf;

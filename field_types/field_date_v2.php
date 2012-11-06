@@ -238,10 +238,10 @@ function init_simple_fields_field_date_v2() {
 			$str_set_date = "";
 			$str_unixtime_to_set = "";
 			if (isset($options["use_defaults"]) && $options["use_defaults"]) {
-				if ($options["default_date"] === "today") {
+				if (isset($options["default_date"]) && $options["default_date"] === "today") {
 					$str_unixtime_to_set = time() * 1000;
-					$str_iso_to_set = date("Y-m-d H:i");
-				} elseif ($options["default_date"] === "no_date") {
+					$str_iso_to_set = date("Y/m/d H:i");
+				} elseif (isset($options["default_date"]) && $options["default_date"] === "no_date") {
 					
 				}
 			} else {
@@ -251,9 +251,9 @@ function init_simple_fields_field_date_v2() {
 				if (preg_match('!^\d{2}:\d{2}$!', $str_saved_unixtime)) {
 					// if only time, then make it a full date to be able to create javascript date object
 					//$str_saved_unixtime = "2000-01-01 $str_saved_unixtime";
-					$str_iso_to_set = "1970-01-01 $str_saved_unixtime";
+					$str_iso_to_set = "1970/01/01 $str_saved_unixtime";
 				} else {
-					$str_iso_to_set = $saved_values["saved_date_time"];
+					$str_iso_to_set = date("Y/m/d H:i", strtotime($saved_values["saved_date_time"]) );
 				}
 				$str_unixtime_to_set = strtotime($str_saved_unixtime);
 				//sf_d( date("Y-m-d H:i", $str_unixtime_to_set) );
@@ -274,7 +274,7 @@ function init_simple_fields_field_date_v2() {
 			// name of method to use/call.
 			$method_name = "datepicker";
 			$altFieldTimeOnly = "false";
-			$show_as = $options["show_as"];
+			$show_as = isset($options["show_as"]) ? $options["show_as"] : "date";
 			$alt_format = "yy-mm-dd";
 			if ("datetime" === $show_as) {
 				$method_name = "datetimepicker";
@@ -424,7 +424,7 @@ function init_simple_fields_field_date_v2() {
 					$arr_extended = array(
 						"type" => "date",
 						"date_unixtime" => $one_value_unix,
-						"ISO_8601" => date("c", $one_value_unix),
+						"ISO_8601" => date("Y-m-d", $one_value_unix),
 						"RFC_2822" => date("r", $one_value_unix),
 						"Y-m-d" => date("Y-m-d", $one_value_unix),
 						"date_format" => date_i18n(get_option('date_format'), $one_value_unix)
@@ -436,7 +436,7 @@ function init_simple_fields_field_date_v2() {
 					$arr_extended = array(
 						"type" => "datetime",
 						"date_unixtime" => $one_value_unix,
-						"ISO_8601" => date("c", $one_value_unix),
+						"ISO_8601" => date("Y-m-d H:i", $one_value_unix),
 						"RFC_2822" => date("r", $one_value_unix),
 						"Y-m-d" => date("Y-m-d", $one_value_unix),
 						"Y-m-d H:i" => date("Y-m-d H:i", $one_value_unix),
