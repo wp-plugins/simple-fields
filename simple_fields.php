@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.1.3
+Version: 1.1.4
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -54,7 +54,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.1.3");
+		define( "SIMPLE_FIELDS_VERSION", "1.1.4");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -199,8 +199,6 @@ class simple_fields {
 		$page_type = "";
 
 		$current_screen = get_current_screen();
-		#sf_d($current_screen);	
-		#sf_d($hook);
 		if ($current_screen->base == "post" && in_array($current_screen->post_type, $this->get_post_connector_attached_types())) {
 			$is_on_simple_fields_page = TRUE;
 			$page_type = "post";
@@ -227,8 +225,14 @@ class simple_fields {
 			wp_enqueue_style("thickbox");
 			wp_enqueue_script("jscolor", SIMPLE_FIELDS_URL . "jscolor/jscolor.js"); // color picker for type color
 			wp_enqueue_script("simple-fields-date", SIMPLE_FIELDS_URL . "datepicker/date.js"); // date picker for type date
-			wp_enqueue_script("sf-jquery-datepicker", SIMPLE_FIELDS_URL . "datepicker/jquery.datePicker.js"); // date picker for type date
+			
+			// Date picker for type date
+			wp_enqueue_script("sf-jquery-datepicker", SIMPLE_FIELDS_URL . "datepicker/jquery.datePicker.js");
 			wp_enqueue_style('sf-jquery-datepicker', SIMPLE_FIELDS_URL.'datepicker/datePicker.css', false, SIMPLE_FIELDS_VERSION);
+
+			// Chosen for multi selects
+			// wp_enqueue_script("chosen.jquery", SIMPLE_FIELDS_URL . "js/chosen/chosen.jquery.min.js");
+			// wp_enqueue_style("chosen", SIMPLE_FIELDS_URL.'js/chosen/chosen.css', false, SIMPLE_FIELDS_VERSION);
 
 			wp_enqueue_style('simple-fields-styles-post', SIMPLE_FIELDS_URL.'styles-edit-post.css', false, SIMPLE_FIELDS_VERSION);
 	
@@ -494,6 +498,7 @@ class simple_fields {
 		} else if (empty($fieldgroups)) {
 			// if fieldgroups are empty we still need to save it
 			// remove existing simple fields custom fields for this post
+			// @todo: this should also be using wordpress own functions
 			$wpdb->query("DELETE FROM $table WHERE post_id = $post_id AND meta_key LIKE '_simple_fields_fieldGroupID_%'");
 		} 
 		// echo "end save";
@@ -536,7 +541,7 @@ class simple_fields {
 		}*/
 
 		?>
-		<li class="simple-fields-metabox-field-group <?php echo $field_group_css ?>">
+		<li class="sf-cf simple-fields-metabox-field-group <?php echo $field_group_css ?>">
 			<?php // must use this "added"-thingie do be able to track added field group that has no added values (like unchecked checkboxes, that we can't detect ?>
 			<input type="hidden" name="simple_fields_fieldgroups[<?php echo $field_group_id ?>][added][<?php echo $num_in_set ?>]" value="1" />
 			<div class="simple-fields-metabox-field-group-handle"></div>
@@ -653,15 +658,49 @@ class simple_fields {
 						echo "</div>";
 
 						echo "<div class='simple-fields-metabox-field-second'>";
-						echo "<select id='$field_unique_id' name='$field_name'>";
+
+						$enable_multiple = (isset($field["type_dropdown_options"]["enable_multiple"]) && ($field["type_dropdown_options"]["enable_multiple"] == 1));
+						$str_multiple = "";
+						$field_name_dropdown = $field_name;
+						$field_size = 1;
+						if ($enable_multiple) {
+							$str_multiple = "multiple";
+							$field_name_dropdown = $field_name . "[]";
+							$field_size = 6;
+						}
+						echo "<select id='$field_unique_id' name='$field_name_dropdown' $str_multiple size='$field_size' >";
 						foreach ($field["type_dropdown_options"] as $one_option_internal_name => $one_option) {
-							// $one_option_internal_name = dropdown_num_3
+							
 							if ($one_option["deleted"]) { continue; }
+							if (strpos($one_option_internal_name, "dropdown_num_") === FALSE) continue;
+
 							$dropdown_value_esc = esc_html($one_option["value"]);
 							$selected = "";
-							if ($use_defaults == false && $saved_value == $one_option_internal_name) {
-								$selected = " selected='selected' ";
+
+							// Different ways of detecting selected dropdown value if multiple or single
+							if ($enable_multiple) {
+
+								$arr_saved_value_dropdown = (array) $saved_value;
+								/*
+								Array
+								(
+								    [0] => dropdown_num_2
+								    [1] => dropdown_num_3
+								)
+								*/
+								if (in_array($one_option_internal_name, $arr_saved_value_dropdown)) {
+									$selected = " selected ";
+								}
+
+								
+							} else {
+
+								if ($use_defaults == false && $saved_value == $one_option_internal_name) {
+									$selected = " selected ";
+								}
+
 							}
+
 							echo "<option $selected value='$one_option_internal_name'>$dropdown_value_esc</option>";
 						}
 						echo "</select>";
@@ -1181,15 +1220,39 @@ class simple_fields {
 	 
 	    if ($current_field_group["repeatable"]) {
 
+			// Start of list with added field groups
+	        $ul_add_css = "";
+
 			// add link at top	 
 	        echo "
-	            <div class='simple-fields-metabox-field-add'>
-	                <a href='#'>+ ".__('Add', 'simple-fields')."</a>
-	            </div>
+				<div class='simple-fields-metabox-field-add'>
+					<a href='#'>+ ".__('Add', 'simple-fields')."</a>
+					<!-- 
+					|
+					<a href='#' id='sfToggleView{$current_field_group["id"]}'>Toggle view</a>
+					-->
+				</div>
 	        ";
 
-	        // Start of list with adeed field groups
-	        echo "<ul class='simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable'>";
+			/*
+	        ?>
+	        <script>
+	        	jQuery(function($) {
+	        		$("#sfToggleView<?php echo $current_field_group["id"] ?>").click(function(e) {
+	        			e.preventDefault();
+	        			$(this).closest(".simple-fields-meta-box-field-group-wrapper").find("ul:first").toggleClass("simple-fields-metabox-field-group-fields-view-table");
+	        		});
+	        	});
+	        </script>
+	        <?php
+	        */
+
+	        // add test class to test table layout
+	        // $ul_add_css .= " simple-fields-metabox-field-group-fields-view-table";
+
+	        // add class with number of fields in field group
+	        $ul_add_css .= " simple-fields-metabox-field-group-fields-count-" . $current_field_group["fields_count"];
+	        echo "<ul class='sf-cf simple-fields-metabox-field-group-fields simple-fields-metabox-field-group-fields-repeatable $ul_add_css'>";
 	 
 	        // now add them. ooooh my, this is fancy stuff.
 	        $use_defaults = null;
@@ -1748,7 +1811,6 @@ class simple_fields {
 	
 		return $arr_tabs;
 	}
-	
 
 	
 	/**
@@ -1890,6 +1952,7 @@ class simple_fields {
 		
 		$field_type_dropdown_options = (array) @$fields[$fieldID]["type_dropdown_options"];
 		$field_type_dropdown_option_enable_extended_return_values = (int) @$fields[$fieldID]["type_dropdown_options"]["enable_extended_return_values"];
+		$field_type_dropdown_option_enable_multiple = (int) @$fields[$fieldID]["type_dropdown_options"]["enable_multiple"];
 		
 		$field_type_post_options = (array) @$fields[$fieldID]["type_post_options"];
 		$field_type_post_options["enabled_post_types"] = (array) @$field_type_post_options["enabled_post_types"];
@@ -2325,9 +2388,26 @@ class simple_fields {
 			$out .= "<div class='simple-fields-field-group-one-field-row'>";
 				$out .= "<div class='simple-fields-field-group-one-field-row-col-first'></div>";
 				$out .= "<div class='simple-fields-field-group-one-field-row-col-second'>";
-				$out .= "	<p><input type='checkbox' name='field[{$fieldID}][type_dropdown_options][enable_extended_return_values]' " . (($field_type_dropdown_option_enable_extended_return_values) ? " checked='checked'" : "") . " value='1' /> ";
+
+				// Enable extended
+				$out .= "	<p>";
+				$out .= "		<input type='checkbox' name='field[{$fieldID}][type_dropdown_options][enable_extended_return_values]' " . (($field_type_dropdown_option_enable_extended_return_values) ? " checked='checked'" : "") . " value='1' /> ";
 				$out .= 	__('Enable Extended Return Values', 'simple-fields') . "</p>";
 				$out .= "	<p class='description'>" . __('Return an array with the value of the selected item in the dropdown + the values of the non-selected items.', 'simple-fields') . "</p>";
+
+				$out .= "</div>";
+			$out .= "	</div>";
+
+			// Enable multiple
+			$out .= "<div class='simple-fields-field-group-one-field-row'>";
+				$out .= "<div class='simple-fields-field-group-one-field-row-col-first'></div>";
+				$out .= "<div class='simple-fields-field-group-one-field-row-col-second'>";
+				$out .= "<input " . ($field_type_dropdown_option_enable_multiple === 0 ? " checked=checked " : "")  . " type='radio' name='field[{$fieldID}][type_dropdown_options][enable_multiple]' value='0'> ";
+				$out .= _x('Single', 'Field type dropdown', 'simple-fields') . " &nbsp;";
+
+				$out .= "<input " . ($field_type_dropdown_option_enable_multiple === 1 ? " checked=checked " : "")  . " type='radio' name='field[{$fieldID}][type_dropdown_options][enable_multiple]' value='1'> ";
+				$out .= _x('Multiple', 'Field type dropdown', 'simple-fields') . " &nbsp;";
+
 				$out .= "</div>";
 			$out .= "	</div>";
 
@@ -2519,7 +2599,7 @@ class simple_fields {
 			if ("edit-field-group-save" == $action) {
 			
 				if ($_POST) {
-#sf_d($_POST);
+					#sf_d($_POST);
 					$field_group_id                               = (int) $_POST["field_group_id"];
 					$field_groups[$field_group_id]["name"]        = stripslashes($_POST["field_group_name"]);
 					$field_groups[$field_group_id]["description"] = stripslashes($_POST["field_group_description"]);
@@ -3375,16 +3455,10 @@ class simple_fields {
 	/**
 	 * Retrieve and return extended return values for a field type
 	 * @param mixed $field array or string or int or whatever with field info
-	 * @param mixed $field_value
+	 * @param mixed $field_value the saved value
 	 */
 	function get_extended_return_values_for_field($field, $field_value) {
-		/*			
-		radiobuttons
-		file
-		dropdown
-		post
-		user
-		*/
+	
 
 		$return_field_value = array();
 
@@ -3451,28 +3525,69 @@ class simple_fields {
 			
 			$type_dropdown_options = $field["type_dropdown_options"];
 
-			$return_field_value["selected_value"]	= FALSE;
-			$return_field_value["selected_option"]	= array();
-			$return_field_value["options"] 			= array();
-
-			foreach ($type_dropdown_options as $dropdown_key => $dropdown_value) {
-
-				if ($dropdown_value["deleted"]) continue;
+			// dropdown can be multiple since 1.1.4
+			if (isset($type_dropdown_options["enable_multiple"]) && $type_dropdown_options["enable_multiple"]) {
 				
-				$return_field_value["options"][] = array(
-					"value"       => $dropdown_value["value"],
-					"key"         => $dropdown_key,
-					"is_selected" => ($field_value === $dropdown_key)
-				);
-				if ($field_value === $dropdown_key) {
-					$return_field_value["selected_option"] = array(
+				// multiple = return array with same info as single values
+				$arr_dropdown_values = $field_value;
+
+				$return_field_value["selected_values"]	= array();
+				$return_field_value["selected_options"]	= array();
+				$return_field_value["options"] = array();
+
+				foreach ($type_dropdown_options as $dropdown_key => $dropdown_value) {
+
+					if ($dropdown_value["deleted"]) continue;
+					
+					$return_field_value["options"][] = array(
 						"value"       => $dropdown_value["value"],
 						"key"         => $dropdown_key,
-						"is_selected" => TRUE
+						"is_selected" => in_array($dropdown_key, $arr_dropdown_values)
 					);
-					$return_field_value["selected_value"] = $dropdown_value["value"];
+
+					if (in_array($dropdown_key, $arr_dropdown_values)) {
+						
+						$return_field_value["selected_options"][] = array(
+							"value"       => $dropdown_value["value"],
+							"key"         => $dropdown_key,
+							"is_selected" => TRUE
+						);
+						
+						$return_field_value["selected_values"][] = $dropdown_value["value"];
+					}
 				}
-			}
+
+			} else {
+
+				// Single value
+				$return_field_value["selected_value"]	= FALSE;
+				$return_field_value["selected_option"]	= array();
+				$return_field_value["options"] 			= array();
+
+				foreach ($type_dropdown_options as $dropdown_key => $dropdown_value) {
+
+					if ($dropdown_value["deleted"]) continue;
+					
+					$return_field_value["options"][] = array(
+						"value"       => $dropdown_value["value"],
+						"key"         => $dropdown_key,
+						"is_selected" => ($field_value === $dropdown_key)
+					);
+
+					if ($field_value === $dropdown_key) {
+					
+						$return_field_value["selected_option"] = array(
+							"value"       => $dropdown_value["value"],
+							"key"         => $dropdown_key,
+							"is_selected" => TRUE
+						);
+						
+						$return_field_value["selected_value"] = $dropdown_value["value"];
+					
+					}
+				}
+
+			} // if single
 			
 		} else if ("post" === $field["type"]) {
 
