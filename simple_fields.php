@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.1.5
+Version: 1.1.6
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -54,7 +54,7 @@ class simple_fields {
 
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
-		define( "SIMPLE_FIELDS_VERSION", "1.1.5");
+		define( "SIMPLE_FIELDS_VERSION", "1.1.6");
 
 		load_plugin_textdomain( 'simple-fields', null, basename(dirname(__FILE__)).'/languages/');
 		
@@ -62,9 +62,13 @@ class simple_fields {
 		// based on stuff found here:
 		// http://core.trac.wordpress.org/ticket/4476
 		$ns_key = wp_cache_get( 'simple_fields_namespace_key', 'simple_fields' );
-		if ( $ns_key === false ) wp_cache_set( 'simple_fields_namespace_key', 1, 'simple_fields' );
+		if ( $ns_key === false ) {
+			wp_cache_set( 'simple_fields_namespace_key', 1, 'simple_fields' );
+			// echo "cache key init set";
+		}
 		$this->ns_key = wp_cache_get( 'simple_fields_namespace_key', 'simple_fields' );
-		
+		// echo "ns_key is: $this->ns_key"; // 1
+
 		require( dirname(__FILE__) . "/functions.php" );
 		require( dirname(__FILE__) . "/class_simple_fields_field.php" );
 		
@@ -105,7 +109,7 @@ class simple_fields {
 
 		// Boot up
 		do_action("simple_fields_init", $this);
-		
+
 	}
 
 	// check some things regarding update
@@ -621,15 +625,21 @@ class simple_fields {
 						echo "</div>";
 
 						echo "<div class='simple-fields-metabox-field-second'>";
+
 						$radio_options = $field["type_radiobuttons_options"];
 						$radio_checked_by_default_num = @$radio_options["checked_by_default_num"];
 	
-
 						$loopNum = 0;
 						foreach ($radio_options as $one_radio_option_key => $one_radio_option_val) {
-							if ($one_radio_option_key == "checked_by_default_num") { continue; }
-							if ($one_radio_option_val["deleted"]) { continue; }
+							
+							// only values like radiobutton_num_2 are allowed
+							if ( strpos($one_radio_option_key, "radiobutton_num_") === FALSE) { continue; }
+							
+							// Skip deleted ones
+							if (isset($one_radio_option_val["deleted"]) && $one_radio_option_val["deleted"]) { continue; }
+
 							$radio_field_unique_id = $field_unique_id . "_radio_".$loopNum;
+							$one_radio_option_val_val = isset($one_radio_option_val["value"]) ? $one_radio_option_val["value"] : "";
 							
 							$selected = "";
 							if ($use_defaults) {
@@ -639,14 +649,12 @@ class simple_fields {
 							}
 													
 							echo "<div class='simple-fields-metabox-field-radiobutton'>";
-							echo "<input $selected name='$field_name' id='$radio_field_unique_id' type='radio' value='$one_radio_option_key' />";
-							echo "<label for='$radio_field_unique_id' class='simple-fields-for-radiobutton'> ".$one_radio_option_val["value"]."</label>";
-							echo "</div>";
-							
+							echo "	<input $selected name='$field_name' id='$radio_field_unique_id' type='radio' value='$one_radio_option_key' />";
+							echo "	<label for='$radio_field_unique_id' class='simple-fields-for-radiobutton'> " . $one_radio_option_val_val . "</label>";
+							echo "</div>";							
 							
 							$loopNum++;
 						}
-
 
 						echo "</div>";
 		
@@ -671,7 +679,7 @@ class simple_fields {
 						echo "<select id='$field_unique_id' name='$field_name_dropdown' $str_multiple size='$field_size' >";
 						foreach ($field["type_dropdown_options"] as $one_option_internal_name => $one_option) {
 							
-							if ($one_option["deleted"]) { continue; }
+							if (isset($one_option["deleted"]) && $one_option["deleted"]) { continue; }
 							if (strpos($one_option_internal_name, "dropdown_num_") === FALSE) continue;
 
 							$dropdown_value_esc = esc_html($one_option["value"]);
@@ -1447,7 +1455,7 @@ class simple_fields {
 						$field_groups[$i]["fields"][$one_field_id]["field_group"] = array(
 							"id"           => $field_groups[$i]["id"],
 							"name"         => $field_groups[$i]["name"],
-							"slug"         => $field_groups[$i]["id"],
+							"slug"         => $field_groups[$i]["slug"],
 							"description"  => $field_groups[$i]["description"],
 							"repeatable"   => $field_groups[$i]["repeatable"],
 							"fields_count" => $field_groups[$i]["fields_count"]
@@ -2577,6 +2585,7 @@ class simple_fields {
 				$field_group_id = (int) $_GET["group-id"];
 				$field_groups[$field_group_id]["deleted"] = true;
 				update_option("simple_fields_groups", $field_groups);
+				$this->clear_caches();
 				$simple_fields_did_delete = true;
 				$action = "";
 			}
@@ -2589,6 +2598,7 @@ class simple_fields {
 				$post_connector_id = (int) $_GET["connector-id"];
 				$post_connectors[$post_connector_id]["deleted"] = 1;
 				update_option("simple_fields_post_connectors", $post_connectors);
+				$this->clear_caches();
 				$simple_fields_did_delete_post_connector = true;
 				$action = "";
 			}
@@ -2623,6 +2633,7 @@ class simple_fields {
 					}
 					
 					update_option("simple_fields_groups", $field_groups);
+					$this->clear_caches();
 
 					// we can have changed the options of a field group, so update connectors using this field group
 					$post_connectors = (array) $this->get_post_connectors();
@@ -2633,6 +2644,7 @@ class simple_fields {
 						}
 					}
 					update_option("simple_fields_post_connectors", $post_connectors);
+					$this->clear_caches();
 					
 					$simple_fields_did_save = true;
 				}
@@ -2680,6 +2692,7 @@ class simple_fields {
 					$post_connectors = $post_connectors_tmp;
 	
 					update_option("simple_fields_post_connectors", $post_connectors);
+					$this->clear_caches();
 	
 					$simple_fields_did_save_connector = true;
 				}
@@ -3085,7 +3098,7 @@ class simple_fields {
 					<h3><?php _e('Post Connectors', 'simple-fields') ?></h3>
 	
 					<?php
-					if (isset($simple_fields_did_save_connector) && $simple_fields_did_save_connector) {
+					if (isset($simple_fields_did_save_connector) && $simple_fields_did_save_connector === true) {
 						?><div id="message" class="updated"><p><?php _e('Post connector saved', 'simple-fields') ?></p></div><?php
 					}
 	
@@ -3292,6 +3305,7 @@ class simple_fields {
 		$old_options = $this->get_options();
 		$new_options = wp_parse_args($new_options, $old_options);
 		update_option("simple_fields_options", $new_options);
+		$this->clear_caches();
 	}
 	
 	/**
@@ -3506,16 +3520,18 @@ class simple_fields {
 			
 				if ($button_key == "checked_by_default_num") continue;
 				
-				if ($button_value["deleted"]) continue;
+				if (isset($button_value["deleted"]) && $button_value["deleted"]) continue;
+				
+				$button_value_value = isset($button_value["value"]) ? $button_value["value"] : "";
 				
 				$return_field_value["radiobuttons"][] = array(
-					"value"       => $button_value["value"],
+					"value"       => $button_value_value,
 					"key"         => $button_key,
 					"is_selected" => ($field_value === $button_key)
 				);
 				if ($field_value === $button_key) {
 					$return_field_value["selected_radiobutton"] = array(
-						"value"       => $button_value["value"],
+						"value"       => $button_value_value,
 						"key"         => $button_key,
 						"is_selected" => TRUE
 					);
@@ -3539,10 +3555,16 @@ class simple_fields {
 
 				foreach ($type_dropdown_options as $dropdown_key => $dropdown_value) {
 
-					if ($dropdown_value["deleted"]) continue;
+					// Only values like dropdown_num_2 are allowed
+					if ( strpos($dropdown_key, "dropdown_num_") === FALSE) { continue; }
+
+					// Skip deleted
+					if (isset($dropdown_value["deleted"]) && $dropdown_value["deleted"]) continue;					
+					
+					$dropdown_value_value = isset($dropdown_value["value"]) ? $dropdown_value["value"] : "";
 					
 					$return_field_value["options"][] = array(
-						"value"       => $dropdown_value["value"],
+						"value"       => $dropdown_value_value,
 						"key"         => $dropdown_key,
 						"is_selected" => in_array($dropdown_key, $arr_dropdown_values)
 					);
@@ -3550,7 +3572,7 @@ class simple_fields {
 					if (in_array($dropdown_key, $arr_dropdown_values)) {
 						
 						$return_field_value["selected_options"][] = array(
-							"value"       => $dropdown_value["value"],
+							"value"       => $dropdown_value_value,
 							"key"         => $dropdown_key,
 							"is_selected" => TRUE
 						);
@@ -3568,6 +3590,10 @@ class simple_fields {
 
 				foreach ($type_dropdown_options as $dropdown_key => $dropdown_value) {
 
+					// Only values like dropdown_num_2 are allowed
+					if ( strpos($dropdown_key, "dropdown_num_") === FALSE) { continue; }
+
+					// Skip deleted
 					if ($dropdown_value["deleted"]) continue;
 					
 					$return_field_value["options"][] = array(
@@ -3688,8 +3714,10 @@ class simple_fields {
 	 * @return mixed array with field group info if field groups exists, false if does not exist
 	 */
 	function get_field_group_by_slug($field_group_slug) {
-		
+#echo 111;		
+#var_dump($this->ns_key);
 		$cache_key = 'simple_fields_'.$this->ns_key.'_get_field_group_by_slug_' . $field_group_slug;
+#echo $cache_key;
 		$return_val = wp_cache_get( $cache_key, 'simple_fields' );
 		if (FALSE === $return_val) {
 		
@@ -3752,8 +3780,21 @@ class simple_fields {
 		return FALSE;
 	}
 
+	/**
+	 * Clear the key used for wp_cache_get and wp_cache_set
+	 * Run this when options etc have been changed so fresh values are fetched upon next get
+	 */
 	function clear_caches() {
+
+		$prev_key = $this->ns_key;
 		$this->ns_key = wp_cache_incr( 'simple_fields_namespace_key', 1, 'simple_fields' );
+		if ($this->ns_key === FALSE) {
+			// I really don't know why, but wp_cache_incr returns false...always or sometimes?
+			// Manually update namespace key by one
+			$this->ns_key = $prev_key + 1;
+			wp_cache_set( 'simple_fields_namespace_key', $this->ns_key, 'simple_fields' );
+		}
+		// echo "clear_key";var_dump($this->ns_key);
 	}
 	
 } // end class
