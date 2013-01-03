@@ -1,50 +1,109 @@
 === Simple Fields ===
-Contributors: eskapism, MarsApril, samface, angrycreative, earth people
-Donate link: http://eskapism.se/sida/donate/
-Tags: admin, fields, custom fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom
+Contributors: eskapism, MarsApril, samface, angrycreative, Earth People
+Donate link: http://simple-fields.com/about/donate/
+Tags: admin, fields, custom fields, advanced custom fields, extended custom fields, more fields, repeatable fields, field manager, attachments, text areas, input fields, tinymce, radio button, drop down, files, meta box, edit, post, post_meta, post meta, custom, simple fields, cms, date picker, time picker, repeatable fields, multiple fields
 Requires at least: 3.3.1
-Tested up to: 3.4.2
-Stable tag: 1.0
+Tested up to: 3.5
+Stable tag: 1.1.6
 
-Add more advanced custom fields types to your edit post page. Field can be of several types, including textarea, checkbox, radio buttons, files and color picker.
+With Simple Fields you can add any kind of custom fields to your pages and posts.
 
 == Description ==
+The built in custom fields in WordPress are great, but they do come with a big limitation: they only support plain text. To overcome this limitation I created the Simple Fields WordPress plugin.
 
-Simple Fields for WordPress let you add groups of fields to your edit post page.
+With Simple Fields you can add for example textboxes, text areas, checkboxes, radio buttons, dropdowns, and file browser to the post admin area. These fields are all much easier to use for the user than regular custom fields.
 
-Simple Fields turns WordPress into an even more powerful Content Management System (CMS).
+All fields are grouped into logical groups called Field Groups. You can for example combine File + Name + Description into a an Attachments-group, that lets you add multiple files to your posts.
 
-#### Features and highlight
+Use "repeatable" field groups to add many any amount of field groups to a single post (great for images or attachments!)
 
-* Add textboxes, text areas, checkboxes, radio buttons, dropdowns, and file browser to the post admin area
-* Much easier for the user than regular custom fields
-* Group fields together into logical groups. For example combine File + Name + Description into a an Attachments-group, that let's you add multiple files to your posts
-* Use "repeatable" field groups to add many any amount of field groups to a single post (great for images or attachments!)
-* Use drag and drop to change order of added repeatable groups
-* Different post types can use different field groups - actually you can even use different field groups even for same post type
-* Can be used on any post type, including custom post types
-* Nice GUI that looks like it belongs to the regular WordPress GUI
+Simple Fields can be used on any post type, including custom post types.
 
-For more information check out my introductory blog post:
-http://eskapism.se/blogg/2010/05/simple-fields-wp-custom-fields-on-steroids/
+## Field Types
 
-Also check out this short tutorial:
-http://eskapism.se/code-playground/simple-fields/tutorial/
+Simple Fields comes bundled with a useful variation of fields. Note that any field can be added any number of times to a post using repeatable fields.
 
-#### Upgrading? Then backup your database
+The fields that are included in Simple Fields are:
 
-Please remember to backup your database when you upgrade this plugin. Everything should work fine, but just to be sure and safe: backup the database!
+Text
+: A simple text input to enter any kind of information.
 
-#### Help and Support
+Textarea
+: A bigger area for inputing text. Even support WYSIWYG/TinyMCE-mode that makes it work like the regular content editor, so you can insert images, headlines, list, paragraphs and so on.
 
-If you have questions/bug reports/feature requests for Simple Fields please use the WordPress [Support Forum](http://wordpress.org/tags/simple-fields?forum_id=10) or 
-[the new GitHub project page for Simple Fields](github.com/bonny/WordPress-Simple-Fields/).
-There are also [tutorials available for Simple Fields](http://eskapism.se/code-playground/simple-fields/).
+Checkbox
+: A simple checkbox to be able to select something on/off.
 
-#### Donation and more plugins
-* If you like this plugin don't forget to [donate to support further development](http://eskapism.se/sida/donate/).
-* Also check out some [more CMS-focused plugins](http://wordpress.org/extend/plugins/profile/eskapism) by the same author.
+ Radio Buttons
+: Add multiple radiobuttons where a user can select one of the buttons. Useful for letting a user choose between multiple options.
+ 
+Dropdown
+: Add multiple values to a dropdown box. User can select one or several items in the list. Useful for letting your users select one or severall things.
 
+File
+: Select any file using the built in file/media browser in WordPress. Since it's using the built in media browser you can also upload new images/attachments to your posts. Using this field together with repeatable field groups = very powerful! :)
+
+Post
+: Select any post that exists in WordPress. Can be pages or any custom post type.
+
+Taxonomy
+: Select a taxonomy from a list of taxonomies.
+
+Taxonomy Term
+: Select a term from a taxonomy.
+
+Color
+: Show a color picker where the user can choose any color. The color can also be entered manually, if the user knows the hex value of the color.
+
+ Date and Time
+: Chose a date and optionally time from a JQuery UI date and time picker.
+ 
+ User
+: Choose a user from the system.
+ 
+See the [field documentation](http://simple-fields.com/documentation/field-types/) for more details about the different fields.
+ 
+## Use Field Type Extensions to add your own field types
+
+If you miss a field type in Simple Fields you can use [Field Extensions](http://simple-fields.com/extensions/) to add more field types. These are fields that are created by other developers and shared with the Simple Fields community.
+
+if you want to create your own field you can do that using the [Extension API](http://simple-fields.com/documentation/api/extension-api/).
+
+## Repeatable fields
+
+Often just a single field is not enough. Why limit yourself to just one image or one attachment? With Repeatable Fields you can add as many images, text fields, textareas, or any other field type, as you want to to a post. This is a very useful feature when you want to create for example image slideshows or pages with many file attachments.
+
+Add attachments and image slideshows in a snap.
+
+Also, the fields in a a repeatable field group are easily sorted using drag and drop.
+
+## Simple PHP functions to speed up your development
+
+`
+simple_fields_value();
+simple_fields_values();
+`
+
+## Works with all post types
+
+With Simple Fields you can add fields to both regular pages and posts and to any custom post type.
+
+Different post types can use different field groups - actually you can even use different field groups even for same post type, on a post to post basis.
+
+## Unit testing to minimize risk of errors
+
+A lot of the functionality in Simple Fields is tested using unit testing. Test cases exists for all the functions that involve getting field values from your posts. This way the risk of anything breaking on a site after upgrade in minimized.
+
+## Help and Support
+
+If you have questions/bug reports/feature requests for Simple Fields then:
+
+* use the [WordPress Support Forum](http://wordpress.org/support/plugin/simple-fields) 
+* visit the [GitHub project page for Simple Fields](http://github.com/bonny/WordPress-Simple-Fields)
+* view the [getting started guide](http://simple-fields.com/documentation/getting-started/)
+
+## Donate to keep this plugin free
+ * If you like this plugin don't forget to [donate to support further development](http://simple-fields.com/about/donate/).
 
 == Installation ==
 
@@ -53,7 +112,7 @@ As always, make a backup of your database first!
 1. Upload the folder "simple-fields" to "/wp-content/plugins/"
 1. Activate the plugin through the "Plugins" menu in WordPress
 1. Start poking around with Simple Fields under Settings > Simple Fields
-1. Get help at http://eskapism.se/code-playground/simple-fields/ and ask your questions at http://wordpress.org/tags/simple-fields?forum_id=10
+1. Get help at http://simple-fields.com/documentation/ and ask your questions at http://wordpress.org/support/plugin/simple-fields
 1. That's it; you know have a super cool and powerful CMS based on WordPress!
 
 
@@ -142,7 +201,8 @@ simple_fields_register_post_connector('test_connector',
                                                   'context' => 'normal',
                                                   'priority' => 'high')
                                       ),
-                    'post_types' => array('post')
+                    'post_types' => array('post'),
+                    'hide_editor' => 0
                 )
 );
 
@@ -163,6 +223,96 @@ See that "Add"-link above "Article images"? That means that it is repeatable, so
 
 
 == Changelog ==
+
+#### Version 1.1.6
+- Fixed bug that could lead to memoryleak. Thanks to plux/angry creative for patch.
+- Fixed some notice messages
+- Changed CDN for Date Picker 2 to use Google instead of Microsoft, because the one from Microsoft - ajax.aspnetcdn.com - was always slow for me + it have been completely down too.
+- Fixed problem with slug for field group info inside a field
+- Perhaps fixed a problem with the wp object cache
+- Updated readme to contain lots of more information
+
+#### Version 1.1.5
+- Added "view" link to file field, so you can view images/attachments/pdfs/whatever directly from the edit post screen.
+
+#### Version 1.1.4
+- Added support for dropdowns with multiple selected values. Just check "multiple" in the settings for the dropdown field and voila!
+- Changed all jQuery javascript live events to on events, because live is deprecated.
+- Removed several javscript actions that were called on edit post page. Hopefully makes the edit post screen a bit quicker when working with repeatable custom fields
+- Probably some misc stuff I don't remember
+
+#### Version 1.1.3
+- Fixed date and time picker not working in Firefox (I spend way too much time in Chrome nowadays...)
+- Changed date and time picker to use simplified ISO 8601 return format
+- Changed repeatable fields to be a bit more nice looking, IMHO anyway :)
+- Changed file field to show "edit" and "remove"-links only on mouse over. Yes, I really want less clutter in my plugin.
+- Fixed some notice warnings
+- Fixed: use built in function to remove meta instead of direct sql calls. fixes some problem in wp 3.5b. And it feel a lot less dirty.
+- Misc other stuff
+
+#### Version 1.1.2
+- Fixed script error (sortable not found) on settings page.
+- Fixed problem with return values, field divider gave an error...
+- Fixed wrong position of repeater drag handle (wrong position on repeating fields)
+- Added: method edit_save() for Field Extensions API. Let you modify the values before being saved in database. (Actually this was added in last version, but I forgot about it then..)
+
+#### Version 1.1.1
+- Fixed: styles and scripts where not outputed on all post types
+
+#### Version 1.1
+- Added: new field type "Date and Time Picker". It's a better version of the Date field. With this new field type you can choose to have a date picker, time picker, or a picker with both date and time. The saved values are stored in ISO 8601-format in the database, so they should be fine to sort posts by when using wp_query.
+- Addded: action "simple_fields_admin_head". Use it to add content to the head of admin pages that use simple fields, i.e. the edit post screen. This action is better than admin_head because it's only fired on pages that use simple fields, so all other admin pages will be faster since they don't have to parse any unnecessary.
+- Added: action "simple_fields_enqueue_scripts". Same as above, but used to enqueue scripts.
+- Fixed: don't output debug info when calling the_excerpt()
+- Changed: some GUI changes, like moving the description to below the labels on edit post screen. It became to inconsistent to have the description at different places for different field types.
+- Changed: only load styles and scripts on screens that use simple fields. Should speed up other parts of WordPress a little bit.
+
+#### Version 1.0.6
+- Added: date_i8n-format for date field when using extended return values
+- Added: support for extended return values for function simple_fields_get_post_value()
+- Fxed: added group to cache functions + clears the cache when using the register-functions
+- Fixed: file dialog javascript now checks that the pagenow variable exists before trying to use it. Hopefully fixes problems with Post Thumbnail Editor
+ and other plugins that also use the file dialog.
+- Changed: hide "show time" for date field, since we don't use it for anything
+
+#### Version 1.0.5
+- Added: field group slug to field group wrapper css + field wrapper css on edit post screen, so you can style different field groups differently.
+- Added: new method: get_field_group(): returns an array with info about a field group by using id or slug
+- Added: new function: simple_fields_fieldgroup(). Works like simple_fields_value(s) but for a complete fieldgroup. 
+Pretty good "shortcut" when you want to get all the field values in a field group.
+- Added: new method get_field_by_slug. Returns a field from a fieldgroup using their slugs.
+- Fixed: Added wp_cache to some very commonly used functions. Quick tests with Xdebug shows a noticable faster performance.
+- Changed: method get_field_groups() adds a key with name field_group with some info about the field group that the field belongs to. 
+Useful since sometimes when you use for example get_field_by_slug() to get a single field, you want to know some basic info about the 
+field group it belongs to, like the id or slug.
+- Changed: function sf_d also shows if a variable is a boolean.
+
+#### Version 1.0.4
+- Added: Add button added to bottom of the added field groups. Will be visible when more than 1 field group is added.
+- Changed: moved to a two column mode/appearance. Makes the fields take upp less space, and making it more clutter free.
+- Changed: minor CSS fixes here and there
+
+#### Version 1.0.3
+- Added: Added options for returning values as "Extended Return Values". 
+Very useful when working with for example files: 
+instead of just the ID of the file you get the id, the full path to the file, the dimensions if it's a image, and more. 
+This feature is available for these field types: 
+file, radiobutton, dropdown, post, user, taxonomy, taxonomy term and date. 
+Please see the [documentation for Extended Return Values](http://simple-fields.com/documentation/api/extended-return-values/) for more information and examples.
+- Added: option to set the height for textarea fields (inlcuding HTML/TinyMCE-editor-mode)
+- Added: new field type: divider. Useful if you have a field group with many fields. By adding the divider field to a field group it simply created a shite space or a space with a line. It's written using the new Extension API btw, so feel free to check out the source if you want to create something similar yourself.
+- Changed: The debug output also includes example on how to get all field in a field group at once.
+- Changed: The edit field group admin page now is a bit more compact. Makes easier to get an overview of all the added fields.
+
+#### Version 1.0.2
+- Changed: Don't load example field types
+- Fixed: jQuery is needed for debug output but was not enqueued
+- Added: French translation. Thank you very much, translator!
+- Small bugfixes
+- Added unit tests. Hopefully this makes it easier for me to spot bugs in the future. Btw: these are the first unit tests I've ever written, so please feel free to comment on the way I've done it! :)
+
+#### Version 1.0.1
+- Fixed: some warning and notice-errors, for example when a post connector did not have any field groups connected
 
 #### Version 1.0
 - Note: This is a pretty big update, so please backup your databases before installation!
