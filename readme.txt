@@ -46,7 +46,7 @@ A simple checkbox to be able to select something on/off.
 * **Radio Buttons**<br>
 Add multiple radiobuttons where a user can select one of the buttons. Useful for letting a user choose between multiple options.
  
-* *Dropdown**<br>
+* **Dropdown**<br>
 Add multiple values to a dropdown box. User can select one or several items in the list. Useful for letting your users select one or severall things.
 
 * **File**<br>
