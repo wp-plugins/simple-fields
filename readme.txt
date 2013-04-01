@@ -34,10 +34,10 @@ Simple Fields comes bundled with a useful variation of fields. Note that any fie
 
 The fields that are included in Simple Fields are:
 
-* Text *
+* **Text**
 A simple text input to enter any kind of information.
 
-* Textarea *
+* *Textarea*
 A bigger area for inputing text. Even support WYSIWYG/TinyMCE-mode that makes it work like the regular content editor, so you can insert images, headlines, list, paragraphs and so on.
 
 * Checkbox *
