@@ -34,42 +34,40 @@ Simple Fields comes bundled with a useful variation of fields. Note that any fie
 
 The fields that are included in Simple Fields are:
 
-* **Text**
+* **Text**<br>
 A simple text input to enter any kind of information.
 
-* *Textarea*
+* **Textarea**<br>
 A bigger area for inputing text. Even support WYSIWYG/TinyMCE-mode that makes it work like the regular content editor, so you can insert images, headlines, list, paragraphs and so on.
 
-* *Checkbox*
-
+* **Checkbox**<br>
 A simple checkbox to be able to select something on/off.
 
-* **Radio Buttons**
-
+* **Radio Buttons**<br>
 Add multiple radiobuttons where a user can select one of the buttons. Useful for letting a user choose between multiple options.
  
-* Dropdown *
+* *Dropdown**<br>
 Add multiple values to a dropdown box. User can select one or several items in the list. Useful for letting your users select one or severall things.
 
-* <strong>File</strong>
+* **File**<br>
 Select any file using the built in file/media browser in WordPress. Since it's using the built in media * browser you can also upload new images/attachments to your posts. Using this field together with repeatable field groups = very powerful! :)
 
 * **Post**<br>
 Select any post that exists in WordPress. Can be pages or any custom post type.
 
-* Taxonomy *
+* **Taxonomy**<br>
 Select a taxonomy from a list of taxonomies.
 
-* Taxonomy Term *
+* **Taxonomy Term**<br>
 Select a term from a taxonomy.
 
-* Color *
+* **Color**<br>
 Show a color picker where the user can choose any color. The color can also be entered manually, if the user knows the hex value of the color.
 
-* Date and Time *
+* **Date and Time**<br>
 Chose a date and optionally time from a JQuery UI date and time picker.
  
-* User *
+* **User**<br>
 Choose a user from the system.
  
 See the [field documentation](http://simple-fields.com/documentation/field-types/) for more details about the different fields.
