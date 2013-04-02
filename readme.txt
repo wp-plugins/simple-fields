@@ -50,7 +50,7 @@ Add multiple radiobuttons where a user can select one of the buttons. Useful for
 Add multiple values to a dropdown box. User can select one or several items in the list. Useful for letting your users select one or severall things.
 
 * **File**<br>
-Select any file using the built in file/media browser in WordPress. Since it's using the built in media * browser you can also upload new images/attachments to your posts. Using this field together with repeatable field groups = very powerful! :)
+Select any file using the built in file/media browser in WordPress. Since it's using the built in media browser you can also upload new images/attachments to your posts. Using this field together with repeatable field groups = very powerful! :)
 
 * **Post**<br>
 Select any post that exists in WordPress. Can be pages or any custom post type.
