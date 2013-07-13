@@ -11,6 +11,22 @@
 	background-color: lightyellow;
 }
 
+.simple-fields-message {
+	background-color: #ffffe0;
+	border-color: #e6db55;
+	margin: 5px 0 15px;
+	padding: 0 .6em;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	border-width: 1px;
+	border-style: solid;
+}
+
+.simple-fields-message p {
+	margin: .5em 0;
+	padding: 2px;
+}
+
 ul.simple-fields-edit-field-groups-added-fields {
 	margin-top: 0;
 	position: relative;
@@ -36,7 +52,9 @@ ul.simple-fields-edit-field-groups-added-fields {
 #post_connector_name
  {
 	font-size: 1.5em;
-	font-weight: bold;
+	/*font-weight: bold;*/
+	width: 16.6em;
+	line-height: 1.2;
 }
 
 .simple-fields-field-group-one-field-name {
@@ -121,6 +139,11 @@ div.delete a {
 }
 div.delete a:hover {
 	color: #FF0000;
+}
+
+.settings_page_simple-fields-options .add-new-h2 {
+	font-weight: normal;
+	top: 0;
 }
 
 li.simple-fields-field-group-one-field {
