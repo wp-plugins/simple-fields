@@ -23,14 +23,36 @@ class MyPluginTest extends WP_UnitTestCase {
 	// Test output of debug function
 	function testDebug()
 	{
-		$this->expectOutputString("<pre class='sf_box_debug'>this is simple fields debug function</pre>");
+
+		$expected = <<<EOD
+
+<pre class='sf_box_debug'>
+this is simple fields debug function
+</pre>
+EOD;
+
+		$this->expectOutputString($expected);
 		sf_d("this is simple fields debug function");
 	}
 
+	// Test output of debug function
+	function testDebug2()
+	{
+		$expected = <<<EOD
+
+<pre class='sf_box_debug'>
+<b>With headline:</b>
+this is simple fields debug function
+</pre>
+EOD;
+		$this->expectOutputString($expected);
+		sf_d("this is simple fields debug function", "With headline");
+	}
+
+
 	function testInsertManuallyAddedFields() {
 		_insert_manually_added_fields();
-	}
-	
+	}	
 
 	// insert and test manually added fields
 	function testManuallyAddedFields()
@@ -54,6 +76,12 @@ class MyPluginTest extends WP_UnitTestCase {
 		$this->assertEquals(1, simple_fields_value("field_user", $post_id));
 
 		// test repeatable/all values
+
+		#echo "xxx";
+		#var_dump( simple_fields_values("field_text") );
+		#exit;
+		#print_r($allvals);
+
 		$val = array(
 			0 => "Text entered in the text field",
 			1 => "text in textfield 2<span>yes it is</span>"
@@ -132,6 +160,31 @@ class MyPluginTest extends WP_UnitTestCase {
 			1 => "1"
 		);
 		$this->assertEquals($val, simple_fields_values("field_user", $post_id));
+		
+		// date & time picker 2
+		$val = array(
+			    0 => array(
+			            "type" => "datetime",
+			            "date_unixtime" => "1359624600",
+			            "ISO_8601" => "2013-01-31 09:30",
+			            "RFC_2822" => "Thu, 31 Jan 2013 09:30:00 +0000",
+			            "Y-m-d" => "2013-01-31",
+			            "Y-m-d H:i" => "2013-01-31 09:30",
+			            "date_format" => "January 31, 2013",
+			            "date_time_format" => "January 31, 2013 9:30 am"
+			        ),			
+				    1 => array(
+			            "type" => "datetime",
+			            "date_unixtime" => "1355162400",
+			            "ISO_8601" => "2012-12-10 18:00",
+			            "RFC_2822" => "Mon, 10 Dec 2012 18:00:00 +0000",
+			            "Y-m-d" => "2012-12-10",
+			            "Y-m-d H:i" => "2012-12-10 18:00",
+			            "date_format" => "December 10, 2012",
+			            "date_time_format" => "December 10, 2012 6:00 pm",
+			        )			
+				);
+		$this->assertEquals($val, simple_fields_values("field_date_picker_2", $post_id));
 
 	}
 
@@ -1001,8 +1054,12 @@ class MyPluginTest extends WP_UnitTestCase {
 		            'type_taxonomyterm_options' => array(
 		                'additional_arguments' => ''
 		            ),
+		            'type_text_options' => array(),
 		            'id' => 0,
 		            'deleted' => 0,
+		            "options" => array(
+		            	"text" => array()
+		            ),
 				    "field_group" => array(
 						"id" => 4,
 						"name" => "Test field group",
@@ -1010,14 +1067,24 @@ class MyPluginTest extends WP_UnitTestCase {
 						"description" => "Test field description",
 						"repeatable" => 1,
 						"fields_count" => 1
-				    )
+				    ),
 		        ),
 		    ),
 		    'deleted' => false,
-		    "fields_count" => 1
+		    "fields_count" => 1,
+		    "added_with_code" => true
+		    // "fields_by_slug" => array()
 		);
-#echo "xxx";print_r($arr_return);
-		$this->assertEquals( $expected_return, $arr_return );
+		
+		// check that all keys in expected_return and it's values exist in arr_return
+		foreach ($expected_return as $expected_return_key => $expected_return_value) {
+			$this->assertArrayHasKey( $expected_return_key, $arr_return );
+			$this->assertEquals( $expected_return_value, $arr_return[$expected_return_key] );
+		}
+
+		foreach ($expected_return["fields"][0] as $expected_return_key => $expected_return_value) {
+			$this->assertArrayHasKey($expected_return_key, $arr_return["fields"][0]);
+		}
 		
 
 		// generate arr with all field types
@@ -1065,17 +1132,32 @@ class MyPluginTest extends WP_UnitTestCase {
 		            ),
 		            'id' => 0,
 		            'deleted' => 0,
-		            "field_group" => array()
+		            "field_group" => array(),
+		            "options" => array(),
 		        ),
 		    ),
 		    'deleted' => false,
-		    "fields_count" => 1
+		    "fields_count" => 1,
+		    "added_with_code" => true
 		);
 
+		unset($arr_return["fields_by_slug"]);
+		
 		$this->assertEquals( array_keys($expected_return), array_keys($arr_return) );
 		
 		// @todo: add test of values here also
 		foreach ($arr_return["fields"] as $arr_one_field) {
+			// cheating a bit, because laziness
+			unset( $arr_one_field["type_text_options"], 
+				   $arr_one_field["type_textarea_options"], 
+				   $arr_one_field["type_checkbox_options"], 
+				   $arr_one_field["type_dropdown_options"], 
+				   $arr_one_field["type_file_options"], 
+				   $arr_one_field["type_taxonomy_options"], 
+				   $arr_one_field["type_color_options"],
+				   $arr_one_field["type_date_options"],
+				   $arr_one_field["type_user_options"]
+				);
 			$this->assertEquals( array_keys($expected_return["fields"][0]), array_keys($arr_one_field) );
 		}
 	
@@ -1085,10 +1167,191 @@ class MyPluginTest extends WP_UnitTestCase {
 
 		*/
 
+
+		// Test post connectors
+		$connector_return1 = simple_fields_register_post_connector('test_connector',
+			array (
+				'name' => "A test connector",
+				'field_groups' => array(
+					array(
+						'slug' => 'my_new_field_group'
+					)
+				),
+				'post_types' => array('post', "page")
+			)
+		);	
+
+		$connector_return2 = simple_fields_register_post_connector('another_connector',
+			array (
+				'name' => "Another connector",
+				'field_groups' => array(
+					array(
+						'slug' => 'my_new_field_group_all_fields'
+					),
+					array(
+						'slug' => 'my_new_field_group'
+					),
+				),
+				'post_types' => array('post', "page")
+			)
+		);
+
+		$connector_return1_expected = array(
+                'id' => 2,
+                'key' => 'test_connector',
+                'slug' => 'test_connector',
+                'name' => 'A test connector',
+                'field_groups' => array(
+                                4 => array(
+                                                'id' => 4,
+                                                'slug' => 'my_new_field_group',
+                                                'key' => 'my_new_field_group',
+                                                'name' => 'Test field group',
+                                                'deleted' => 0,
+                                                'context' => 'normal',
+                                                'priority' => 'low'
+                                )
+                ),
+                'post_types' => array(
+                                0 => 'post',
+                                1 => 'page'
+                ),
+                'deleted' => false,
+                'hide_editor' => false,
+                'field_groups_count' => 1,
+                "added_with_code" => true
+              );
+        
+        $this->assertEquals($connector_return1_expected, $connector_return1);
+        
+		$connector_return2_expected = array(
+                'id' => 3,
+                'key' => 'another_connector',
+                'slug' => 'another_connector',
+                'name' => 'Another connector',
+                'field_groups' => array(
+                                3 => array(
+                                                'id' => 3,
+                                                'slug' => 'my_new_field_group_all_fields',
+                                                'key' => 'my_new_field_group_all_fields',
+                                                'name' => 'Test field group with all fields',
+                                                'deleted' => 0,
+                                                'context' => 'normal',
+                                                'priority' => 'low'
+                                ),
+                                4 => array(
+                                                'id' => 4,
+                                                'slug' => 'my_new_field_group',
+                                                'key' => 'my_new_field_group',
+                                                'name' => 'Test field group',
+                                                'deleted' => 0,
+                                                'context' => 'normal',
+                                                'priority' => 'low'
+                                )
+                ),
+                'post_types' => array(
+                                0 => 'post',
+                                1 => 'page'
+                ),
+                'deleted' => false,
+                'hide_editor' => false,
+                'field_groups_count' => 2,
+                "added_with_code" => true
+              );
+
+        $this->assertEquals($connector_return2_expected, $connector_return2);
+        
+        
 		// test manually added fields again to make sure nothing broke
 		// does this work btw?
 		$this->testManuallyAddedFields();
 
+		// Some more texts with addings fields
+		// Added 14 jan 2013
+		$new_field_group_fields = array (
+				'name' => 'Attachments',
+				'description' => "Add some attachments to this post",
+				'repeatable' => 1,
+				'fields' => array(
+					array(
+						'slug' => "attachment_file",
+						'name' => 'A file',
+						'description' => 'Select a file, for example an image',
+						'type' => 'file',
+						"type_file_options" => array(
+							"enable_extended_return_values" => 1
+						)
+					),
+				)
+		);
+		$added_field_group = simple_fields_register_field_group('attachments', $new_field_group_fields);
+
+		// check most important things		
+		//$this->assertEquals( array_keys($expected_return), array_keys($arr_return) );
+		$this->assertArrayHasKey("slug", $added_field_group);
+		foreach ($new_field_group_fields as $field_key => $field_val) {
+			$this->assertArrayHasKey($field_key, $added_field_group);	
+		}
+		foreach ($new_field_group_fields["fields"][0] as $field_key => $field_val) {
+			$this->assertArrayHasKey($field_key, $added_field_group["fields"][0]);	
+		}
+
+		// Change some small things, like adding another fields after the first
+		$new_field_group_fields_modified1 = $new_field_group_fields;
+		$new_field_group_fields_modified1["name"] = "Attachments changed text";
+		$new_field_group_fields_modified1["description"] = "Attachments changed description";
+		$new_field_group_fields_modified1["fields"][] = array(
+															'slug' => "attachment_description",
+															'name' => 'A description',
+															'description' => 'bla bla bla',
+															'type' => 'text',
+															"type_file_options" => array(
+																"enable_extended_return_values" => 1
+														)
+													);
+		$added_field_group_after_modified1 = simple_fields_register_field_group('attachments', $new_field_group_fields_modified1);		
+		foreach ($expected_return as $field_key => $field_val) {
+			$this->assertArrayHasKey($field_key, $added_field_group_after_modified1);			
+		}
+
+		$this->assertCount( 2, $added_field_group_after_modified1["fields"] );
+		$this->assertEquals( $added_field_group_after_modified1["fields"][0]["slug"], "attachment_file" );
+		$this->assertEquals( $added_field_group_after_modified1["fields"][1]["slug"], "attachment_description" );
+		
+		
+		// Update an existing field with, with as little code as possible
+		$added_field_group_after_updated_field_with_little_code = simple_fields_register_field_group('attachments', array (
+				'key' => 'attachments',
+				'fields' => array(
+					array(
+						'slug' => "attachment_file",
+						'name' => 'A file, updated',
+						'description' => 'Select a file, for example an image, updated'
+					),
+				)
+			)
+		);
+
+		$this->assertEquals( $added_field_group_after_updated_field_with_little_code["fields"][0]["slug"], "attachment_file" );
+		$this->assertEquals( $added_field_group_after_updated_field_with_little_code["fields"][1]["slug"], "attachment_description" );
+
+		// Update an existing field with, with as little code as possible
+		// after this attachment_description should be the first key in fields
+		$added_field_group_after_updated_field_with_little_code = simple_fields_register_field_group('attachments', array (
+				'key' => 'attachments',
+				'fields' => array(
+					array(
+						'slug' => "attachment_description"
+					),
+				)
+			)
+		);
+
+		$this->assertEquals( $added_field_group_after_updated_field_with_little_code["fields"][0]["slug"], "attachment_file" );
+		$this->assertEquals( $added_field_group_after_updated_field_with_little_code["fields"][1]["slug"], "attachment_description" );
+
+		$this->assertEquals( array(1, 0), array_keys( $added_field_group_after_updated_field_with_little_code["fields"] ) );
+		
 		/*
 
 			left to write tests for:
@@ -1100,6 +1363,26 @@ class MyPluginTest extends WP_UnitTestCase {
 			Extension API
 			
 		*/
+	}
+
+	public function test_misc() {
+		
+		// Test meta key
+		
+		// older format
+		$key = $this->sf->get_meta_key(1, 2, 3);
+		$this->assertEquals("_simple_fields_fieldGroupID_1_fieldID_2_numInSet_3", $key);
+
+		// newer format
+		$key = $this->sf->get_meta_key(1, 2, 3);
+		$this->assertEquals("_simple_fields_fieldGroupID_1_fieldID_2_numInSet_3", $key);
+
+		// test that normalization of fields works
+		$field_groups = unserialize('a:1:{i:19;a:12:{s:2:"id";i:19;s:3:"key";s:19:"wpml_radiosandstuff";s:4:"slug";s:19:"wpml_radiosandstuff";s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:6:"fields";a:4:{i:1;a:11:{s:4:"name";s:18:"Here is checkboxes";s:4:"slug";s:3:"cbs";s:11:"description";s:0:"";s:4:"type";s:8:"checkbox";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"1";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:2;a:12:{s:4:"name";s:21:"Here is radio buttons";s:4:"slug";s:3:"rds";s:11:"description";s:0:"";s:4:"type";s:12:"radiobuttons";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_radiobuttons_options";a:4:{s:17:"radiobutton_num_2";a:2:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";}s:17:"radiobutton_num_3";a:2:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";s:17:"radiobutton_num_4";a:2:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";}}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"2";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:3;a:11:{s:4:"name";s:0:"";s:4:"slug";s:0:"";s:11:"description";s:0:"";s:4:"type";s:4:"text";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"3";s:7:"deleted";s:1:"1";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:4;a:11:{s:4:"name";s:16:"Here is dropdown";s:4:"slug";s:4:"drps";s:11:"description";s:0:"";s:4:"type";s:8:"dropdown";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:4:{s:15:"enable_multiple";s:1:"0";s:14:"dropdown_num_2";a:2:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_3";a:2:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_4";a:2:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";}}s:2:"id";s:1:"4";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}}s:14:"fields_by_slug";a:0:{}s:7:"deleted";b:0;s:8:"gui_view";s:4:"list";s:15:"added_with_code";b:0;s:12:"fields_count";i:3;}}');
+		$field_groups_normalized_expected = unserialize('a:1:{i:19;a:12:{s:2:"id";i:19;s:3:"key";s:19:"wpml_radiosandstuff";s:4:"slug";s:19:"wpml_radiosandstuff";s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:6:"fields";a:4:{i:1;a:12:{s:4:"name";s:18:"Here is checkboxes";s:4:"slug";s:3:"cbs";s:11:"description";s:0:"";s:4:"type";s:8:"checkbox";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"1";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:2;a:13:{s:4:"name";s:21:"Here is radio buttons";s:4:"slug";s:3:"rds";s:11:"description";s:0:"";s:4:"type";s:12:"radiobuttons";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_radiobuttons_options";a:4:{s:17:"radiobutton_num_2";a:2:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";}s:17:"radiobutton_num_3";a:2:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";s:17:"radiobutton_num_4";a:2:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";}}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"2";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:5:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"radiobuttons";a:2:{s:6:"values";a:3:{i:0;a:3:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";s:3:"num";i:2;}i:1;a:4:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";s:3:"num";i:3;s:7:"checked";b:1;}i:2;a:3:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";s:3:"num";i:4;}}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:3;a:12:{s:4:"name";s:0:"";s:4:"slug";s:0:"";s:11:"description";s:0:"";s:4:"type";s:4:"text";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"3";s:7:"deleted";s:1:"1";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:4;a:12:{s:4:"name";s:16:"Here is dropdown";s:4:"slug";s:4:"drps";s:11:"description";s:0:"";s:4:"type";s:8:"dropdown";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:4:{s:15:"enable_multiple";s:1:"0";s:14:"dropdown_num_2";a:2:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_3";a:2:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_4";a:2:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";}}s:2:"id";s:1:"4";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:2:{s:15:"enable_multiple";s:1:"0";s:6:"values";a:3:{i:0;a:3:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";s:3:"num";i:2;}i:1;a:3:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";s:3:"num";i:3;}i:2;a:3:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";s:3:"num";i:4;}}}}}}s:14:"fields_by_slug";a:0:{}s:7:"deleted";b:0;s:8:"gui_view";s:4:"list";s:15:"added_with_code";b:0;s:12:"fields_count";i:3;}}');
+		$field_groups_normalized = $this->sf->normalize_fieldgroups( $field_groups );
+		$this->assertEquals( $field_groups_normalized_expected, $field_groups_normalized);
+
 	}
 
 	/**
