@@ -3,7 +3,7 @@
 Plugin Name: Simple Fields
 Plugin URI: http://simple-fields.com
 Description: Add groups of textareas, input-fields, dropdowns, radiobuttons, checkboxes and files to your edit post screen.
-Version: 1.4.1
+Version: 1.4.2
 Author: Pär Thernström
 Author URI: http://eskapism.se/
 License: GPL2
@@ -57,7 +57,7 @@ class simple_fields {
 	function init() {
 
 
-		define( "SIMPLE_FIELDS_VERSION", "1.4.1");
+		define( "SIMPLE_FIELDS_VERSION", "1.4.2");
 		define( "SIMPLE_FIELDS_URL", plugins_url(basename(dirname(__FILE__))). "/");
 		define( "SIMPLE_FIELDS_NAME", "Simple Fields");
 
@@ -107,6 +107,7 @@ class simple_fields {
 		add_action( 'save_post', array($this, 'save_postdata') );
 		add_action( 'save_post', array($this, 'clear_caches') );
 		add_action( 'edit_attachment', array($this, 'save_postdata') );
+		add_action( "simple_fields_get_selected_connector_for_post", array($this, "set_post_connector_from_template"), 10, 2 );
 
 		// Query filters
 		add_action( 'pre_get_posts', array($this, 'action_pre_get_posts_meta') );
@@ -2218,33 +2219,55 @@ sf_d($one_field_slug, 'one_field_slug');*/
 				$str_inherit_parent_connector_name = "({$str_parent_connector_name})";
 			}
 		}
-		
+
 		?>
 		<div class="inside">
-			<div>
-				<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
-					<option <?php echo ($saved_connector_to_use == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
-					<option <?php echo ($saved_connector_to_use == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?>
-						<?php
-						echo $str_inherit_parent_connector_name;
-						?>
-					</option>
-					<?php foreach ($arr_connectors as $one_connector) : ?>
-						<?php if ($one_connector["deleted"]) { continue; } ?>
-						<option <?php echo ($saved_connector_to_use == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
-					<?php endforeach; ?>
-				</select>
-			</div>
+
 			<?php
-			// If connector has been changed with filter then show was connector is being used
-			if ( is_numeric($connector_selected) && $connector_selected != $saved_connector_to_use ) {
-				$connector_selected_info = $this->get_connector_by_id($connector_selected);
-				?><div><p><?php _e("Actual used connector:", "simple-fields") ?> <?php echo $connector_selected_info["name"]; ?></p></div><?php
+
+			// If connector is set from template then that overrides dropdown
+			if ( $this->post_has_template_connector( $post ) ) {
+			
+				$template = !empty($post->page_template) ? $post->page_template : false;
+				$post_connector_from_template = $this->get_post_connector_from_template( $template );
+				?>
+				<p><?php _e( sprintf('Post connector is defined in template and is set to "%1$s"', $post_connector_from_template), "simple-fields") ?></p>
+				<?php
+			
+			} else {
+
+				// dropdown with post connectors ?>
+				<div>
+					<select name="simple_fields_selected_connector" id="simple-fields-post-edit-side-field-settings-select-connector">
+						<option <?php echo ($saved_connector_to_use == "__none__") ? " selected='selected' " : "" ?> value="__none__"><?php _e('None', 'simple-fields') ?></option>
+						<option <?php echo ($saved_connector_to_use == "__inherit__") ? " selected='selected' " : "" ?> value="__inherit__"><?php _e('Inherit from parent', 'simple-fields') ?>
+							<?php
+							echo $str_inherit_parent_connector_name;
+							?>
+						</option>
+						<?php foreach ($arr_connectors as $one_connector) : ?>
+							<?php if ($one_connector["deleted"]) { continue; } ?>
+							<option <?php echo ($saved_connector_to_use == $one_connector["id"]) ? " selected='selected' " : "" ?> value="<?php echo $one_connector["id"] ?>"><?php echo $one_connector["name"] ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+				<?php
+
+				// If connector has been changed with filter then show was connector is being used
+				if ( is_numeric($connector_selected) && $connector_selected != $saved_connector_to_use ) {
+					$connector_selected_info = $this->get_connector_by_id($connector_selected);
+					?><div><p><?php _e("Actual used connector:", "simple-fields") ?> <?php echo $connector_selected_info["name"]; ?></p></div><?php
+				}
+
+				?>
+				<div id="simple-fields-post-edit-side-field-settings-select-connector-please-save" class="hidden">
+					<p><?php _e('Save post to switch to selected fields.', 'simple-fields') ?></p>
+				</div>
+				<?php
+			
 			}
+
 			?>
-			<div id="simple-fields-post-edit-side-field-settings-select-connector-please-save" class="hidden">
-				<p><?php _e('Save post to switch to selected fields.', 'simple-fields') ?></p>
-			</div>
 			<div>
 				<p><a href="#" id="simple-fields-post-edit-side-field-settings-show-keys"><?php _e('Show custom field keys', 'simple-fields') ?></a></p>
 			</div>
@@ -4437,6 +4460,59 @@ sf_d($one_field_slug, 'one_field_slug');*/
 
 	}
 
+	/**
+	 * Look for post connector defined in template
+	 * Format in template is:
+	 *
+	 * Simple Fields Connector: useMeAsThePostConnector
+	 *
+	 * Hooked into action simple_fields_get_selected_connector_for_post
+	 *
+	 */
+	function set_post_connector_from_template($connector_to_use, $post) {
+		
+		// Look for connector defined in template
+		$template = !empty($post->page_template) ? $post->page_template : false;
+		$post_connector_from_template = $this->get_post_connector_from_template( $template );
+		if ($post_connector_from_template) $connector_to_use = $post_connector_from_template;
+
+		$connector_to_use = apply_filters("set_post_connector_from_template", $connector_to_use, $post);
+
+		return $connector_to_use;
+
+	}
+
+	/**
+	 * Returns true if post has a template connector defined
+	 */
+	function post_has_template_connector($post) {
+
+		$template = !empty($post->page_template) ? $post->page_template : false;
+		$post_connector_from_template = $this->get_post_connector_from_template( $template );
+		return (bool) $post_connector_from_template;
+
+	}
+
+
+	/**
+	 * @param string $template template filename
+	 * @return string Slug of post connector. Empty if no one set
+	 */
+	function get_post_connector_from_template($template) {
+
+		$template_file = locate_template($template);
+		if ( is_file( $template_file ) ) {
+			$template_data = get_file_data( $template_file, array("Name" => "Template Name", "PostConnector" => "Simple Fields Connector") );
+			$post_connector = trim($template_data["PostConnector"]);
+		} else {
+			$post_connector = "";
+		}
+		
+		$post_connector = apply_filters("get_post_connector_from_template", $post_connector, $template);
+		
+		return $post_connector;
+
+	}
 
 } // end class
 
