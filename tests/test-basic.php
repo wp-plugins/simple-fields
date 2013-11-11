@@ -1,24 +1,65 @@
 <?php
-/**
- * MyPlugin Tests
- */
-class MyPluginTest extends WP_UnitTestCase {
 
-	public function setUp()
-	{
-		parent::setUp();
-		global $sf;
+class BasicTest extends SimpleFields_TestCase {
 
-		$this->sf = $sf;
+	/*
+	setUpBeforeClass
+	tearDownAfterClass
+	setUp
+	tearDown
+	*/
+	public static $post_id_for_manual_tests;
+
+	function testSetupCorrectly() {
+
+		$this->assertTrue( class_exists("simple_fields"), "Simple Fields class must exist" );
+		$this->assertTrue( isset( $GLOBALS['sf']), "Global variable must be set" );
+
 	}
 
-	// test defaults, should all be empty since we cleared the db...
-	function testDefaults()
-	{
-		$this->assertEquals(array(), $this->sf->get_post_connectors());
-		$this->assertEquals(array(), $this->sf->get_field_groups());
-		$this->assertEquals(array(), $this->sf->get_field_groups());
-	}
+	function testCache() {
+
+		// cache namespace key must be numeric
+		$this->assertTrue( is_numeric( self::$sf->ns_key ) );
+		$old_ns = self::$sf->ns_key;
+
+		// clear caches and check that key is increased
+		self::$sf->clear_caches();
+		$this->assertTrue( is_numeric( self::$sf->ns_key ) );
+		$this->assertTrue( self::$sf->ns_key > $old_ns );
+
+		// sf_d( self::$sf->ns_key );
+
+		// check that cache stores and gets things correctly
+		$key = 'simple_fields_unittest_' . self::$sf->ns_key . '_cache_test';
+		$group = "simple_fields";
+		$val = rand_str();
+		$this->assertFalse( wp_cache_get( $key, $group), "Cached value must not exist" );
+		wp_cache_set($key , $val, $group );
+		$cached_val = wp_cache_get( $key, $group);
+		$this->assertEquals( $cached_val, $val, "Value from cache must be same as orginal value" );
+
+		// clear caches again and make sure values not in cache anymore
+		self::$sf->clear_caches();
+		$cached_val = wp_cache_get( $key, $group);
+		$this->assertNotEquals( $cached_val, $val, "Value from cache must no be same as orginal value" );
+		$this->assertFalse( $cached_val , "Cached value must not exist" );
+
+	 }
+
+	 function testDefaultValues() {
+
+	 	// check that all configs are empty
+	 	$this->assertEquals( self::$sf->get_post_connectors(), array() );
+	 	$this->assertEquals( self::$sf->get_post_type_defaults(), array(0 => null) );
+	 	$this->assertEquals( self::$sf->get_field_groups(), array() );
+
+	 }
+
+	 /*
+	 Check if we can get settings from old installation/unit testing
+	 */
+
 
 	// Test output of debug function
 	function testDebug()
@@ -49,17 +90,159 @@ EOD;
 		sf_d("this is simple fields debug function", "With headline");
 	}
 
+	function insertDataForManualAddedFields() {
 
-	function testInsertManuallyAddedFields() {
-	}	
+		global $wpdb;
+
+		// Create post that has manually added simple fields
+		// First we create the post, then we add the custom fields
+		// post_name=post-with-fields
+		// post_content=I am a post with fields attached.
+		// post_title=Post with fields
+
+		$post_id = $this->factory->post->create(array(
+			"post_title" => "Post with fields"
+		));
+		self::$post_id_for_manual_tests = $post_id;
+
+		// Insert options for Simple Fields
+		// Nothing here is for specific posts
+		$query = <<<EOT
+			INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`)
+			VALUES ('simple_fields_options', 'a:4:{i:0;b:0;s:10:\"debug_type\";i:1;s:23:\"phpunittest_save_option\";s:15:\"new saved value\";s:31:\"phpunittest_save_another_option\";s:13:\"another value\";}', 'yes')
+EOT;
+		$wpdb->query($query);
+		
+		$query = <<<EOT
+			INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`)
+			VALUES 
+				('simple_fields_groups', 'a:3:{i:1;a:9:{s:2:\"id\";i:1;s:3:\"key\";s:20:\"field_group_manually\";s:4:\"slug\";s:20:\"field_group_manually\";s:4:\"name\";s:26:\"Manually added field group\";s:11:\"description\";s:50:\"A group that is added manually from within the GUI\";s:10:\"repeatable\";b:1;s:6:\"fields\";a:14:{i:1;a:11:{s:4:\"name\";s:10:\"Text field\";s:11:\"description\";s:12:\"A text field\";s:4:\"slug\";s:10:\"field_text\";s:4:\"type\";s:4:\"text\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"1\";s:7:\"deleted\";s:1:\"0\";}i:2;a:11:{s:4:\"name\";s:14:\"Field textarea\";s:11:\"description\";s:16:\"A texteara field\";s:4:\"slug\";s:14:\"field_textarea\";s:4:\"type\";s:8:\"textarea\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"2\";s:7:\"deleted\";s:1:\"0\";}i:3;a:11:{s:4:\"name\";s:19:\"Field textarea HTML\";s:11:\"description\";s:41:\"A textarea field with HTML-editor enabled\";s:4:\"slug\";s:19:\"field_textarea_html\";s:4:\"type\";s:8:\"textarea\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:2:{s:11:\"size_height\";s:7:\"default\";s:15:\"use_html_editor\";s:1:\"1\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"3\";s:7:\"deleted\";s:1:\"0\";}i:4;a:11:{s:4:\"name\";s:14:\"FIeld checkbox\";s:11:\"description\";s:16:\"A checkbox field\";s:4:\"slug\";s:14:\"field_checkbox\";s:4:\"type\";s:8:\"checkbox\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"4\";s:7:\"deleted\";s:1:\"0\";}i:5;a:12:{s:4:\"name\";s:19:\"Field radioibuttons\";s:11:\"description\";s:20:\"A radiobuttons field\";s:4:\"slug\";s:18:\"field_radiobuttons\";s:4:\"type\";s:12:\"radiobuttons\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_radiobuttons_options\";a:4:{s:17:\"radiobutton_num_2\";a:2:{s:5:\"value\";s:13:\"Radiobutton 1\";s:7:\"deleted\";s:1:\"0\";}s:17:\"radiobutton_num_3\";a:2:{s:5:\"value\";s:13:\"Radiobutton 2\";s:7:\"deleted\";s:1:\"0\";}s:22:\"checked_by_default_num\";s:17:\"radiobutton_num_3\";s:17:\"radiobutton_num_4\";a:2:{s:5:\"value\";s:13:\"Radiobutton 3\";s:7:\"deleted\";s:1:\"0\";}}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"5\";s:7:\"deleted\";s:1:\"0\";}i:6;a:11:{s:4:\"name\";s:14:\"Field dropdown\";s:11:\"description\";s:16:\"A dropdown field\";s:4:\"slug\";s:14:\"field_dropdown\";s:4:\"type\";s:8:\"dropdown\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:4:{s:15:\"enable_multiple\";s:1:\"0\";s:14:\"dropdown_num_2\";a:2:{s:5:\"value\";s:10:\"Dropdown 1\";s:7:\"deleted\";s:1:\"0\";}s:14:\"dropdown_num_3\";a:2:{s:5:\"value\";s:10:\"Dropdown 2\";s:7:\"deleted\";s:1:\"0\";}s:14:\"dropdown_num_4\";a:2:{s:5:\"value\";s:10:\"Dropdown 3\";s:7:\"deleted\";s:1:\"0\";}}s:2:\"id\";s:1:\"6\";s:7:\"deleted\";s:1:\"0\";}i:7;a:11:{s:4:\"name\";s:10:\"Field file\";s:11:\"description\";s:12:\"A file field\";s:4:\"slug\";s:10:\"field_file\";s:4:\"type\";s:4:\"file\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"7\";s:7:\"deleted\";s:1:\"0\";}i:8;a:11:{s:4:\"name\";s:10:\"Field post\";s:11:\"description\";s:12:\"A post field\";s:4:\"slug\";s:10:\"field_post\";s:4:\"type\";s:4:\"post\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:2:{i:0;s:4:\"post\";i:1;s:4:\"page\";}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"8\";s:7:\"deleted\";s:1:\"0\";}i:9;a:12:{s:4:\"name\";s:14:\"Field taxonomy\";s:11:\"description\";s:16:\"A taxonomy field\";s:4:\"slug\";s:14:\"field_taxonomy\";s:4:\"type\";s:8:\"taxonomy\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_taxonomy_options\";a:1:{s:18:\"enabled_taxonomies\";a:2:{i:0;s:8:\"category\";i:1;s:8:\"post_tag\";}}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:1:\"9\";s:7:\"deleted\";s:1:\"0\";}i:10;a:11:{s:4:\"name\";s:19:\"Field Taxonomy Term\";s:11:\"description\";s:21:\"A taxonomy term field\";s:4:\"slug\";s:19:\"field_taxonomy_term\";s:4:\"type\";s:12:\"taxonomyterm\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:2:{s:16:\"enabled_taxonomy\";s:8:\"category\";s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:2:\"10\";s:7:\"deleted\";s:1:\"0\";}i:11;a:11:{s:4:\"name\";s:11:\"Field Color\";s:11:\"description\";s:13:\"A color field\";s:4:\"slug\";s:11:\"field_color\";s:4:\"type\";s:5:\"color\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";%%THING1%%;s:7:\"deleted\";s:1:\"0\";}i:12;a:11:{s:4:\"name\";s:10:\"Field Date\";s:11:\"description\";s:12:\"A date field\";s:4:\"slug\";s:10:\"field_date\";s:4:\"type\";s:4:\"date\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:2:\"12\";s:7:\"deleted\";s:1:\"0\";}i:13;a:11:{s:4:\"name\";s:10:\"Field user\";s:11:\"description\";s:12:\"A user field\";s:4:\"slug\";s:10:\"field_user\";s:4:\"type\";s:4:\"user\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:4:\"date\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:2:\"13\";s:7:\"deleted\";s:1:\"0\";}i:14;a:11:{s:4:\"name\";s:19:\"Field date picker 2\";s:11:\"description\";s:21:\"A date picker 2 field\";s:4:\"slug\";s:19:\"field_date_picker_2\";s:4:\"type\";s:7:\"date_v2\";s:7:\"options\";a:2:{s:7:\"divider\";a:1:{s:10:\"appearance\";s:4:\"line\";}s:7:\"date_v2\";a:3:{s:7:\"show_as\";s:8:\"datetime\";s:4:\"show\";s:6:\"always\";s:12:\"default_date\";s:7:\"no_date\";}}s:21:\"type_textarea_options\";a:1:{s:11:\"size_height\";s:7:\"default\";}s:17:\"type_post_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:21:\"type_dropdown_options\";a:1:{s:15:\"enable_multiple\";s:1:\"0\";}s:2:\"id\";s:2:\"14\";s:7:\"deleted\";s:1:\"0\";}}s:7:\"deleted\";b:0;s:12:\"fields_count\";i:13;}i:2;a:9:{s:2:\"id\";i:2;s:3:\"key\";s:22:\"my_new_field_group_old\";s:4:\"slug\";s:22:\"my_new_field_group_old\";s:4:\"name\";s:16:\"Test field group\";s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:6:\"fields\";a:1:{i:0;a:9:{s:4:\"name\";s:16:\"A new text field\";s:4:\"slug\";s:16:\"my_new_textfield\";s:11:\"description\";s:36:\"Enter some text in my new text field\";s:4:\"type\";s:4:\"text\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:0;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:2;s:4:\"name\";s:16:\"Test field group\";s:4:\"slug\";i:2;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:1;}}}s:7:\"deleted\";b:0;s:12:\"fields_count\";i:1;}i:3;a:9:{s:2:\"id\";i:3;s:3:\"key\";s:29:\"my_new_field_group_all_fields\";s:4:\"slug\";s:29:\"my_new_field_group_all_fields\";s:4:\"name\";s:32:\"Test field group with all fields\";s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:6:\"fields\";a:12:{i:0;a:9:{s:4:\"name\";s:24:\"A new field of type text\";s:4:\"slug\";s:19:\"slug_fieldtype_text\";s:11:\"description\";s:34:\"Description for field of type text\";s:4:\"type\";s:4:\"text\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:0;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:1;a:9:{s:4:\"name\";s:28:\"A new field of type textarea\";s:4:\"slug\";s:23:\"slug_fieldtype_textarea\";s:11:\"description\";s:38:\"Description for field of type textarea\";s:4:\"type\";s:8:\"textarea\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:1;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:2;a:9:{s:4:\"name\";s:28:\"A new field of type checkbox\";s:4:\"slug\";s:23:\"slug_fieldtype_checkbox\";s:11:\"description\";s:38:\"Description for field of type checkbox\";s:4:\"type\";s:8:\"checkbox\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:2;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:3;a:9:{s:4:\"name\";s:31:\"A new field of type radiobutton\";s:4:\"slug\";s:26:\"slug_fieldtype_radiobutton\";s:11:\"description\";s:41:\"Description for field of type radiobutton\";s:4:\"type\";s:11:\"radiobutton\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:3;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:4;a:9:{s:4:\"name\";s:28:\"A new field of type dropdown\";s:4:\"slug\";s:23:\"slug_fieldtype_dropdown\";s:11:\"description\";s:38:\"Description for field of type dropdown\";s:4:\"type\";s:8:\"dropdown\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:4;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:5;a:9:{s:4:\"name\";s:24:\"A new field of type file\";s:4:\"slug\";s:19:\"slug_fieldtype_file\";s:11:\"description\";s:34:\"Description for field of type file\";s:4:\"type\";s:4:\"file\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:5;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:6;a:9:{s:4:\"name\";s:24:\"A new field of type post\";s:4:\"slug\";s:19:\"slug_fieldtype_post\";s:11:\"description\";s:34:\"Description for field of type post\";s:4:\"type\";s:4:\"post\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:6;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:7;a:9:{s:4:\"name\";s:28:\"A new field of type taxonomy\";s:4:\"slug\";s:23:\"slug_fieldtype_taxonomy\";s:11:\"description\";s:38:\"Description for field of type taxonomy\";s:4:\"type\";s:8:\"taxonomy\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:7;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:8;a:9:{s:4:\"name\";s:32:\"A new field of type taxonomyterm\";s:4:\"slug\";s:27:\"slug_fieldtype_taxonomyterm\";s:11:\"description\";s:42:\"Description for field of type taxonomyterm\";s:4:\"type\";s:12:\"taxonomyterm\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:8;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:9;a:9:{s:4:\"name\";s:25:\"A new field of type color\";s:4:\"slug\";s:20:\"slug_fieldtype_color\";s:11:\"description\";s:35:\"Description for field of type color\";s:4:\"type\";s:5:\"color\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:9;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:10;a:9:{s:4:\"name\";s:24:\"A new field of type date\";s:4:\"slug\";s:19:\"slug_fieldtype_date\";s:11:\"description\";s:34:\"Description for field of type date\";s:4:\"type\";s:4:\"date\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:10;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}i:11;a:9:{s:4:\"name\";s:24:\"A new field of type user\";s:4:\"slug\";s:19:\"slug_fieldtype_user\";s:11:\"description\";s:34:\"Description for field of type user\";s:4:\"type\";s:4:\"user\";s:17:\"type_post_options\";a:2:{s:18:\"enabled_post_types\";a:0:{}s:20:\"additional_arguments\";s:0:\"\";}s:25:\"type_taxonomyterm_options\";a:1:{s:20:\"additional_arguments\";s:0:\"\";}s:2:\"id\";i:11;s:7:\"deleted\";i:0;s:11:\"field_group\";a:6:{s:2:\"id\";i:3;s:4:\"name\";s:32:\"Test field group with all fields\";s:4:\"slug\";i:3;s:11:\"description\";s:22:\"Test field description\";s:10:\"repeatable\";i:1;s:12:\"fields_count\";i:12;}}}s:7:\"deleted\";b:0;s:12:\"fields_count\";i:12;}}', 'yes')
+EOT;
+
+		#'s:2:\"11\"';
+		$stringlen = strlen($post_id);
+		#echo "len: $stringlen";
+		#echo "postid: $post_id";
+		// replace %%THING1%% with string length and val of previosly inserted post
+		
+		$query = str_replace('%%THING1%%', 's:' . $stringlen . ':\"' . $post_id . '\"', $query);
+		#$query = str_replace('%%THING1%%', 's:2:\"11\"', $query);
+		#echo $query;
+		$wpdb->query($query);
+
+		$query = <<<EOT
+			INSERT INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`)
+			VALUES
+				('simple_fields_post_connectors', 'a:1:{i:1;a:9:{s:2:\"id\";i:1;s:3:\"key\";s:23:\"post_connector_manually\";s:4:\"slug\";s:23:\"post_connector_manually\";s:4:\"name\";s:29:\"Manually added post connector\";s:12:\"field_groups\";a:1:{i:1;a:5:{s:2:\"id\";s:1:\"1\";s:4:\"name\";s:26:\"Manually added field group\";s:7:\"deleted\";s:1:\"0\";s:7:\"context\";s:6:\"normal\";s:8:\"priority\";s:4:\"high\";}}s:10:\"post_types\";a:2:{i:0;s:4:\"post\";i:1;s:4:\"page\";}s:7:\"deleted\";b:0;s:11:\"hide_editor\";b:0;s:18:\"field_groups_count\";i:1;}}', 'yes')
+EOT;
+		$wpdb->query($query);
+
+
+		#sf_d( $this->factory->post->create_many( 5 ) );exit;
+		#$post_id = 11;
+
+		$query = <<<EOT
+			INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+			VALUES
+				($post_id, '_simple_fields_selected_connector', '1'),
+				($post_id, '_simple_fields_been_saved', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_14_numInSet_0', '2013-01-31 09:30'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_13_numInSet_0', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_13_numInSet_1', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_12_numInSet_1', '15/10/2012'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_12_numInSet_0', '12/10/2012'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_11_numInSet_0', 'FF3C26'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_11_numInSet_1', '8B33FF'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_10_numInSet_1', ''),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_10_numInSet_0', 'a:1:{i:0;s:1:\"1\";}'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_9_numInSet_1', 'category'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_9_numInSet_0', 'post_tag'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_8_numInSet_1', '5'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_8_numInSet_0', '$post_id'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_7_numInSet_1', '17'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_6_numInSet_1', 'dropdown_num_2'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_7_numInSet_0', '14'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_3_numInSet_0', '<p>Text entered in the TinyMCE-editor.</p>\n'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_3_numInSet_1', '<p>Tiny editors are great!</p>\n<p>You can style the content and insert images and stuff. Groovy! Funky!</p>\n<h2>A list</h2>\n<ul>\n<li>List item 1</li>\n<li>List item 2</li>\n</ul>\n<h2>And images can be inserted</h2>\n<p><a href=\"http://unit-test.simple-fields.com/wordpress/wp-content/uploads/2012/10/product-cat-2.jpeg\"><img class=\"alignnone  wp-image-14\" title=\"product-cat-2\" src=\"http://unit-test.simple-fields.com/wordpress/wp-content/uploads/2012/10/product-cat-2.jpeg\" alt=\"\" width=\"368\" height=\"277\" /></a></p>\n'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_6_numInSet_0', 'dropdown_num_3'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_5_numInSet_1', 'radiobutton_num_2'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_4_numInSet_1', ''),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_5_numInSet_0', 'radiobutton_num_4'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_4_numInSet_0', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_1_numInSet_1', 'text in textfield 2<span>yes it is</span>'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_2_numInSet_0', 'Text entered in the textarea'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_2_numInSet_1', 'Textera with more funky text in it.\r\n\r\n<h2>Headline</h2>\r\n<ul>\r\n	<li>Item 1</li>\r\n	<li>Item 2</li>\r\n</ul>\r\n'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_added_numInSet_0', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_1_numInSet_0', 'Text entered in the text field'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_added_numInSet_1', '1'),
+				($post_id, '_simple_fields_fieldGroupID_1_fieldID_14_numInSet_1', '2012-12-10 18:00');
+EOT;
+		$wpdb->query($query);
+
+		// Posts to test different connectors with
+		$sql = "INSERT INTO `$wpdb->posts` (`ID`, `post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`, `post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`, `post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`, `post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`, `post_mime_type`, `comment_count`)
+		VALUES
+			(24, 1, '2012-10-11 11:07:42', '2012-10-11 11:07:42', '', 'Post with no connector', '', 'publish', 'open', 'open', '', 'post-with-not-connector', '', '', '2012-10-11 11:08:41', '2012-10-11 11:08:41', '', 0, 'http://unit-test.simple-fields.com/wordpress/?p=24', 0, 'post', '', 0),
+			(26, 1, '2012-10-11 11:08:04', '2012-10-11 11:08:04', '', 'Post with inherit connector', '', 'publish', 'open', 'open', '', 'post-with-inherit-connector', '', '', '2012-10-11 11:08:29', '2012-10-11 11:08:29', '', 0, 'http://unit-test.simple-fields.com/wordpress/?p=26', 0, 'post', '', 0),
+			(32, 1, '2012-10-11 11:39:31', '2012-10-11 11:39:31', '', 'Page with fields', '', 'publish', 'open', 'open', '', 'page-with-fields', '', '', '2012-10-11 11:39:31', '2012-10-11 11:39:31', '', 0, 'http://unit-test.simple-fields.com/wordpress/?page_id=32', 0, 'page', '', 0),
+			(34, 1, '2012-10-11 11:39:43', '2012-10-11 11:39:43', '', 'Page with inherit connector (has parent with fields)', '', 'publish', 'open', 'open', '', 'page-with-inherit-connector', '', '', '2012-10-11 11:40:30', '2012-10-11 11:40:30', '', 32, 'http://unit-test.simple-fields.com/wordpress/?page_id=34', 0, 'page', '', 0),
+			(36, 1, '2012-10-11 11:39:59', '2012-10-11 11:39:59', '', 'Post with no connector (has parent with fields)', '', 'publish', 'open', 'open', '', 'post-with-no-connector', '', '', '2012-10-11 11:40:10', '2012-10-11 11:40:10', '', 32, 'http://unit-test.simple-fields.com/wordpress/?page_id=36', 0, 'page', '', 0);
+		";
+		$wpdb->query($sql);
+
+		// post_with_no_connector
+		$sql = "INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+		VALUES
+			(24, '_edit_lock', '1349955446:1'),
+			(24, '_simple_fields_selected_connector', '__none__'),
+			(24, '_edit_last', '1');";
+		$wpdb->query($sql);
+
+		// post_with_inherit_connector
+		$sql = "INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+		VALUES
+			(26, '_edit_last', '1'),
+			(26, '_edit_lock', '1349953596:1'),
+			(26, '_simple_fields_selected_connector', '__inherit__');";
+		$wpdb->query($sql);
+
+		// page_with_fields
+		$sql = "INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+		VALUES
+			(32, '_edit_last', '1'),
+			(32, '_edit_lock', '1357241403:1'),
+			(32, '_simple_fields_selected_connector', '1'),
+			(32, '_wp_page_template', 'default');";
+		$wpdb->query($sql);
+
+		// page_with_no_connector
+		$sql = "INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+		VALUES
+			(36, '_edit_last', '1'),
+			(36, '_edit_lock', '1349957025:1'),
+			(36, '_simple_fields_selected_connector', '__none__'),
+			(36, '_wp_page_template', 'default');";
+		$wpdb->query($sql);
+
+		// page_with_inherit_connector
+		$sql = "INSERT INTO `$wpdb->postmeta` (`post_id`, `meta_key`, `meta_value`)
+		VALUES
+			(34, '_edit_last', '1'),
+			(34, '_edit_lock', '1349955934:1'),
+			(34, '_simple_fields_selected_connector', '__inherit__'),
+			(34, '_wp_page_template', 'default');";
+		$wpdb->query($sql);
+
+		return $post_id;
+
+	}
 
 	// insert and test manually added fields
-	function testManuallyAddedFields()
-	{
-		_insert_manually_added_fields();
+	function testManuallyAddedFields() {
 
-		$post_id = 11;
-
+		$this->insertDataForManualAddedFields();
+		$post_id = self::$post_id_for_manual_tests;
+		
 		// test single/first values
 		$this->assertEquals("Text entered in the text field", simple_fields_value("field_text", $post_id));
 		$this->assertEquals("Text entered in the textarea", simple_fields_value("field_textarea", $post_id));
@@ -68,7 +251,7 @@ EOD;
 		$this->assertEquals("radiobutton_num_4", simple_fields_value("field_radiobuttons", $post_id));
 		$this->assertEquals("dropdown_num_3", simple_fields_value("field_dropdown", $post_id));
 		$this->assertEquals(14, simple_fields_value("field_file", $post_id));
-		$this->assertEquals(11, simple_fields_value("field_post", $post_id));
+		$this->assertEquals($post_id, simple_fields_value("field_post", $post_id));
 		$this->assertEquals("post_tag", simple_fields_value("field_taxonomy", $post_id));
 		$this->assertEquals(array(0 => 1), simple_fields_value("field_taxonomy_term", $post_id));
 		$this->assertEquals("FF3C26", simple_fields_value("field_color", $post_id));
@@ -126,7 +309,7 @@ EOD;
 		$this->assertEquals($val, simple_fields_values("field_file", $post_id));
 
 		$val = array(
-			0 => 11,
+			0 => $post_id,
 			1 => 5
 		);
 		$this->assertEquals($val, simple_fields_values("field_post", $post_id));
@@ -191,10 +374,12 @@ EOD;
 	function testManuallyAddedFieldsExtendedReturn()
 	{
 	
-		$post_id = 11;
+		$this->insertDataForManualAddedFields();
+		$post_id = self::$post_id_for_manual_tests;
 	
 		// test single/first values
 		$vals = simple_fields_value("field_radiobuttons", $post_id, "extended_return=1");
+		
 		$vals_expected = array(
 			"selected_value" => "Radiobutton 3",
 			"selected_radiobutton" => array(
@@ -257,98 +442,47 @@ EOD;
 		$attachment_id = 14;
 		$vals_expected = array(
 			'id' => 14,
-			'is_image' => true,
-			'url' => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-			'mime' => 'image/jpeg',
+			'is_image' => false,
+			'url' => false,
+			'mime' => false,
 			'link' => array(
-				'full' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="1024" height="768" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-full" alt="product-cat-2" title="product-cat-2" /></a>',
-				'thumbnail' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="150" height="112" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-thumbnail" alt="product-cat-2" title="product-cat-2" /></a>',
-				'medium' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="300" height="225" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-medium" alt="product-cat-2" title="product-cat-2" /></a>',
-				'large' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="584" height="438" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-large" alt="product-cat-2" title="product-cat-2" /></a>',
-				'post-thumbnail' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="384" height="288" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-post-thumbnail" alt="product-cat-2" title="product-cat-2" /></a>',
-				'large-feature' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="384" height="288" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-large-feature" alt="product-cat-2" title="product-cat-2" /></a>',
-				'small-feature' => '<a href=\'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg\' title=\'product-cat-2\'><img width="400" height="300" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-small-feature" alt="product-cat-2" title="product-cat-2" /></a>'
+				'full' => 'Missing Attachment',
+				'thumbnail' => 'Missing Attachment',
+				'medium' => 'Missing Attachment',
+				'large' => 'Missing Attachment',
+				'post-thumbnail' => 'Missing Attachment',
+				// +        'post-thumbnail-full-width' => 'Missing Attachment'
+
 			),
 			'image' => array(
-				'full' => '<img width="1024" height="768" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-full" alt="product-cat-2" title="product-cat-2" />',
-				'thumbnail' => '<img width="150" height="112" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-thumbnail" alt="product-cat-2" title="product-cat-2" />',
-				'medium' => '<img width="300" height="225" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-medium" alt="product-cat-2" title="product-cat-2" />',
-				'large' => '<img width="584" height="438" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-large" alt="product-cat-2" title="product-cat-2" />',
-				'post-thumbnail' => '<img width="384" height="288" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-post-thumbnail" alt="product-cat-2" title="product-cat-2" />',
-				'large-feature' => '<img width="384" height="288" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-large-feature" alt="product-cat-2" title="product-cat-2" />',
-				'small-feature' => '<img width="400" height="300" src="http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg" class="attachment-small-feature" alt="product-cat-2" title="product-cat-2" />'
+				'full' => '',
+				'thumbnail' => '',
+				'medium' => '',
+				'large' => '',
+				'post-thumbnail' => '',
+				// +        'post-thumbnail-full-width' => ''
+
 			),
 			'image_src' => array(
-				'full' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 1024,
-					2 => 768,
-					3 => false
-				),
-				'thumbnail' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 150,
-					2 => 112,
-					3 => false
-				),
-				'medium' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 300,
-					2 => 225,
-					3 => false
-				),
-				'large' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 584,
-					2 => 438,
-					3 => false
-				),
-				'post-thumbnail' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 384,
-					2 => 288,
-					3 => false
-				),
-				'large-feature' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 384,
-					2 => 288,
-					3 => false
-				),
-				'small-feature' => array(
-					0 => 'http://unit-test.simple-fields.com/wp/wp-content/uploads/2012/10/product-cat-2.jpeg',
-					1 => 400,
-					2 => 300,
-					3 => false
-				)
+				'full' => false,
+				'thumbnail' => false,
+				'medium' => false,
+				'large' => false,
+				'post-thumbnail' => false,
+				// 'post-thumbnail-full-width' => false
+
 			),
-			'metadata' => array(
-				'width' => '1024',
-				'height' => '768',
-				'hwstring_small' => 'height=\'96\' width=\'128\'',
-				'file' => '2012/10/product-cat-2.jpeg',
-				'image_meta' => array(
-					'aperture' => '0',
-					'credit' => '',
-					'camera' => '',
-					'caption' => '',
-					'created_timestamp' => '0',
-					'copyright' => '',
-					'focal_length' => '0',
-					'iso' => '0',
-					'shutter_speed' => '0',
-					'title' => ''
-				)
-			),
-			'post' => get_post($attachment_id)
+			'metadata' => false,
+			"post" => null
 		);
+		#var_dump($vals);
 		$this->assertEquals($vals_expected, $vals);
 		
 		$vals = simple_fields_value("field_post", $post_id, "extended_return=1");
 		$vals_expected = array(
-			'id' => 11,
+			'id' => $post_id,
 			'title' => 'Post with fields',
-			'permalink' => 'http://unit-test.simple-fields.com/?p=11',
+			'permalink' => get_permalink($post_id),
 			'post' => get_post($post_id)
 		);
 		$this->assertEquals($vals_expected, $vals);
@@ -385,57 +519,72 @@ EOD;
 		$this->assertEquals($vals_expected, $vals);
 		
 		$vals = simple_fields_value("field_user", $post_id, "extended_return=1");
-		$vals_expected = array ( 'id' => 1, 'first_name' => '', 'last_name' => '', 'user_login' => 'admin', 'user_email' => 'admin@simple-fields.com', 'user_nicename' => 'admin', 'display_name' => 'admin', 'user' => get_user_by("id", 1));
+		$vals_expected = array ( 
+			'id' => 1, 
+			'first_name' => '', 
+			'last_name' => '', 
+			'user_login' => 'admin', 
+			'user_email' => 'admin@example.org', 
+			'user_nicename' => 'admin', 'display_name' => 'admin', 
+			'user' => get_user_by("id", 1)
+		);
 		$this->assertEquals($vals_expected, $vals);
 				
 	}
+
+
+
+
 
 	public function testPostConnectors() {
 		
 		// testa connectors
 		// sätt connectors manuellt på några poster
 		// testa därefter om det är rätt stuff
-		
-		$post_with_fields = 11;
+		$this->insertDataForManualAddedFields();
+		$post_id = self::$post_id_for_manual_tests;
+	
+		$post_with_fields = $post_id;
 		$saved_connector_to_use = get_post_meta($post_with_fields, "_simple_fields_selected_connector", true);
 		$this->assertEquals(1, $saved_connector_to_use);
-		$this->assertEquals(1, $this->sf->get_selected_connector_for_post($post_with_fields));
+		$this->assertEquals(1, self::$sf->get_selected_connector_for_post($post_with_fields));
+
 
 		$post_with_no_connector = 24;
 		$saved_connector_to_use = get_post_meta($post_with_no_connector, "_simple_fields_selected_connector", true);
 		$this->assertEquals("__none__", $saved_connector_to_use);
-		$this->assertEquals("__none__", $this->sf->get_selected_connector_for_post($post_with_no_connector));
+		$this->assertEquals("__none__", self::$sf->get_selected_connector_for_post($post_with_no_connector));
 
 		$post_with_inherit_connector = 26;
 		$saved_connector_to_use = get_post_meta($post_with_inherit_connector, "_simple_fields_selected_connector", true);
 		$this->assertEquals("__inherit__", $saved_connector_to_use);
-		$this->assertEquals("__inherit__", $this->sf->get_selected_connector_for_post($post_with_inherit_connector));
+		$this->assertEquals("__inherit__", self::$sf->get_selected_connector_for_post($post_with_inherit_connector));
 
 		// pages
 		$page_with_fields = 32;
 		$saved_connector_to_use = get_post_meta($page_with_fields, "_simple_fields_selected_connector", true);
 		$this->assertEquals(1, $saved_connector_to_use);
-		$this->assertEquals(1, $this->sf->get_selected_connector_for_post($page_with_fields));
+		$this->assertEquals(1, self::$sf->get_selected_connector_for_post($page_with_fields));
 		$this->assertEquals("post_connector_manually", simple_fields_connector($page_with_fields));
 
 		$page_with_no_connector = 36;
 		$saved_connector_to_use = get_post_meta($page_with_no_connector, "_simple_fields_selected_connector", true);
 		$this->assertEquals("__none__", $saved_connector_to_use);
-		$this->assertEquals("__none__", $this->sf->get_selected_connector_for_post($page_with_no_connector));
+		$this->assertEquals("__none__", self::$sf->get_selected_connector_for_post($page_with_no_connector));
 		$this->assertEmpty(simple_fields_connector($page_with_no_connector));
 
 		// page is a child of a page with fields, so it will use the connector of the parent
 		$page_with_inherit_connector = 34;
 		$saved_connector_to_use = get_post_meta($page_with_inherit_connector, "_simple_fields_selected_connector", true);
 		$this->assertEquals("__inherit__", $saved_connector_to_use);
-		$this->assertEquals(1, $this->sf->get_selected_connector_for_post($page_with_inherit_connector));
+		$this->assertEquals(1, self::$sf->get_selected_connector_for_post($page_with_inherit_connector));
 		$this->assertEquals("post_connector_manually", simple_fields_connector($page_with_inherit_connector));
 
 		$arr = array(
 		    0 => 'post',
 		    1 => 'page'
 		);
-		$this->assertEquals( $arr, $this->sf->get_post_connector_attached_types() );
+		$this->assertEquals( $arr, self::$sf->get_post_connector_attached_types() );
 
 		// formated output from var_export using http://beta.phpformatter.com/
 		$arr = array(
@@ -460,7 +609,7 @@ EOD;
 		    'hide_editor' => false,
 		    'field_groups_count' => 1
 		);
-		$this->assertEquals($arr, $this->sf->get_connector_by_id(1));
+		$this->assertEquals($arr, self::$sf->get_connector_by_id(1));
 		
 		$arr = array(
 		    1 => array(
@@ -486,25 +635,25 @@ EOD;
 		        'field_groups_count' => 1
 		    )
 		);
-		$this->assertEquals($arr, $this->sf->get_post_connectors() );
+		$this->assertEquals($arr, self::$sf->get_post_connectors() );
 
 	}
 
 	public function testSaveGetOptions() {
 		
-		$this->sf->save_options(array(
+		self::$sf->save_options(array(
 			"phpunittest_save_option" => "new saved value"
 		));
 		
-		$options = $this->sf->get_options();
+		$options = self::$sf->get_options();
 		$this->assertArrayHasKey("phpunittest_save_option", $options);
 
-		$this->sf->save_options(array(
+		self::$sf->save_options(array(
 			"phpunittest_save_option" => "new saved value",
 			"phpunittest_save_another_option" => "another value",
 		));
 
-		$options = $this->sf->get_options();
+		$options = self::$sf->get_options();
 		$this->assertArrayHasKey("phpunittest_save_option", $options);
 		$this->assertArrayHasKey("phpunittest_save_another_option", $options);
 
@@ -512,9 +661,13 @@ EOD;
 
 	}
 	
+	/**
+	 * test simple_fields_get_all_fields_and_values_for_post() that gets all values for a post
+	 * simple_fields_get_all_fields_and_values_for_post
+	 */
 	public function testGetAllForPost() {
-
-		$post_id = 11;
+		
+		$post_id = $this->insertDataForManualAddedFields();
 		$all_vals = simple_fields_get_all_fields_and_values_for_post($post_id);
 
 		// this test feels a bit to much, should check sub keys-stuff instead of all
@@ -1035,7 +1188,7 @@ EOD;
 		);
 
 		$expected_return = array(
-		    'id' => 4,
+		    'id' => 1,
 		    'key' => 'my_new_field_group',
 		    'slug' => 'my_new_field_group',
 		    'name' => 'Test field group',
@@ -1061,7 +1214,7 @@ EOD;
 		            	"text" => array()
 		            ),
 				    "field_group" => array(
-						"id" => 4,
+						"id" => 1,
 						"name" => "Test field group",
 						"slug" => "my_new_field_group",
 						"description" => "Test field description",
@@ -1111,7 +1264,7 @@ EOD;
 
 		// something like this anyway. we can check keys by it anyway
 		$expected_return = array(
-		    'id' => 3,
+		    'id' => 2,
 		    'key' => 'my_new_field_group_all_fields',
 		    'slug' => 'my_new_field_group_all_fields',
 		    'name' => 'Test field group with all fields',
@@ -1138,11 +1291,19 @@ EOD;
 		    ),
 		    'deleted' => false,
 		    "fields_count" => 1,
-		    "added_with_code" => true
+		    "added_with_code" => true,
+		    "gui_view" => "list"
 		);
+
 
 		unset($arr_return["fields_by_slug"]);
 		
+		ksort($expected_return);
+		ksort($arr_return);
+		
+		#print_r(array_keys($arr_return));
+		#print_r(array_keys($expected_return));
+
 		$this->assertEquals( array_keys($expected_return), array_keys($arr_return) );
 		
 		// @todo: add test of values here also
@@ -1158,6 +1319,11 @@ EOD;
 				   $arr_one_field["type_date_options"],
 				   $arr_one_field["type_user_options"]
 				);
+
+		
+			ksort($expected_return["fields"][0]);
+			ksort($arr_one_field);
+
 			$this->assertEquals( array_keys($expected_return["fields"][0]), array_keys($arr_one_field) );
 		}
 	
@@ -1197,13 +1363,13 @@ EOD;
 		);
 
 		$connector_return1_expected = array(
-                'id' => 2,
+                'id' => 1,
                 'key' => 'test_connector',
                 'slug' => 'test_connector',
                 'name' => 'A test connector',
                 'field_groups' => array(
-                                4 => array(
-                                                'id' => 4,
+                                1 => array(
+                                                'id' => 1,
                                                 'slug' => 'my_new_field_group',
                                                 'key' => 'my_new_field_group',
                                                 'name' => 'Test field group',
@@ -1225,13 +1391,13 @@ EOD;
         $this->assertEquals($connector_return1_expected, $connector_return1);
         
 		$connector_return2_expected = array(
-                'id' => 3,
+                'id' => 2,
                 'key' => 'another_connector',
                 'slug' => 'another_connector',
                 'name' => 'Another connector',
                 'field_groups' => array(
-                                3 => array(
-                                                'id' => 3,
+                                2 => array(
+                                                'id' => 2,
                                                 'slug' => 'my_new_field_group_all_fields',
                                                 'key' => 'my_new_field_group_all_fields',
                                                 'name' => 'Test field group with all fields',
@@ -1239,8 +1405,8 @@ EOD;
                                                 'context' => 'normal',
                                                 'priority' => 'low'
                                 ),
-                                4 => array(
-                                                'id' => 4,
+                                1 => array(
+                                                'id' => 1,
                                                 'slug' => 'my_new_field_group',
                                                 'key' => 'my_new_field_group',
                                                 'name' => 'Test field group',
@@ -1264,7 +1430,7 @@ EOD;
         
 		// test manually added fields again to make sure nothing broke
 		// does this work btw?
-		$this->testManuallyAddedFields();
+		// $this->testManuallyAddedFields();
 
 		// Some more texts with addings fields
 		// Added 14 jan 2013
@@ -1365,44 +1531,38 @@ EOD;
 		*/
 	}
 
-	public function test_misc() {
 		
-		// Test meta key
+	public function test_meta_key_generator() {
 		
 		// older format
-		$key = $this->sf->get_meta_key(1, 2, 3);
+		$key = self::$sf->get_meta_key(1, 2, 3);
 		$this->assertEquals("_simple_fields_fieldGroupID_1_fieldID_2_numInSet_3", $key);
 
 		// newer format
-		$key = $this->sf->get_meta_key(1, 2, 3);
+		$key = self::$sf->get_meta_key(1, 2, 3, "fieldgroupslug", "fieldslug");
 		$this->assertEquals("_simple_fields_fieldGroupID_1_fieldID_2_numInSet_3", $key);
+
+		// test own custom one
+		$custom_field_key_template = add_filter("simple_fields_get_meta_key_template", function($str) {
+			$custom_field_key_template = '%4$s_%5$s_%3$d';
+			return $custom_field_key_template;
+		});
+		$key = self::$sf->get_meta_key(1, 2, 1, "fgAttachments", "fFile");
+		$key_should_be = "fgAttachments_fFile_1";
+		$this->assertEquals($key_should_be, $key);
+
+	}
+
+	public function test_misc() {
 
 		// test that normalization of fields works
 		$field_groups = unserialize('a:1:{i:19;a:12:{s:2:"id";i:19;s:3:"key";s:19:"wpml_radiosandstuff";s:4:"slug";s:19:"wpml_radiosandstuff";s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:6:"fields";a:4:{i:1;a:11:{s:4:"name";s:18:"Here is checkboxes";s:4:"slug";s:3:"cbs";s:11:"description";s:0:"";s:4:"type";s:8:"checkbox";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"1";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:2;a:12:{s:4:"name";s:21:"Here is radio buttons";s:4:"slug";s:3:"rds";s:11:"description";s:0:"";s:4:"type";s:12:"radiobuttons";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_radiobuttons_options";a:4:{s:17:"radiobutton_num_2";a:2:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";}s:17:"radiobutton_num_3";a:2:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";s:17:"radiobutton_num_4";a:2:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";}}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"2";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:3;a:11:{s:4:"name";s:0:"";s:4:"slug";s:0:"";s:11:"description";s:0:"";s:4:"type";s:4:"text";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"3";s:7:"deleted";s:1:"1";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}i:4;a:11:{s:4:"name";s:16:"Here is dropdown";s:4:"slug";s:4:"drps";s:11:"description";s:0:"";s:4:"type";s:8:"dropdown";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:4:{s:15:"enable_multiple";s:1:"0";s:14:"dropdown_num_2";a:2:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_3";a:2:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_4";a:2:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";}}s:2:"id";s:1:"4";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}}}s:14:"fields_by_slug";a:0:{}s:7:"deleted";b:0;s:8:"gui_view";s:4:"list";s:15:"added_with_code";b:0;s:12:"fields_count";i:3;}}');
 		$field_groups_normalized_expected = unserialize('a:1:{i:19;a:12:{s:2:"id";i:19;s:3:"key";s:19:"wpml_radiosandstuff";s:4:"slug";s:19:"wpml_radiosandstuff";s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:6:"fields";a:4:{i:1;a:12:{s:4:"name";s:18:"Here is checkboxes";s:4:"slug";s:3:"cbs";s:11:"description";s:0:"";s:4:"type";s:8:"checkbox";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"1";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:2;a:13:{s:4:"name";s:21:"Here is radio buttons";s:4:"slug";s:3:"rds";s:11:"description";s:0:"";s:4:"type";s:12:"radiobuttons";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_radiobuttons_options";a:4:{s:17:"radiobutton_num_2";a:2:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";}s:17:"radiobutton_num_3";a:2:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";s:17:"radiobutton_num_4";a:2:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";}}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"2";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:5:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"radiobuttons";a:2:{s:6:"values";a:3:{i:0;a:3:{s:5:"value";s:13:"Radiobutton 1";s:7:"deleted";s:1:"0";s:3:"num";i:2;}i:1;a:4:{s:5:"value";s:14:"And the second";s:7:"deleted";s:1:"0";s:3:"num";i:3;s:7:"checked";b:1;}i:2;a:3:{s:5:"value";s:17:"How about a third";s:7:"deleted";s:1:"0";s:3:"num";i:4;}}s:22:"checked_by_default_num";s:17:"radiobutton_num_3";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:3;a:12:{s:4:"name";s:0:"";s:4:"slug";s:0:"";s:11:"description";s:0:"";s:4:"type";s:4:"text";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:1:{s:15:"enable_multiple";s:1:"0";}s:2:"id";s:1:"3";s:7:"deleted";s:1:"1";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:1:{s:15:"enable_multiple";s:1:"0";}}}i:4;a:12:{s:4:"name";s:16:"Here is dropdown";s:4:"slug";s:4:"drps";s:11:"description";s:0:"";s:4:"type";s:8:"dropdown";s:21:"type_textarea_options";a:1:{s:11:"size_height";s:7:"default";}s:17:"type_post_options";a:1:{s:20:"additional_arguments";s:0:"";}s:25:"type_taxonomyterm_options";a:1:{s:20:"additional_arguments";s:0:"";}s:21:"type_dropdown_options";a:4:{s:15:"enable_multiple";s:1:"0";s:14:"dropdown_num_2";a:2:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_3";a:2:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";}s:14:"dropdown_num_4";a:2:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";}}s:2:"id";s:1:"4";s:7:"deleted";s:1:"0";s:11:"field_group";a:6:{s:2:"id";i:19;s:4:"name";s:32:"Radiobuttons, checkbox, dropdown";s:4:"slug";s:19:"wpml_radiosandstuff";s:11:"description";s:0:"";s:10:"repeatable";b:0;s:12:"fields_count";i:3;}s:7:"options";a:4:{s:8:"textarea";a:1:{s:11:"size_height";s:7:"default";}s:4:"post";a:1:{s:20:"additional_arguments";s:0:"";}s:12:"taxonomyterm";a:1:{s:20:"additional_arguments";s:0:"";}s:8:"dropdown";a:2:{s:15:"enable_multiple";s:1:"0";s:6:"values";a:3:{i:0;a:3:{s:5:"value";s:10:"Dropdown 1";s:7:"deleted";s:1:"0";s:3:"num";i:2;}i:1;a:3:{s:5:"value";s:21:"And a second dropdown";s:7:"deleted";s:1:"0";s:3:"num";i:3;}i:2;a:3:{s:5:"value";s:29:"Dropdowns has third value too";s:7:"deleted";s:1:"0";s:3:"num";i:4;}}}}}}s:14:"fields_by_slug";a:0:{}s:7:"deleted";b:0;s:8:"gui_view";s:4:"list";s:15:"added_with_code";b:0;s:12:"fields_count";i:3;}}');
-		$field_groups_normalized = $this->sf->normalize_fieldgroups( $field_groups );
+		$field_groups_normalized = self::$sf->normalize_fieldgroups( $field_groups );
 		$this->assertEquals( $field_groups_normalized_expected, $field_groups_normalized);
 
 	}
 
-	/**
-	 * A contrived example using some WordPress functionality
-	 */
-	 /*
-	public function testPostTitle()
-	{
 
-		// This will simulate running WordPress' main query.
-		// See wordpress-tests/lib/testcase.php
-		# $this->go_to('http://unit-test.simple-fields.com/wordpress/?p=1');
-
-		// Now that the main query has run, we can do tests that are more functional in nature
-		#global $wp_query;
-		#sf_d($wp_query);
-		#$post = $wp_query->get_queried_object();
-		#var_dump($post);
-		#$this->assertEquals('Hello world!', $post->post_title );
-		#$this->assertEquals('Hello world!', $post->post_title );
-	}
-	*/
 }
+
